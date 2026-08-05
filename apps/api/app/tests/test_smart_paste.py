@@ -119,6 +119,16 @@ def test_mock_groq_extracts_hdb_without_storey_field():
     assert "storey_band" not in result.candidates
 
 
+def test_mock_groq_accepts_bare_block_address_and_asking_shorthand():
+    result = MockGroqAdapter().extract(
+        "123 Bishan Street 12, 4-room HDB flat, 91 sqm, asking S$650,000, remaining lease 65 years"
+    )
+
+    assert result.candidates["address"][0]["value"] == "123 Bishan Street 12"
+    assert result.candidates["asking_price"][0]["value"] == 650000
+    assert result.candidates["flat_type"][0]["value"] == "4 ROOM"
+
+
 @pytest.mark.parametrize(
     ("raw_value", "flat_type", "subtype"),
     [

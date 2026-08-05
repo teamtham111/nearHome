@@ -19,6 +19,7 @@ RUN pip install --no-cache-dir -e .
 # Smart Paste's headless-browser fallback (for pages that block plain HTTP fetches).
 RUN playwright install --with-deps chromium
 RUN chmod +x /app/scripts/start-api.sh
+ENV TMPDIR=/tmp
 
-EXPOSE 8000
+EXPOSE 8080
 CMD ["/app/scripts/start-api.sh"]

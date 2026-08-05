@@ -16,6 +16,7 @@ from __future__ import annotations
 import ipaddress
 import json
 import re
+import threading
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
@@ -431,6 +432,11 @@ HEADLESS_USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
+_playwright_slots = threading.BoundedSemaphore(value=settings.playwright_max_concurrency)
+
+
+def _playwright_timeout_ms() -> int:
+    return settings.playwright_timeout_seconds * 1_000
 
 
 def _fetch_via_headless_browser(source_url: str) -> RetrievedListingContent:
@@ -444,21 +450,39 @@ def _fetch_via_headless_browser(source_url: str) -> RetrievedListingContent:
     from playwright.sync_api import Error as PlaywrightError
     from playwright.sync_api import sync_playwright
 
+    if not _playwright_slots.acquire(timeout=settings.playwright_timeout_seconds):
+        raise ListingRetrievalError(
+            "NearHome is already checking another listing page. Copy the listing details and paste the text instead.",
+            code="LISTING_BROWSER_BUSY",
+            status_code=503,
+        )
+
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(
                 headless=True,
+                downloads_path="/tmp",
+                # Cloud Run's container sandbox requires this Chromium flag.
+                # URL validation still runs before browser navigation.
                 args=["--no-sandbox", "--disable-dev-shm-usage"],
             )
+            context = None
             try:
                 context = browser.new_context(
                     user_agent=HEADLESS_USER_AGENT,
                     viewport={"width": 1366, "height": 900},
                 )
+                if hasattr(context, "route"):
+                    context.route(
+                        "**/*",
+                        lambda route: route.abort()
+                        if route.request.resource_type in {"image", "media", "font"}
+                        else route.continue_(),
+                    )
                 page = context.new_page()
                 response = page.goto(
                     source_url,
-                    timeout=HEADLESS_NAVIGATION_TIMEOUT_MS,
+                    timeout=_playwright_timeout_ms(),
                     wait_until="domcontentloaded",
                 )
                 # Give a short grace period for a client-side challenge/redirect to settle.
@@ -467,11 +491,20 @@ def _fetch_via_headless_browser(source_url: str) -> RetrievedListingContent:
                 html = page.content()
                 status_code = response.status if response else None
             finally:
+                if context is not None and hasattr(context, "close"):
+                    context.close()
                 browser.close()
     except PlaywrightError as exc:
+        logger.warning(
+            "smart_paste_headless_failed",
+            error_category="browser",
+            error_type=type(exc).__name__,
+        )
         raise ListingRetrievalError(
             "NearHome could not render this listing page. Copy the listing details and paste the text instead.",
         ) from exc
+    finally:
+        _playwright_slots.release()
 
     if status_code is not None and status_code >= 400 and status_code not in {401, 403, 429}:
         raise ListingRetrievalError(
@@ -503,6 +536,9 @@ def retrieve_listing_content(source_url: str) -> RetrievedListingContent:
         return _fetch_via_http(source_url)
     except ListingRetrievalError as http_error:
         if http_error.code not in _HEADLESS_FALLBACK_CODES:
+            raise
+        if not settings.enable_playwright_fallback:
+            logger.info("smart_paste_headless_disabled", error_category="browser")
             raise
         if settings.app_env == "development":
             logger.info("SMART_PASTE_HTTP_FETCH_BLOCKED_RETRYING_HEADLESS", code=http_error.code)

@@ -19,6 +19,7 @@ async def lifespan(_app: FastAPI):
         "api_started",
         app_env=settings.app_env,
         demo_mode=settings.demo_mode,
+        job_execution_mode=settings.job_execution_mode,
         cors_origin_count=len(settings.cors_origin_list),
     )
     yield

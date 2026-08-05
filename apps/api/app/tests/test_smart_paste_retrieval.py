@@ -424,3 +424,24 @@ def test_headless_browser_fetch_rejects_blocked_page(monkeypatch):
     with pytest.raises(retrieval.ListingRetrievalError) as exc_info:
         retrieval._fetch_via_headless_browser(VALID_URL)
     assert exc_info.value.code == "LISTING_PAGE_UNAVAILABLE"
+
+
+def test_playwright_disabled_keeps_copy_and_paste_fallback(monkeypatch):
+    monkeypatch.setattr(retrieval.settings, "enable_playwright_fallback", False)
+    monkeypatch.setattr(
+        retrieval,
+        "_fetch_via_http",
+        lambda _url: (_ for _ in ()).throw(
+            retrieval.ListingRetrievalError("blocked", code="LISTING_PAGE_UNAVAILABLE")
+        ),
+    )
+    monkeypatch.setattr(
+        retrieval,
+        "_fetch_via_headless_browser",
+        lambda _url: (_ for _ in ()).throw(AssertionError("browser should remain disabled")),
+    )
+
+    with pytest.raises(retrieval.ListingRetrievalError) as exc_info:
+        retrieval.retrieve_listing_content(VALID_URL)
+
+    assert exc_info.value.code == "LISTING_PAGE_UNAVAILABLE"

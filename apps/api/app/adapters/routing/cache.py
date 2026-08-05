@@ -1,9 +1,8 @@
-"""Redis-backed cache-aside layer for routing-provider calls.
+"""Optional Redis cache-aside layer for routing-provider calls.
 
-Reuses the `redis_url` already configured for the `arq` job queue — no new
-infrastructure is introduced. Caching only avoids redundant, cost-incurring
-provider calls; it is never the source of truth for stored evidence (that is
-always persisted via the enrichment repository regardless of cache TTL).
+Cloud Run inline execution runs correctly without Redis. When configured, this
+cache only avoids redundant provider calls; persisted database evidence remains
+the source of truth.
 """
 
 from __future__ import annotations
@@ -76,6 +75,9 @@ class RouteCache:
     def _get_client(self) -> Any:
         if self._client is not None or self._connect_failed:
             return self._client
+        if not settings.redis_url:
+            self._connect_failed = True
+            return None
         try:
             import redis
 

@@ -27,7 +27,7 @@ NearHome is **not** a property search portal, grant calculator, mortgage adviser
 ## Quick start
 
 **Full local setup guide:** [docs/SETUP.md](docs/SETUP.md)  
-**Production deployment guide:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+**Production deployment guide (Vercel + Cloud Run + Supabase):** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
 ```bash
 cp .env.example .env
@@ -60,6 +60,19 @@ Open http://localhost:3000
 ```bash
 docker compose up --build
 ```
+
+## Production architecture
+
+```text
+Vercel / Next.js -> Google Cloud Run / FastAPI -> Supabase PostgreSQL
+```
+
+Cloud Run uses inline enrichment by default, so its first deployment does not
+need Redis or an ARQ worker. The API Docker image packages Playwright Chromium
+and the reference fixtures required by Smart Paste and enrichment. Follow the
+[production deployment guide](docs/DEPLOYMENT.md) for Secret Manager,
+Supabase migrations, Cloud Run deployment, Vercel configuration, and smoke
+tests.
 
 ## Environment variables
 

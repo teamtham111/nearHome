@@ -3,6 +3,8 @@
 .env
 .env.*
 !.env.example
+*-service-account.json
+*service_account*.json
 node_modules
 **/node_modules
 .next
@@ -19,3 +21,4 @@ htmlcov
 *.log
 data_pipeline/snapshots
 evaluation_outputs
+all_code

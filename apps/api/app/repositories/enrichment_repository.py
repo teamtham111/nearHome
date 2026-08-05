@@ -134,6 +134,17 @@ class EnrichmentRepository:
         if runs:
             self.db.commit()
 
+    def mark_queued_runs_failed(self, listing_ids: list[UUID], message: str) -> None:
+        """Avoid leaving a run permanently queued when dispatch itself fails."""
+        runs = self.get_runs_for_session_listings(listing_ids)
+        for run in runs:
+            if run.status == EnrichmentStatus.QUEUED.value:
+                run.status = EnrichmentStatus.FAILED.value
+                run.completed_at = datetime.now(UTC)
+                run.error_message = message
+        if runs:
+            self.db.commit()
+
     def save_journey_estimate(
         self,
         listing_id: UUID,

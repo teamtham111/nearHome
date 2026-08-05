@@ -56,8 +56,8 @@ def health() -> HealthResponse:
 def ready(db: Session = Depends(get_db)) -> JSONResponse:
     """Report dependency state without disclosing connection details.
 
-    PostgreSQL is required, while Redis remains an optional queue/cache
-    dependency because the app has an inline enrichment fallback.
+    PostgreSQL is required. Redis is only checked when ARQ execution is
+    explicitly selected; inline Cloud Run enrichment has no Redis dependency.
     """
     try:
         db.execute(__import__("sqlalchemy").text("SELECT 1"))
@@ -68,21 +68,33 @@ def ready(db: Session = Depends(get_db)) -> JSONResponse:
             content=HealthResponse(
                 status="unavailable",
                 demo_mode=settings.demo_mode,
-                checks={"database": "unavailable", "redis": "unknown"},
+                checks={
+                    "database": "unavailable",
+                    "redis": "not_required" if settings.job_execution_mode == "inline" else "unknown",
+                },
             ).model_dump(),
+        )
+
+    if settings.job_execution_mode == "inline":
+        return JSONResponse(
+            content=HealthResponse(
+                status="ready",
+                demo_mode=settings.demo_mode,
+                checks={"database": "ok", "redis": "not_required", "job_execution": "inline"},
+            ).model_dump()
         )
 
     try:
         redis = Redis.from_url(settings.redis_url, socket_connect_timeout=1, socket_timeout=1)
         redis.ping()
         redis.close()
-    except RedisError:
+    except (RedisError, ValueError):
         logger.warning("readiness_redis_degraded", error_category="redis")
         return JSONResponse(
             content=HealthResponse(
                 status="degraded",
                 demo_mode=settings.demo_mode,
-                checks={"database": "ok", "redis": "unavailable"},
+                checks={"database": "ok", "redis": "unavailable", "job_execution": "arq"},
             ).model_dump(),
         )
 
@@ -90,7 +102,7 @@ def ready(db: Session = Depends(get_db)) -> JSONResponse:
         content=HealthResponse(
             status="ready",
             demo_mode=settings.demo_mode,
-            checks={"database": "ok", "redis": "ok"},
+                checks={"database": "ok", "redis": "ok", "job_execution": "arq"},
         ).model_dump()
     )
 

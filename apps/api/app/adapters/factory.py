@@ -20,7 +20,9 @@ def get_geocoding_adapter():
 
         return LiveOneMapAdapter()
     except Exception as exc:
-        logger.warning("onemap_live_fallback", error=str(exc))
+        # Exception text can contain an upstream URL or provider response. Keep
+        # operational logs useful without accidentally preserving credentials.
+        logger.warning("onemap_live_fallback", error_category="adapter_initialization", error_type=type(exc).__name__)
         from app.adapters.mock.onemap import MockOneMapAdapter
 
         return MockOneMapAdapter()
@@ -36,7 +38,7 @@ def get_places_adapter():
 
         return LiveGooglePlacesAdapter()
     except Exception as exc:
-        logger.warning("places_live_fallback", error=str(exc))
+        logger.warning("places_live_fallback", error_category="adapter_initialization", error_type=type(exc).__name__)
         from app.adapters.mock.google_places import MockGooglePlacesAdapter
 
         return MockGooglePlacesAdapter()
@@ -52,7 +54,7 @@ def get_routes_adapter():
 
         return LiveGoogleRoutesAdapter()
     except Exception as exc:
-        logger.warning("routes_live_fallback", error=str(exc))
+        logger.warning("routes_live_fallback", error_category="adapter_initialization", error_type=type(exc).__name__)
         from app.adapters.mock.google_routes import MockGoogleRoutesAdapter
 
         return MockGoogleRoutesAdapter()

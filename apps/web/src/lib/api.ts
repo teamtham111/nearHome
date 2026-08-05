@@ -1,3 +1,5 @@
+type ApiFetchInit = RequestInit & { timeoutMs?: number };
+
 function getApiUrl(): string {
   const deploymentEnvironment = process.env.NEXT_PUBLIC_DEPLOYMENT_ENV;
   const configuredUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -47,20 +49,22 @@ export function parseApiError(detail: string): string {
   return detail || "Something went wrong";
 }
 
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+export async function apiFetch<T>(path: string, init?: ApiFetchInit): Promise<T> {
   const controller = new AbortController();
   let timedOut = false;
+  const timeoutMs = init?.timeoutMs ?? 15_000;
   const timer = window.setTimeout(() => {
     timedOut = true;
     controller.abort();
-  }, 15_000);
+  }, timeoutMs);
   const abortFromCaller = () => controller.abort();
   init?.signal?.addEventListener("abort", abortFromCaller, { once: true });
 
   let res: Response;
   try {
+    const { timeoutMs: _timeoutMs, ...requestInit } = init ?? {};
     res = await fetch(`${API_URL}${path}`, {
-      ...init,
+      ...requestInit,
       signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
@@ -68,7 +72,10 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
       },
     });
   } catch (error) {
-    if (timedOut) throw new Error("The request took too long. Please try again.");
+    if (timedOut) throw new Error("The analysis is taking longer than expected. Please retry in a moment.");
+    if (error instanceof TypeError && process.env.NEXT_PUBLIC_DEPLOYMENT_ENV === "production") {
+      throw new Error("The analysis service may be starting. Please wait a moment and retry.");
+    }
     throw error;
   } finally {
     window.clearTimeout(timer);
@@ -364,7 +371,7 @@ export function getSession(sessionId: string) {
 export function startEnrichment(sessionId: string) {
   return apiFetch<{ mode: "queued" | "inline"; job_id?: string; result?: unknown }>(
     `/api/v1/sessions/${sessionId}/enrichment/start`,
-    { method: "POST" },
+    { method: "POST", timeoutMs: 610_000 },
   );
 }
 

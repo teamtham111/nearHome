@@ -1,184 +1,217 @@
-# Production deployment
+# Production deployment: Vercel, Cloud Run, and Supabase
 
-NearHome's recommended deployment is **Vercel for the Next.js web app** and a
-single **Render Blueprint for the FastAPI API, ARQ worker, PostgreSQL, and
-Redis-compatible Key Value**. This split keeps browser-delivered code on a
-Next.js-native platform while the API and worker run the Docker image that
-contains Playwright Chromium and the required Linux libraries.
-
-No production URL is committed to this repository. Replace the placeholders
-below only in provider dashboards, never in source files.
-
-## Architecture
+NearHome deploys its Next.js web application to **Vercel** and its existing
+FastAPI service to **Google Cloud Run**. Supabase is used only as managed
+PostgreSQL; NearHome continues to use SQLAlchemy, Alembic, and its existing
+repository/service architecture.
 
 ```text
-Browser -> https://<web-domain> (Vercel / Next.js)
-              | HTTPS, NEXT_PUBLIC_API_BASE_URL
-              v
-          https://<api-domain> (Render / FastAPI + Playwright Chromium)
-              | private network
-              +--> Render PostgreSQL
-              +--> Render Key Value / Redis -> Render ARQ worker
-              +--> Google Routes, OneMap, Groq and optional LTA/data.gov.sg APIs
+Browser -> Vercel / Next.js -> Cloud Run / FastAPI -> Supabase PostgreSQL
+                                  |
+                                  +-> Google Routes/Places, OneMap, Groq, LTA/data.gov.sg
+                                  +-> Playwright Chromium fallback (only after HTTP retrieval fails)
 ```
 
-The API image packages the curated `data_pipeline/fixtures` reference data.
-Smart Paste performs a bounded HTTP retrieval first and uses Playwright
-Chromium only for an approved fallback; no local browser path is required.
+The first production deployment uses `JOB_EXECUTION_MODE=inline`: an
+enrichment request executes in the Cloud Run API instance, persists existing
+progress/results in PostgreSQL, and returns the same `inline` response shape
+the frontend already supports. Redis and an ARQ worker are not required for
+this deployment. Cloud Run is deliberately limited to one instance and one
+concurrent request, so the in-process enrichment semaphore is only a
+per-instance guard, not a distributed lock.
 
-## Deployment-readiness audit
+## Before deployment
 
-| Finding | Classification | Resolution or rationale |
-| --- | --- | --- |
-| Client API URL fell back to `http://localhost:8000` | Must fix | Production builds now require `NEXT_PUBLIC_API_BASE_URL` and HTTPS when `NEXT_PUBLIC_DEPLOYMENT_ENV=production`. |
-| API CORS used wildcard methods/headers and cross-origin credentials | Must fix | CORS now allows only configured origins, the methods NearHome uses, and `Content-Type`/`X-Request-ID`; no browser cookies are used. |
-| API Docker image omitted runtime fixtures | Must fix | The Dockerfile now packages `data_pipeline/fixtures`, so enrichment evidence is available outside Compose bind mounts. |
-| API container hard-coded port 8000 | Must fix | `scripts/start-api.sh` honours the host-provided `PORT`. |
-| Readiness checked only PostgreSQL | Should fix | `/ready` now distinguishes database-unavailable from Redis-degraded with short timeouts and no connection details. |
-| Redis exception messages could reveal an authenticated connection URL | Should fix | Queue and route-cache logs now record only safe category/type fields. |
-| Localhost URLs in `.env.example`, Compose, CI, tests, and local setup docs | Safe/intentional | They are development/test defaults and are blocked from being used by the production web configuration. |
-| Local absolute paths in setup material | Safe/intentional | They occur in explicitly local-development guidance, not runtime configuration. |
-| `http://` URLs in public data-source fixtures and provider documentation | Safe/intentional | These are third-party data/feed references; browser-to-API production traffic is constrained to HTTPS. |
-
-## Deploy the backend and worker
-
-1. Put this repository in a Git provider repository. The workspace currently
-   has no `.git` metadata, so this must be done before provider deployment.
-2. In Render, choose **New > Blueprint**, connect the repository, and select
-   [`render.yaml`](../render.yaml). Choose the same region for every service
-   (the blueprint uses Singapore).
-3. When prompted for `sync: false` values for `nearhome-api`, set these server
-   variables. Use the API's public URL only after Render has created it:
-
-   | Variable | Required | Value |
-   | --- | --- | --- |
-   | `WEB_URL` | Yes | `https://<vercel-web-domain>` |
-   | `CORS_ORIGINS` | Yes | Exactly `https://<vercel-web-domain>`; comma-separate only known additional domains |
-   | `GOOGLE_MAPS_API_KEY` | Yes | Server-restricted key with Routes/Places access as required |
-   | `ONEMAP_EMAIL`, `ONEMAP_PASSWORD` | Yes | OneMap account credentials |
-   | `GROQ_API_KEY` | Yes | Groq server API key |
-   | `DATA_GOV_SG_API_KEY`, `LTA_ACCOUNT_KEY` | Optional | Provider credentials when live sources need them |
-
-   Render creates `SECRET_KEY`, wires `DATABASE_URL` and `REDIS_URL` over its
-   private network, and leaves those connection strings out of the source
-   repository. Copy the provider variables to `nearhome-worker` too; they are
-   deliberately not shared by an environment group because those credentials
-   must be entered in the Render dashboard.
-4. Verify that `nearhome-api` deploys only after `alembic upgrade head` runs.
-   The pre-deploy command is configured in the blueprint and requires the
-   selected paid API plan. Never replace it with a destructive schema reset.
-5. Record the actual API URL as `https://<render-api-domain>`. Confirm:
+1. Create a Supabase project in the desired region.
+2. In Supabase **Connect**, copy the **Session Pooler** connection string for
+   application traffic when direct IPv6 connectivity is unavailable. NearHome
+   accepts either `postgresql://` or `postgresql+psycopg://` and normalizes the
+   former to the installed psycopg v3 driver. Production connections are
+   explicitly opened with `sslmode=require`.
+3. Keep the direct connection string available only if needed for maintenance;
+   use a single, appropriate connection string in the `DATABASE_URL` secret.
+4. Create a Google Cloud project and a dedicated Cloud Run runtime service
+   account. Do not download a service-account JSON key.
+5. Install/authenticate the Google Cloud CLI and select the project:
 
    ```bash
-   curl --fail https://<render-api-domain>/api/v1/health
-   curl --fail https://<render-api-domain>/api/v1/ready
+   gcloud auth login
+   gcloud config set project <google-cloud-project-id>
    ```
 
-`/health` proves the process is running. `/ready` reports `ready`, `degraded`
-(Postgres works but Redis is unavailable), or `unavailable` (Postgres is not
-usable), without disclosing connection strings.
+Supabase documents Session Pooler as the IPv4-compatible alternative for
+persistent application clients, while direct endpoints are appropriate for
+maintenance when reachable. [Supabase connection guidance](https://supabase.com/docs/guides/database/connecting-to-postgres)
 
-## Deploy the frontend
+## Google Secret Manager
 
-1. Import the same repository into Vercel and set the **Root Directory** to
-   `apps/web`. Vercel detects the Next.js application; use Node.js 22.
-2. Set these build-time environment variables for **Production**:
-
-   | Variable | Secret | Value |
-   | --- | --- | --- |
-   | `NEXT_PUBLIC_DEPLOYMENT_ENV` | No | `production` |
-   | `NEXT_PUBLIC_API_BASE_URL` | No | `https://<render-api-domain>` |
-   | `NEXT_PUBLIC_DEMO_MODE` | No | `false` |
-
-   Do **not** put Google, Groq, database, Redis, or session secrets in Vercel
-   environment variables. `NEXT_PUBLIC_*` values are bundled for the browser.
-   The build fails clearly if a production deployment omits the API base URL or
-   uses a non-HTTPS API URL.
-4. NearHome's existing same-origin `/api/geocode` route makes OneMap requests
-   server-side on Vercel. Add `ONEMAP_EMAIL` and `ONEMAP_PASSWORD` as **server
-   environment variables** (without `NEXT_PUBLIC_`) to Vercel as well. They are
-   required for live important-location and named-school address search, remain
-   in Vercel's server bundle only, and must never be exposed to browser code.
-5. Deploy, add a custom domain if desired, then set that final HTTPS origin as
-   both `WEB_URL` and `CORS_ORIGINS` in Render and redeploy the API.
-6. The frontend currently has no configured public GitHub repository URL, so a
-   footer repository link cannot be safely added until the real repository URL
-   is available. Add it as an ordinary public link after the repository exists.
-
-## Security and operations
-
-- Store secrets only in Render's secret environment fields. Rotate a provider
-  key immediately if it has ever been committed; removing it from a current
-  file does not remove Git history.
-- Keep Google API restrictions compatible with server-to-server calls. Browser
-  referrer-only restrictions will reject the API's Google Routes requests.
-- Restrict `CORS_ORIGINS` to exact HTTPS browser origins. The API neither uses
-  wildcard origins nor permits cross-origin credentials.
-- Render's internal Postgres and Key Value URLs are used between services. For
-  an external PostgreSQL provider, require TLS in its supplied `DATABASE_URL`.
-- Back up the managed database according to the selected Render plan. Do not
-  use a seed/reset command against production.
-- API logs include method, path, status, duration, request ID, and safe error
-  category. They intentionally exclude headers, API keys, provider payloads,
-  scraped page content, and connection strings.
-
-## Production environment-variable reference
-
-| Variable | Runtime | Secret | Required | Configuration location |
-| --- | --- | --- | --- | --- |
-| `NEXT_PUBLIC_DEPLOYMENT_ENV` | Web | No | Yes | Vercel Production (`production`) |
-| `NEXT_PUBLIC_API_BASE_URL` | Web | No | Yes | Vercel Production (public HTTPS Render API URL) |
-| `NEXT_PUBLIC_DEMO_MODE` | Web | No | Yes | Vercel Production (`false`) |
-| `ONEMAP_EMAIL`, `ONEMAP_PASSWORD` | Web server route | Yes | Yes | Vercel server environment; never use `NEXT_PUBLIC_` |
-| `APP_ENV` | API and worker | No | Yes | Render Blueprint (`production`) |
-| `DEMO_MODE` | API and worker | No | Yes | Render Blueprint (`false`) |
-| `LOG_LEVEL` | API and worker | No | Yes | Render Blueprint (`INFO`) |
-| `WEB_URL`, `CORS_ORIGINS` | API | No | Yes | Render API secret/environment fields, set to exact Vercel origin |
-| `SECRET_KEY` | API and worker | Yes | Yes | Generated/wired by Render Blueprint |
-| `DATABASE_URL`, `REDIS_URL` | API and worker | Yes | Yes | Private Render references in the Blueprint |
-| `GOOGLE_MAPS_API_KEY` | API and worker | Yes | Yes | Render secret fields |
-| `ONEMAP_EMAIL`, `ONEMAP_PASSWORD` | API and worker | Yes | Yes | Render secret fields |
-| `GROQ_API_KEY` | API and worker | Yes | Yes | Render secret fields |
-| `DATA_GOV_SG_API_KEY`, `LTA_ACCOUNT_KEY` | API and worker | Yes | Optional | Render secret fields when live data sources require them |
-
-`HDB_CARPARK_*`, provider model/version settings, and rate-limit settings retain
-their safe defaults from `.env.example` unless a conscious operational change
-is needed. Do not copy a local `.env` file to either hosting provider.
-
-## Validate production
-
-After both public URLs exist, run only the read-only checks:
+Create each required secret without putting a value in shell history or source
+control. This command reads the value from standard input:
 
 ```bash
-FRONTEND_URL=https://<vercel-web-domain> \
-BACKEND_URL=https://<render-api-domain> \
+printf '%s' '<value-entered-interactively>' | \
+  gcloud secrets create nearhome-database-url --data-file=-
+```
+
+Create these secret names (or override their names through the deployment
+script environment variables):
+
+| Secret Manager secret | NearHome variable | Required |
+| --- | --- | --- |
+| `nearhome-database-url` | `DATABASE_URL` | Yes |
+| `nearhome-secret-key` | `SECRET_KEY` | Yes |
+| `nearhome-google-maps-api-key` | `GOOGLE_MAPS_API_KEY` | Yes for live routes/places |
+| `nearhome-onemap-email` | `ONEMAP_EMAIL` | Yes for live geocoding |
+| `nearhome-onemap-password` | `ONEMAP_PASSWORD` | Yes for live geocoding |
+| `nearhome-groq-api-key` | `GROQ_API_KEY` | Yes for live Smart Paste |
+
+Optional `LTA_ACCOUNT_KEY` and `DATA_GOV_SG_API_KEY` can be added later only
+if their live-source rate limits are needed. The data.gov.sg availability feed
+works without inventing an API key.
+
+Cloud Run's service identity needs `roles/secretmanager.secretAccessor` for
+each attached secret. The deployment script grants that role by secret name;
+it never reads or prints secret values. [Cloud Run secret configuration](https://cloud.google.com/run/docs/configuring/services/secrets)
+
+## Migrate Supabase once
+
+Activate the API environment and run migrations once before deploying a new
+revision. Do not run migrations in every Cloud Run startup and never reset a
+production database.
+
+```bash
+cd apps/api
+source .venv/bin/activate
+cd ../..
+GOOGLE_CLOUD_PROJECT=<google-cloud-project-id> \
+DATABASE_URL_SECRET_NAME=nearhome-database-url \
+./scripts/migrate-supabase.sh
+```
+
+The script retrieves `DATABASE_URL` only into its process environment and runs
+`alembic upgrade head`. Existing migration history is unchanged.
+
+## Deploy the API to Cloud Run
+
+Make the scripts executable once:
+
+```bash
+chmod +x scripts/deploy-cloud-run.sh scripts/migrate-supabase.sh
+```
+
+Deploy with the exact final Vercel origin. The script builds with Cloud Build,
+pushes to Artifact Registry, attaches Secret Manager values, and deploys the
+public API in `asia-southeast1` by default:
+
+```bash
+GOOGLE_CLOUD_PROJECT=<google-cloud-project-id> \
+CLOUD_RUN_SERVICE_ACCOUNT=<runtime-service-account>@<google-cloud-project-id>.iam.gserviceaccount.com \
+WEB_URL=https://<your-project>.vercel.app \
+CORS_ORIGINS=https://<your-project>.vercel.app \
+./scripts/deploy-cloud-run.sh <google-cloud-project-id>
+```
+
+The service uses request-based CPU allocation, `min-instances=0`,
+`max-instances=1`, `concurrency=1`, `1` CPU, `2Gi` memory, and a 600-second
+request timeout. Cloud Run injects `PORT`; the container listens on
+`0.0.0.0:${PORT:-8080}` with one Uvicorn worker, as required by the [Cloud Run
+container contract](https://cloud.google.com/run/docs/container-contract).
+
+The API image includes Python 3.12, Playwright Chromium and Linux dependencies,
+the CatBoost inference code, and `data_pipeline/fixtures`. CatBoost fitting is
+lazy and cached once per container from the immutable transaction snapshot;
+Chromium is never launched during startup or health checks.
+
+## Configure Vercel
+
+Set these Vercel **Production** build variables after the first Cloud Run
+deploy prints its HTTPS URL:
+
+| Variable | Value | Public |
+| --- | --- | --- |
+| `NEXT_PUBLIC_DEPLOYMENT_ENV` | `production` | Yes |
+| `NEXT_PUBLIC_API_BASE_URL` | `https://<cloud-run-service-url>` | Yes |
+| `NEXT_PUBLIC_DEMO_MODE` | `false` | Yes |
+
+Do not add any backend secret as `NEXT_PUBLIC_*`. The existing Next.js
+server-side `/api/geocode` route does require `ONEMAP_EMAIL` and
+`ONEMAP_PASSWORD` as ordinary Vercel server environment variables; they are
+not client variables and must match the provider credentials used by the API.
+
+After Vercel has a final domain, update Cloud Run's `WEB_URL` and
+`CORS_ORIGINS` to that exact HTTPS origin and redeploy. Add preview domains to
+`CORS_ORIGINS` only when they are known and required; CORS controls browser
+origins, not authentication.
+
+## Health checks and smoke test
+
+Cloud Run health checks use existing lightweight endpoints:
+
+```bash
+curl --fail https://<cloud-run-service-url>/api/v1/health
+curl --fail https://<cloud-run-service-url>/api/v1/ready
+```
+
+`/api/v1/health` only confirms the process is alive. `/api/v1/ready` performs a bounded
+database check; it does not load CatBoost, launch Chromium, or call external
+providers. In inline mode Redis reports `not_required`.
+
+After Vercel is configured, use the read-only smoke check:
+
+```bash
+FRONTEND_URL=https://<your-project>.vercel.app \
+BACKEND_URL=https://<cloud-run-service-url> \
 ./scripts/production-smoke.sh
 ```
 
-Then use an incognito window or another device to verify manually:
+Then test in an incognito window: create/load a session, add manual and Smart
+Paste listings, confirm/edit fields, run enrichment, inspect transport,
+driving, journeys, schools, fair price, and recommendation evidence, and
+remove a listing. Verify browser requests target Cloud Run—not localhost—and
+that browser bundles contain no secrets.
 
-1. Load the web app and directly reload a non-root application route.
-2. Create a buyer profile, add two manual listings, edit and remove one, and
-   confirm comparison and recommendation rendering.
-3. Smart Paste one supported listing URL and one copied listing text; confirm
-   review/edit before confirmation and a useful fallback if the listing site
-   blocks retrieval.
-4. Run enrichment for multiple listings. Confirm remaining lease, fair-price,
-   public transport, driving, important locations, and schools each show their
-   real provider/reference-data provenance or a clear provider failure.
-5. In browser developer tools, confirm requests target the HTTPS API domain,
-   not `localhost`, and that no secret is in HTML, bundles, or API responses.
-6. Temporarily test an unavailable optional provider only if it can be done
-   without changing production credentials; its error must be understandable
-   and must include the request ID where applicable.
+## Environment reference
 
-## Common deployment failures
+### Cloud Run normal variables
 
-| Symptom | Cause and fix |
-| --- | --- |
-| Web build says `NEXT_PUBLIC_API_BASE_URL is required` | Add the HTTPS API URL and `NEXT_PUBLIC_DEPLOYMENT_ENV=production` in Vercel, then rebuild. |
-| Browser CORS request fails | Make `WEB_URL` and `CORS_ORIGINS` exactly match the deployed Vercel origin, including `https://`, then redeploy the API. |
-| API fails startup with production configuration error | Supply the named non-secret/secret variable; the startup error never prints its value. |
-| `/ready` is degraded | Postgres is healthy but Redis/worker queue is unavailable. Inspect Render Key Value and worker logs; inline enrichment remains available. |
-| Smart Paste browser fallback fails | Use a Render Docker service with this repository Dockerfile. It installs Playwright Chromium and system dependencies; do not configure a local browser executable path. |
-| Google routing fails in production | Enable billing and the Routes API for the same Google Cloud project as the key, and use server-compatible API-key restrictions. |
+`APP_ENV=production`, `DEMO_MODE=false`, `LOG_LEVEL=INFO`, `WEB_URL`,
+`CORS_ORIGINS`, `JOB_EXECUTION_MODE=inline`, `MAX_CONCURRENT_ENRICHMENTS=1`,
+`ENABLE_PLAYWRIGHT_FALLBACK=true`, `PLAYWRIGHT_TIMEOUT_SECONDS=25`,
+`PLAYWRIGHT_MAX_CONCURRENCY=1`, `DATABASE_POOL_SIZE=3`,
+`DATABASE_MAX_OVERFLOW=2`, and `DATABASE_POOL_RECYCLE_SECONDS=300`.
+
+### Google Secret Manager values
+
+`DATABASE_URL`, `SECRET_KEY`, `GOOGLE_MAPS_API_KEY`, `ONEMAP_EMAIL`,
+`ONEMAP_PASSWORD`, and `GROQ_API_KEY`; optional `LTA_ACCOUNT_KEY` and
+`DATA_GOV_SG_API_KEY` only when configured. `REDIS_URL` is omitted in inline
+mode.
+
+### Vercel values
+
+`NEXT_PUBLIC_DEPLOYMENT_ENV`, `NEXT_PUBLIC_API_BASE_URL`, and
+`NEXT_PUBLIC_DEMO_MODE` are public build-time values. `ONEMAP_EMAIL` and
+`ONEMAP_PASSWORD` are Vercel server-only variables for `/api/geocode`.
+
+### Local-only defaults
+
+Use `.env` copied from `.env.example`. Local PostgreSQL is supported. Inline
+mode works with no Redis. For the optional local ARQ worker, set
+`JOB_EXECUTION_MODE=arq` and a `REDIS_URL`, then start
+`python -m app.jobs.worker`.
+
+## Operational limitations and later scaling
+
+- Scale-to-zero may make the first request slower; the frontend reports a
+  friendly service-starting message for production network failures.
+- One Cloud Run instance/concurrent request means one heavy enrichment at a
+  time. The API returns an existing inline run rather than starting a duplicate
+  for the same session in the same instance.
+- Browser fallback is best effort. HTTP retrieval remains first, SSRF checks
+  remain enabled, and users receive a copy/paste fallback if both methods fail.
+- In `DEMO_MODE`, Smart Paste uses deterministic fixture extraction that
+  recognises common block-prefixed and bare-block Singapore address text; live
+  deployments continue to use Groq extraction.
+- To restore queue-backed execution later, provision Redis, set
+  `JOB_EXECUTION_MODE=arq`, and run the existing worker. The enrichment
+  business logic remains unchanged.

@@ -17,7 +17,7 @@ class MockGroqAdapter:
         candidates: dict[str, list[dict[str, Any]]] = {}
         text = cleaned_text
 
-        price = re.search(r"(?:asking\s+price|price)\s*[:：]?\s*\$?\s*([\d,]+)", text, re.I)
+        price = re.search(r"(?:asking(?:\s+price)?|price)\s*[:：]?\s*(?:S\$|\$)?\s*([\d,]+)", text, re.I)
         if price:
             candidates["asking_price"] = [
                 self._candidate(float(price.group(1).replace(",", "")), price.group(0), "price", text)
@@ -32,7 +32,8 @@ class MockGroqAdapter:
             candidates["floor_area_sqm"] = [self._candidate(value, sqft.group(0), "area", text)]
 
         address = re.search(
-            r"(?:Blk|Block)\s*\d+[\w\s.-]*(?:St|Street|Ave|Avenue|Road|Rd|Drive|Dr|Way|Lane|Lorong|Lor)\s*[\w\s.-]+",
+            r"(?:(?:Blk|Block)\s*)?\d+[A-Za-z]?\s+[A-Za-z][\w\s.-]*?"
+            r"(?:Street|St|Avenue|Ave|Road|Rd|Drive|Dr|Way|Lane|Lorong|Lor)\s*\d*",
             text,
             re.I,
         )
@@ -42,14 +43,14 @@ class MockGroqAdapter:
             ]
 
         flat_type = re.search(
-            r"(?:flat\s+type|type)\s*[:：]?\s*((?:[2-5]\s*ROOM(?:S)?(?:\s*\([^)]*\))?)|"
+            r"(?:flat\s+type|type)\s*[:：]?\s*((?:[2-5][\s-]*ROOM(?:S)?(?:\s*\([^)]*\))?)|"
             r"(?:[2-5][A-Z]{1,4})|EXECUTIVE)",
             text,
             re.I,
         )
         if not flat_type:
             flat_type = re.search(
-                r"\b((?:[2-5]\s*ROOM(?:S)?(?:\s*\([^)]*\))?)|(?:[2-5][A-Z]{1,4}))\s+HDB\b",
+                r"\b((?:[2-5][\s-]*ROOM(?:S)?(?:\s*\([^)]*\))?)|(?:[2-5][A-Z]{1,4}))\s+HDB\b",
                 text,
                 re.I,
             )
