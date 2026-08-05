@@ -1,0 +1,17 @@
+# Vercel is linked at the monorepo root but builds from apps/web. Allow only
+# that frontend subtree so root .env files and backend/local tooling never
+# enter a frontend deployment archive.
+/*
+!apps
+!apps/web
+!apps/web/**
+
+# The parent directory must be re-included for the web subtree, so explicitly
+# remove its sibling and all generated web artefacts again.
+apps/api
+apps/web/.next
+apps/web/.vercel
+apps/web/.env*
+apps/web/node_modules
+apps/web/test-results
+apps/web/*.tsbuildinfo

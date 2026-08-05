@@ -60,7 +60,10 @@ for secret_name in "${required_secrets[@]}"; do
 done
 
 IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/$ARTIFACT_REPOSITORY/$SERVICE_NAME:$(git rev-parse --short HEAD)"
-gcloud builds submit --tag "$IMAGE" .
+# The API Dockerfile lives in the monorepo, not at the repository root. Use
+# the explicit Cloud Build definition so Cloud Build receives the entire
+# context (including reference fixtures) while building the correct file.
+gcloud builds submit . --config cloudbuild.yaml --substitutions="_IMAGE=$IMAGE"
 
 SECRET_MAPPINGS="DATABASE_URL=$DATABASE_URL_SECRET_NAME:latest,SECRET_KEY=$SECRET_KEY_SECRET_NAME:latest,GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY_SECRET_NAME:latest,ONEMAP_EMAIL=$ONEMAP_EMAIL_SECRET_NAME:latest,ONEMAP_PASSWORD=$ONEMAP_PASSWORD_SECRET_NAME:latest,GROQ_API_KEY=$GROQ_API_KEY_SECRET_NAME:latest"
 ENV_VARS="^@^APP_ENV=production@DEMO_MODE=false@LOG_LEVEL=INFO@JOB_EXECUTION_MODE=inline@MAX_CONCURRENT_ENRICHMENTS=1@ENABLE_PLAYWRIGHT_FALLBACK=true@PLAYWRIGHT_TIMEOUT_SECONDS=25@PLAYWRIGHT_MAX_CONCURRENCY=1@DATABASE_POOL_SIZE=3@DATABASE_MAX_OVERFLOW=2@DATABASE_POOL_RECYCLE_SECONDS=300@WEB_URL=$WEB_URL@CORS_ORIGINS=$CORS_ORIGINS"

@@ -5,6 +5,8 @@
 !.env.example
 *-service-account.json
 *service_account*.json
+google-cloud-sdk
+google-cloud-cli-*.tar.gz
 node_modules
 **/node_modules
 .next

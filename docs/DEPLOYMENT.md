@@ -39,6 +39,9 @@ per-instance guard, not a distributed lock.
    gcloud config set project <google-cloud-project-id>
    ```
 
+   Keep downloaded CLI installers and SDK directories outside this repository;
+   they are local tooling, never application build inputs.
+
 Supabase documents Session Pooler as the IPv4-compatible alternative for
 persistent application clients, while direct endpoints are appropriate for
 maintenance when reachable. [Supabase connection guidance](https://supabase.com/docs/guides/database/connecting-to-postgres)
@@ -52,6 +55,20 @@ control. This command reads the value from standard input:
 printf '%s' '<value-entered-interactively>' | \
   gcloud secrets create nearhome-database-url --data-file=-
 ```
+
+Use `printf '%s'`, never `echo`, for connection strings and other exact secret
+values: `echo` appends a newline, and Cloud Run preserves that byte in an
+environment variable. For example, a newline after a PostgreSQL URL becomes
+part of the database name and makes the readiness check fail. To correct an
+existing version without printing the value, create a newline-free replacement:
+
+```bash
+gcloud secrets versions access latest --secret=nearhome-database-url | \
+  tr -d '\n' | \
+  gcloud secrets versions add nearhome-database-url --data-file=-
+```
+
+Create a new Cloud Run revision afterwards so new instances use that version.
 
 Create these secret names (or override their names through the deployment
 script environment variables):
@@ -99,9 +116,12 @@ Make the scripts executable once:
 chmod +x scripts/deploy-cloud-run.sh scripts/migrate-supabase.sh
 ```
 
-Deploy with the exact final Vercel origin. The script builds with Cloud Build,
-pushes to Artifact Registry, attaches Secret Manager values, and deploys the
-public API in `asia-southeast1` by default:
+Deploy with the exact final Vercel origin. The script builds with Cloud Build
+using the root [`cloudbuild.yaml`](../cloudbuild.yaml) definition, which
+selects `apps/api/Dockerfile` while retaining the repository-root build
+context for reference fixtures. It pushes to Artifact Registry, attaches
+Secret Manager values, and deploys the public API in `asia-southeast1` by
+default:
 
 ```bash
 GOOGLE_CLOUD_PROJECT=<google-cloud-project-id> \
@@ -137,6 +157,14 @@ Do not add any backend secret as `NEXT_PUBLIC_*`. The existing Next.js
 server-side `/api/geocode` route does require `ONEMAP_EMAIL` and
 `ONEMAP_PASSWORD` as ordinary Vercel server environment variables; they are
 not client variables and must match the provider credentials used by the API.
+
+Run Vercel from the repository root, which is linked to the project whose Root
+Directory is `apps/web`. The root [`.vercelignore`](../.vercelignore) is an
+allow-list for `apps/web` only: it prevents root `.env` files, the Cloud Run
+API, local tooling, and test/data directories from entering a frontend upload.
+The web build command also deliberately skips the root `.env` when Vercel sets
+`VERCEL=1`, so the Vercel Production variables remain authoritative. Validate
+the source manifest before a manual deployment with `vercel deploy --dry`.
 
 After Vercel has a final domain, update Cloud Run's `WEB_URL` and
 `CORS_ORIGINS` to that exact HTTPS origin and redeploy. Add preview domains to

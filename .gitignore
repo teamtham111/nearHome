@@ -16,6 +16,9 @@ out/
 !.env.example
 *-service-account.json
 *service_account*.json
+/google-cloud-sdk/
+/google-cloud-cli-*.tar.gz
+/all_code/
 
 # IDE
 .idea/
@@ -68,3 +71,5 @@ evaluation_outputs/
 
 # OS
 Thumbs.db
+.vercel
+.env*

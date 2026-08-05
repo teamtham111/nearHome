@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "if [ -f ../../.env ]; then set -a; . ../../.env; set +a; fi; next dev",
-    "build": "if [ -f ../../.env ]; then set -a; . ../../.env; set +a; fi; next build",
+    "build": "if [ -z \"${VERCEL:-}\" ] && [ -f ../../.env ]; then set -a; . ../../.env; set +a; fi; next build",
     "start": "if [ -f ../../.env ]; then set -a; . ../../.env; set +a; fi; next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
