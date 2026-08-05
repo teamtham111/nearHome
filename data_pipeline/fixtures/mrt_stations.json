@@ -1,0 +1,9 @@
+[
+  {"station_code": "NS17", "name": "Bishan", "latitude": 1.3521, "longitude": 103.8498, "lines": ["NSL", "CCL"], "is_interchange": true},
+  {"station_code": "CC15", "name": "Bishan", "latitude": 1.3521, "longitude": 103.8498, "lines": ["NSL", "CCL"], "is_interchange": true},
+  {"station_code": "EW2", "name": "Tampines", "latitude": 1.3534, "longitude": 103.9452, "lines": ["EWL", "DTL"], "is_interchange": true},
+  {"station_code": "DT32", "name": "Tampines", "latitude": 1.3534, "longitude": 103.9452, "lines": ["EWL", "DTL"], "is_interchange": true},
+  {"station_code": "EW24", "name": "Jurong East", "latitude": 1.3330, "longitude": 103.7424, "lines": ["EWL", "NSL"], "is_interchange": true},
+  {"station_code": "NE17", "name": "Punggol", "latitude": 1.4052, "longitude": 103.9025, "lines": ["NEL"], "is_interchange": false},
+  {"station_code": "NS26", "name": "Raffles Place", "latitude": 1.2840, "longitude": 103.8515, "lines": ["NSL", "EWL"], "is_interchange": true}
+]

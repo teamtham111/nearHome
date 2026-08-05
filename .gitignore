@@ -1,0 +1,68 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.next/
+out/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+.cursor/
+*.swp
+.DS_Store
+
+# Testing
+coverage/
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+playwright-report/
+test-results/
+
+# ML artefacts
+ml/artifacts/*.pkl
+ml/artifacts/*.joblib
+ml/artifacts/*.json
+!ml/artifacts/.gitkeep
+apps/api/catboost_info/
+
+# Data snapshots (large)
+data_pipeline/snapshots/
+!data_pipeline/snapshots/.gitkeep
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local/generated runtime output
+.cache/
+.turbo/
+tmp/
+temp/
+*.tmp
+*.sqlite
+*.sqlite3
+*.db
+evaluation_outputs/
+
+# TypeScript incremental build metadata
+*.tsbuildinfo
+
+# OS
+Thumbs.db

@@ -1,0 +1,246 @@
+{
+  "source": "Manually curated list of named arterial roads that feed each major Singapore expressway, geocoded live via OneMap. Not a live feed \u2014 revalidate against LTA's expressway network if road names change.",
+  "version": "2026-08-02",
+  "access_points": [
+    {
+      "name": "PIE via Jurong West St 41",
+      "expressway": "PIE",
+      "direction_label": "westbound towards Tuas/Jurong",
+      "latitude": 1.34825978831537,
+      "longitude": 103.723213174482,
+      "geocode_query": "Jurong West Street 41"
+    },
+    {
+      "name": "PIE via Clementi Ave 6",
+      "expressway": "PIE",
+      "direction_label": "westbound towards Clementi/Jurong",
+      "latitude": 1.32101456929147,
+      "longitude": 103.763757930215,
+      "geocode_query": "Clementi Avenue 6"
+    },
+    {
+      "name": "PIE via Braddell Rd",
+      "expressway": "PIE",
+      "direction_label": "eastbound/westbound via central Singapore",
+      "latitude": 1.34337755969877,
+      "longitude": 103.854258751598,
+      "geocode_query": "Braddell Road"
+    },
+    {
+      "name": "PIE via Tampines Ave 10",
+      "expressway": "PIE",
+      "direction_label": "eastbound towards Changi/Tampines",
+      "latitude": 1.36163357376185,
+      "longitude": 103.930853781336,
+      "geocode_query": "Tampines Avenue 10"
+    },
+    {
+      "name": "PIE via Loyang Ave",
+      "expressway": "PIE",
+      "direction_label": "eastbound towards Changi Airport",
+      "latitude": 1.37400528033094,
+      "longitude": 103.974893262678,
+      "geocode_query": "Loyang Avenue"
+    },
+    {
+      "name": "CTE via Ang Mo Kio Ave 1",
+      "expressway": "CTE",
+      "direction_label": "northbound towards Yishun/Woodlands",
+      "latitude": 1.36370657540919,
+      "longitude": 103.847235832429,
+      "geocode_query": "Ang Mo Kio Avenue 1"
+    },
+    {
+      "name": "CTE via Braddell Rd",
+      "expressway": "CTE",
+      "direction_label": "citybound/northbound via Toa Payoh",
+      "latitude": 1.34337755969877,
+      "longitude": 103.854258751598,
+      "geocode_query": "Braddell Road"
+    },
+    {
+      "name": "CTE via Moulmein Rd",
+      "expressway": "CTE",
+      "direction_label": "citybound towards city centre",
+      "latitude": 1.31898626580253,
+      "longitude": 103.848557646931,
+      "geocode_query": "Moulmein Road"
+    },
+    {
+      "name": "CTE via Kim Seng Rd",
+      "expressway": "CTE",
+      "direction_label": "citybound, southern terminus area",
+      "latitude": 1.2927264240571,
+      "longitude": 103.833230428048,
+      "geocode_query": "Kim Seng Road"
+    },
+    {
+      "name": "ECP via Bedok South Ave 1",
+      "expressway": "ECP",
+      "direction_label": "eastbound towards Changi",
+      "latitude": 1.3164562069246,
+      "longitude": 103.933207061975,
+      "geocode_query": "Bedok South Avenue 1"
+    },
+    {
+      "name": "ECP via Marine Parade Rd",
+      "expressway": "ECP",
+      "direction_label": "citybound towards Marina/city centre",
+      "latitude": 1.30747559245641,
+      "longitude": 103.918109149044,
+      "geocode_query": "Marine Parade Road"
+    },
+    {
+      "name": "ECP via Changi Coast Rd",
+      "expressway": "ECP",
+      "direction_label": "eastbound towards Changi Airport",
+      "latitude": 1.37788138586554,
+      "longitude": 104.003073951746,
+      "geocode_query": "Changi Coast Road"
+    },
+    {
+      "name": "AYE via Alexandra Rd",
+      "expressway": "AYE",
+      "direction_label": "citybound towards city centre",
+      "latitude": 1.29153654792628,
+      "longitude": 103.815285053503,
+      "geocode_query": "Alexandra Road"
+    },
+    {
+      "name": "AYE via Jurong Gateway Rd",
+      "expressway": "AYE",
+      "direction_label": "westbound towards Jurong/Tuas",
+      "latitude": 1.33336902059033,
+      "longitude": 103.744217597929,
+      "geocode_query": "Jurong Gateway Road"
+    },
+    {
+      "name": "AYE via Tuas South Ave 1",
+      "expressway": "AYE",
+      "direction_label": "westbound terminus towards Tuas",
+      "latitude": 1.31649118652279,
+      "longitude": 103.627874114177,
+      "geocode_query": "Tuas South Avenue 1"
+    },
+    {
+      "name": "BKE via Dairy Farm Rd",
+      "expressway": "BKE",
+      "direction_label": "northbound towards Woodlands/Mandai",
+      "latitude": 1.35349310900464,
+      "longitude": 103.787868117719,
+      "geocode_query": "Dairy Farm Road"
+    },
+    {
+      "name": "BKE via Petir Rd",
+      "expressway": "BKE",
+      "direction_label": "northbound towards Woodlands",
+      "latitude": 1.37482144174585,
+      "longitude": 103.771091373899,
+      "geocode_query": "Petir Road"
+    },
+    {
+      "name": "KJE via Choa Chu Kang Ave 4",
+      "expressway": "KJE",
+      "direction_label": "westbound towards Choa Chu Kang",
+      "latitude": 1.38237896706781,
+      "longitude": 103.740186042782,
+      "geocode_query": "Choa Chu Kang Avenue 4"
+    },
+    {
+      "name": "KJE via Woodlands Rd",
+      "expressway": "KJE",
+      "direction_label": "northbound towards Woodlands/BKE",
+      "latitude": 1.39031417462577,
+      "longitude": 103.763963063521,
+      "geocode_query": "Woodlands Road"
+    },
+    {
+      "name": "KPE via Ubi Ave 3",
+      "expressway": "KPE",
+      "direction_label": "southbound towards MCE/city",
+      "latitude": 1.33206322776989,
+      "longitude": 103.894643979367,
+      "geocode_query": "Ubi Avenue 3"
+    },
+    {
+      "name": "KPE via Serangoon Ave 3",
+      "expressway": "KPE",
+      "direction_label": "central section via Serangoon",
+      "latitude": 1.35132697310289,
+      "longitude": 103.864622871656,
+      "geocode_query": "Serangoon Avenue 3"
+    },
+    {
+      "name": "KPE via Punggol Field",
+      "expressway": "KPE",
+      "direction_label": "northbound towards Punggol/TPE",
+      "latitude": 1.39140519741105,
+      "longitude": 103.915691375381,
+      "geocode_query": "Punggol Field"
+    },
+    {
+      "name": "MCE via Marina Coastal Dr",
+      "expressway": "MCE",
+      "direction_label": "connects ECP/AYE via Marina South",
+      "latitude": 1.27043134089797,
+      "longitude": 103.861563000121,
+      "geocode_query": "Marina Coastal Drive"
+    },
+    {
+      "name": "MCE via Shenton Way",
+      "expressway": "MCE",
+      "direction_label": "city-centre southern access",
+      "latitude": 1.27612402388542,
+      "longitude": 103.848159371383,
+      "geocode_query": "Shenton Way"
+    },
+    {
+      "name": "SLE via Yishun Ave 2",
+      "expressway": "SLE",
+      "direction_label": "westbound towards BKE/Mandai",
+      "latitude": 1.42571397983231,
+      "longitude": 103.835139618109,
+      "geocode_query": "Yishun Avenue 2"
+    },
+    {
+      "name": "SLE via Ang Mo Kio Ave 5",
+      "expressway": "SLE",
+      "direction_label": "eastbound towards TPE/Seletar",
+      "latitude": 1.37731149652799,
+      "longitude": 103.860485872465,
+      "geocode_query": "Ang Mo Kio Avenue 5"
+    },
+    {
+      "name": "TPE via Pasir Ris Dr 3",
+      "expressway": "TPE",
+      "direction_label": "eastbound towards Pasir Ris/Changi",
+      "latitude": 1.37492205076327,
+      "longitude": 103.951546849277,
+      "geocode_query": "Pasir Ris Drive 3"
+    },
+    {
+      "name": "TPE via Hougang Ave 8",
+      "expressway": "TPE",
+      "direction_label": "central section via Hougang",
+      "latitude": 1.37475289120452,
+      "longitude": 103.888245381273,
+      "geocode_query": "Hougang Avenue 8"
+    },
+    {
+      "name": "TPE via Punggol Way",
+      "expressway": "TPE",
+      "direction_label": "northbound towards Punggol/KPE",
+      "latitude": 1.41455331241338,
+      "longitude": 103.908235310028,
+      "geocode_query": "Punggol Way"
+    },
+    {
+      "name": "PIE via Adam Rd",
+      "expressway": "PIE",
+      "direction_label": "central section via Adam/Farrer",
+      "latitude": 1.32910440974561,
+      "longitude": 103.814430421018,
+      "geocode_query": "Adam Road"
+    }
+  ]
+}

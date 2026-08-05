@@ -1,0 +1,7 @@
+[
+  {"school_name": "Catholic High School", "level": "Primary", "latitude": 1.3540, "longitude": 103.8450, "address": "BISHAN ST 22"},
+  {"school_name": "Kuo Chuan Presbyterian Primary School", "level": "Primary", "latitude": 1.3510, "longitude": 103.8520, "address": "BISHAN ST 13"},
+  {"school_name": "St. Hilda's Primary School", "level": "Primary", "latitude": 1.3480, "longitude": 103.9580, "address": "TAMPINES AVE 3"},
+  {"school_name": "Tampines Primary School", "level": "Primary", "latitude": 1.3520, "longitude": 103.9420, "address": "TAMPINES ST 21"},
+  {"school_name": "Jurong Primary School", "level": "Primary", "latitude": 1.3360, "longitude": 103.7380, "address": "JURONG WEST ST 42"}
+]

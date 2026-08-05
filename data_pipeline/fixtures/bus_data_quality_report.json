@@ -1,0 +1,13 @@
+{
+  "bus_stops_count": 5208,
+  "bus_routes_rows": 26880,
+  "bus_services_rows": 806,
+  "unique_service_directions_in_routes": 803,
+  "unique_service_directions_in_services": 806,
+  "stops_with_no_routes": 0,
+  "route_stops_referencing_unknown_stop_codes": 0,
+  "duplicate_stop_sequences": 0,
+  "malformed_frequency_values": 2,
+  "is_usable": true,
+  "problems": []
+}
