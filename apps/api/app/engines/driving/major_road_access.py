@@ -12,7 +12,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.adapters.routing.base import RouteResult, RoutingProvider, RoutingProviderError
+from app.adapters.routing.base import RouteResult, RoutingProvider
+from app.adapters.routing.batch import RouteCall, run_bounded_route_calls
 from app.adapters.transport_data.road_access import RoadAccessPoint, RoadAccessPointStore
 from app.domain.enums import ComponentStatus, Provenance
 from app.domain.transport_models import ComponentResult, not_assessed, provider_error
@@ -73,15 +74,21 @@ def compute_major_road_access(
     departure = next_occurrence_at_hour(config.am_peak_hour)
     routed: list[tuple[RoadAccessPoint, RouteResult]] = []
     provider_failures = 0
-    for point in candidates:
-        try:
-            route = routing.get_driving_route(
+    calls = [
+        RouteCall(
+            key=f"drive:{latitude:.6f}:{longitude:.6f}:{point.latitude:.6f}:{point.longitude:.6f}:{departure.isoformat()}",
+            call=lambda point=point: routing.get_driving_route(
                 (latitude, longitude), (point.latitude, point.longitude), departure, traffic_aware=True
-            )
-        except RoutingProviderError:
+            ),
+        )
+        for point in candidates
+    ]
+    for point, outcome in zip(candidates, run_bounded_route_calls(calls), strict=True):
+        if outcome.error is not None:
             provider_failures += 1
             continue
-        routed.append((point, route))
+        if outcome.result is not None:
+            routed.append((point, outcome.result))
 
     if not routed:
         if provider_failures:

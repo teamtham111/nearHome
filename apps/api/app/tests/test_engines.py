@@ -906,7 +906,7 @@ class TestFairPriceValuation:
         )
         result = FairPriceEngine.estimate(listing, "PASIR RIS")
         assert result.status == DataStatus.AVAILABLE
-        assert result.method == "CATBOOST"
+        assert result.method == "WEIGHTED_COMPARABLES_FALLBACK"
         assert len(result.comparables) >= 3
 
     def test_future_transactions_are_excluded_and_asking_price_is_not_a_feature(self):

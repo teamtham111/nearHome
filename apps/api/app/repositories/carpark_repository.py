@@ -24,34 +24,43 @@ class CarparkRepository:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def replace_static_records(self, carparks: list[HdbCarpark]) -> None:
-        """Mirror the refreshed fixture into the database without duplicates."""
+    def import_static_records(self, carparks: list[HdbCarpark]) -> dict[str, int | str]:
+        """Idempotently mirror the official fixture in one read/one commit.
 
-        for carpark in carparks:
-            row = self.db.query(HdbCarparkORM).filter(HdbCarparkORM.carpark_no == carpark.carpark_no).first()
-            values = {
-                "address": carpark.address,
-                "latitude": carpark.latitude,
-                "longitude": carpark.longitude,
-                "carpark_type": carpark.carpark_type,
-                "source_carpark_type": carpark.source_carpark_type,
-                "parking_system_type": carpark.parking_system_type,
-                "short_term_parking": carpark.short_term_parking,
-                "free_parking": carpark.free_parking,
-                "night_parking": carpark.night_parking,
-                "carpark_decks": carpark.carpark_decks,
-                "gantry_height_m": carpark.gantry_height_m,
-                "basement_indicator": carpark.basement_indicator,
-                "source": carpark.source,
-                "source_updated_at": carpark.source_updated_at,
-                "refreshed_at": datetime.now(UTC),
-            }
-            if row:
-                for key, value in values.items():
-                    setattr(row, key, value)
-            else:
-                self.db.add(HdbCarparkORM(carpark_no=carpark.carpark_no, **values))
-        self.db.commit()
+        This is an explicit maintenance operation. It is intentionally never
+        called from a user enrichment run: scoring reads the versioned fixture
+        bundled with the worker, while this table retains auditable parking
+        evidence and availability history.
+        """
+        source_by_number = {carpark.carpark_no: carpark for carpark in carparks if carpark.carpark_no}
+        if not source_by_number:
+            return {"status": "empty_source", "inserted": 0, "updated": 0, "unchanged": 0}
+
+        existing_by_number = {row.carpark_no: row for row in self.db.query(HdbCarparkORM).all()}
+        inserted = updated = unchanged = 0
+        for carpark_no, carpark in source_by_number.items():
+            values = _static_values(carpark)
+            row = existing_by_number.get(carpark_no)
+            if row is None:
+                self.db.add(HdbCarparkORM(carpark_no=carpark_no, refreshed_at=datetime.now(UTC), **values))
+                inserted += 1
+                continue
+            if all(getattr(row, key) == value for key, value in values.items()):
+                unchanged += 1
+                continue
+            for key, value in values.items():
+                setattr(row, key, value)
+            row.refreshed_at = datetime.now(UTC)
+            updated += 1
+
+        if inserted or updated:
+            self.db.commit()
+            return {"status": "imported", "inserted": inserted, "updated": updated, "unchanged": unchanged}
+        return {"status": "unchanged", "inserted": 0, "updated": 0, "unchanged": unchanged}
+
+    def replace_static_records(self, carparks: list[HdbCarpark]) -> dict[str, int | str]:
+        """Backward-compatible name for explicit callers; never use in enrichment."""
+        return self.import_static_records(carparks)
 
     def save_availability(self, records: list[AvailabilityRecord]) -> None:
         for record in records:
@@ -118,7 +127,7 @@ class CarparkRepository:
             },
         }
 
-    def save_matches_and_metric(self, listing_id: UUID, result: ComponentResult) -> None:
+    def save_matches_and_metric(self, listing_id: UUID, result: ComponentResult, *, commit: bool = True) -> None:
         value = result.value or {}
         self.db.execute(delete(ListingCarparkMatchORM).where(ListingCarparkMatchORM.listing_id == listing_id))
         for match in value.get("candidates", []):
@@ -152,7 +161,8 @@ class CarparkRepository:
                     score_version="parking-v2",
                 )
             )
-        self.db.commit()
+        if commit:
+            self.db.commit()
 
 
 def _median(values: list[float]) -> float | None:
@@ -161,3 +171,22 @@ def _median(values: list[float]) -> float | None:
     ordered = sorted(values)
     middle = len(ordered) // 2
     return round(ordered[middle], 1) if len(ordered) % 2 else round((ordered[middle - 1] + ordered[middle]) / 2, 1)
+
+
+def _static_values(carpark: HdbCarpark) -> dict[str, object]:
+    return {
+        "address": carpark.address,
+        "latitude": carpark.latitude,
+        "longitude": carpark.longitude,
+        "carpark_type": carpark.carpark_type,
+        "source_carpark_type": carpark.source_carpark_type,
+        "parking_system_type": carpark.parking_system_type,
+        "short_term_parking": carpark.short_term_parking,
+        "free_parking": carpark.free_parking,
+        "night_parking": carpark.night_parking,
+        "carpark_decks": carpark.carpark_decks,
+        "gantry_height_m": carpark.gantry_height_m,
+        "basement_indicator": carpark.basement_indicator,
+        "source": carpark.source,
+        "source_updated_at": carpark.source_updated_at,
+    }

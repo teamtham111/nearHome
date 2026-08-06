@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
+from time import perf_counter
 from typing import Any
 
 import httpx
@@ -23,9 +24,16 @@ from app.adapters.routing.base import (
     RoutingProviderError,
     RoutingUnavailableError,
 )
-from app.adapters.routing.cache import DEFAULT_TTL_SECONDS, TRAFFIC_AWARE_TTL_SECONDS, build_cache_key, get_route_cache
+from app.adapters.routing.cache import (
+    DEFAULT_TTL_SECONDS,
+    TRAFFIC_AWARE_TTL_SECONDS,
+    TRANSIT_TTL_SECONDS,
+    build_cache_key,
+    get_route_cache,
+)
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.services.enrichment_metrics import record_route_cache, record_route_request
 
 logger = get_logger(__name__)
 
@@ -63,9 +71,29 @@ def _waypoint(coord: tuple[float, float]) -> dict[str, Any]:
 class GoogleRoutingProvider(RoutingProvider):
     provider_name = "GOOGLE_ROUTES"
 
-    def __init__(self) -> None:
+    def __init__(self, *, client: httpx.Client | None = None) -> None:
         self.api_key = settings.google_maps_api_key
         self._cache = get_route_cache()
+        self._client = client
+        self._owns_client = client is None
+
+    def _get_client(self, timeout: float) -> httpx.Client:
+        """Create one client lazily and reuse its HTTP/TLS connection pool."""
+        if self._client is None:
+            self._client = httpx.Client(timeout=timeout)
+        return self._client
+
+    def close(self) -> None:
+        """Release an internally-created connection pool at worker shutdown."""
+        if self._owns_client and self._client is not None:
+            self._client.close()
+        self._client = None
+
+    def __enter__(self) -> GoogleRoutingProvider:
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        self.close()
 
     def _headers(self, field_mask: str) -> dict[str, str]:
         return {
@@ -127,10 +155,15 @@ class GoogleRoutingProvider(RoutingProvider):
         timeout: float,
     ) -> httpx.Response:
         """POST JSON and preserve Google's complete error response for diagnosis."""
+        started = perf_counter()
         try:
-            with httpx.Client(timeout=timeout) as client:
-                response = client.post(endpoint, headers=self._headers(field_mask), json=body)
+            response = self._get_client(timeout).post(endpoint, headers=self._headers(field_mask), json=body)
         except httpx.HTTPError as exc:
+            record_route_request(
+                (perf_counter() - started) * 1000,
+                success=False,
+                timeout=isinstance(exc, httpx.TimeoutException),
+            )
             self._log_diagnostic(
                 endpoint=endpoint,
                 body=body,
@@ -143,6 +176,7 @@ class GoogleRoutingProvider(RoutingProvider):
             ) from exc
 
         if response.status_code >= 400:
+            record_route_request((perf_counter() - started) * 1000, success=False)
             # Read the body exactly once on the error path. Do not call
             # response.json() afterwards; the complete text is what makes
             # quota/auth/schema failures diagnosable.
@@ -170,6 +204,7 @@ class GoogleRoutingProvider(RoutingProvider):
                 )
                 raise
 
+        record_route_request((perf_counter() - started) * 1000, success=True)
         return response
 
     def _compute_routes(
@@ -292,6 +327,7 @@ class GoogleRoutingProvider(RoutingProvider):
     def get_walking_route(self, origin: tuple[float, float], destination: tuple[float, float]) -> RouteResult:
         cache_key = build_cache_key(self.provider_name, "walking", origin, destination, "WALK")
         cached = self._cache.get(cache_key)
+        record_route_cache(hit=bool(cached))
         if cached:
             return _result_from_cache(cached)
 
@@ -311,6 +347,7 @@ class GoogleRoutingProvider(RoutingProvider):
             self.provider_name, "driving", origin, destination, "DRIVE", departure_time, {"traffic": traffic_aware}
         )
         cached = self._cache.get(cache_key)
+        record_route_cache(hit=bool(cached))
         if cached:
             return _result_from_cache(cached)
 
@@ -332,6 +369,7 @@ class GoogleRoutingProvider(RoutingProvider):
             self.provider_name, "driving_alts", origin, destination, "DRIVE", departure_time
         )
         cached = self._cache.get(cache_key)
+        record_route_cache(hit=bool(cached))
         if cached and isinstance(cached.get("routes"), list):
             return [_result_from_cache(r) for r in cached["routes"]]
 
@@ -357,6 +395,7 @@ class GoogleRoutingProvider(RoutingProvider):
     ) -> RouteResult:
         cache_key = build_cache_key(self.provider_name, "transit", origin, destination, "TRANSIT", departure_time)
         cached = self._cache.get(cache_key)
+        record_route_cache(hit=bool(cached))
         if cached:
             return _result_from_cache(cached)
 
@@ -364,7 +403,7 @@ class GoogleRoutingProvider(RoutingProvider):
             origin, destination, "TRANSIT", departure_time, alternatives=False, traffic_aware=False
         )
         result = self._route_to_result(routes[0], "TRANSIT", departure_time, traffic_aware=False, is_alternative=False)
-        self._cache.set(cache_key, _result_to_cache(result), ttl_seconds=DEFAULT_TTL_SECONDS)
+        self._cache.set(cache_key, _result_to_cache(result), ttl_seconds=TRANSIT_TTL_SECONDS)
         return result
 
     def get_route_matrix(

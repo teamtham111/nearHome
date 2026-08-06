@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-type WorkflowStep = "profile" | "listings" | "compare";
+type WorkflowStep = "listings" | "priorities" | "compare";
 
 type WorkflowStepperProps = {
   current: WorkflowStep;
@@ -10,16 +10,16 @@ type WorkflowStepperProps = {
 };
 
 const steps: Array<{ key: WorkflowStep; label: string; shortLabel: string }> = [
-  { key: "profile", label: "Buyer profile", shortLabel: "Profile" },
   { key: "listings", label: "Add flats", shortLabel: "Flats" },
+  { key: "priorities", label: "Select priorities", shortLabel: "Priorities" },
   { key: "compare", label: "Compare results", shortLabel: "Compare" },
 ];
 
 export function WorkflowStepper({ current, profileSaved, listingCount, sessionId }: WorkflowStepperProps) {
   const currentIndex = steps.findIndex((step) => step.key === current);
   const completed = (step: WorkflowStep) => {
-    if (step === "profile") return profileSaved;
     if (step === "listings") return listingCount >= 2;
+    if (step === "priorities") return profileSaved;
     return false;
   };
 
@@ -30,7 +30,7 @@ export function WorkflowStepper({ current, profileSaved, listingCount, sessionId
           const isCurrent = step.key === current;
           const isComplete = completed(step.key) && !isCurrent;
           const canNavigate = index < currentIndex;
-          const target = step.key === "profile" ? `/session/${sessionId}#buyer-profile` : step.key === "listings" ? `/session/${sessionId}#add-flat-heading` : `/session/${sessionId}/comparison`;
+          const target = step.key === "listings" ? `/session/${sessionId}#add-flat-heading` : step.key === "priorities" ? `/session/${sessionId}#buyer-profile` : `/session/${sessionId}/comparison`;
           const content = (
             <>
               <span className={`nh-step-dot ${isCurrent ? "nh-step-dot-current" : isComplete ? "nh-step-dot-complete" : ""}`}>

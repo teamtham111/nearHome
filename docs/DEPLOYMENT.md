@@ -6,19 +6,63 @@ PostgreSQL; NearHome continues to use SQLAlchemy, Alembic, and its existing
 repository/service architecture.
 
 ```text
-Browser -> Vercel / Next.js -> Cloud Run / FastAPI -> Supabase PostgreSQL
-                                  |
-                                  +-> Google Routes/Places, OneMap, Groq, LTA/data.gov.sg
-                                  +-> Playwright Chromium fallback (only after HTTP retrieval fails)
+Browser -> Vercel / Next.js -> public Cloud Run API -> Cloud Tasks -> private Cloud Run worker
+                                  |                       |                    |
+                                  +-----------------------+---- Supabase PostgreSQL
+                                                                      |
+                                                                      +-> Google Routes/Places, OneMap, Groq, LTA/data.gov.sg
+                                                                      +-> Playwright Chromium fallback (only after HTTP retrieval fails)
 ```
 
-The first production deployment uses `JOB_EXECUTION_MODE=inline`: an
-enrichment request executes in the Cloud Run API instance, persists existing
-progress/results in PostgreSQL, and returns the same `inline` response shape
-the frontend already supports. Redis and an ARQ worker are not required for
-this deployment. Cloud Run is deliberately limited to one instance and one
-concurrent request, so the in-process enrichment semaphore is only a
-per-instance guard, not a distributed lock.
+Production uses `JOB_EXECUTION_MODE=cloud_tasks`. The public API creates an
+`enrichment_jobs` row, enqueues only its UUID, and returns HTTP 202. Cloud Tasks
+uses an OIDC token to invoke a private worker, which claims the job atomically,
+persists progress/results in PostgreSQL, and is safe to invoke more than once.
+Redis/ARQ is retained only as local legacy compatibility; it is not required in
+production. Inline mode is local/test-only and production startup rejects it.
+
+## Configure the durable enrichment queue and worker
+
+Run the migration before any service reads job state:
+
+```bash
+cd apps/api && source .venv/bin/activate && alembic upgrade head
+```
+
+Create a dedicated service account for Cloud Tasks OIDC delivery and configure
+the bounded queue. The public API runtime identity receives only
+`roles/cloudtasks.enqueuer` and scoped `roles/iam.serviceAccountUser` on the
+task-delivery identity, allowing it to create an OIDC task as that identity.
+The task-delivery identity receives only `roles/run.invoker` on the private
+worker. Cloud Tasks' service agent needs
+`roles/iam.serviceAccountTokenCreator` on that delivery identity so it can mint
+the OIDC token. The helper script applies these bindings without reading any
+secret values:
+
+```bash
+GOOGLE_CLOUD_PROJECT=<project-id> \
+CLOUD_RUN_SERVICE_ACCOUNT=<public-api-runtime>@<project-id>.iam.gserviceaccount.com \
+CLOUD_TASKS_SERVICE_ACCOUNT_EMAIL=<task-invoker>@<project-id>.iam.gserviceaccount.com \
+./scripts/configure-enrichment-queue.sh <project-id>
+```
+
+Deploy the worker privately first. Unless `ENRICHMENT_WORKER_IMAGE` is provided,
+its script builds the shared API/worker image itself. It uses concurrency one and
+one maximum instance by default because Playwright may run there:
+
+```bash
+GOOGLE_CLOUD_PROJECT=<project-id> \
+ENRICHMENT_WORKER_SERVICE_ACCOUNT=<worker-runtime>@<project-id>.iam.gserviceaccount.com \
+CLOUD_TASKS_SERVICE_ACCOUNT_EMAIL=<task-invoker>@<project-id>.iam.gserviceaccount.com \
+WEB_URL=https://<your-project>.vercel.app \
+CORS_ORIGINS=https://<your-project>.vercel.app \
+./scripts/deploy-enrichment-worker.sh <project-id>
+```
+
+Copy the emitted private worker URL into `ENRICHMENT_WORKER_URL`, then deploy
+the public API with `CLOUD_TASKS_SERVICE_ACCOUNT_EMAIL` and that URL set. The
+worker must remain `--no-allow-unauthenticated`; Cloud Run IAM plus the Cloud
+Tasks OIDC token rejects public calls. Do not add service-account JSON keys.
 
 ## Before deployment
 
@@ -126,6 +170,8 @@ default:
 ```bash
 GOOGLE_CLOUD_PROJECT=<google-cloud-project-id> \
 CLOUD_RUN_SERVICE_ACCOUNT=<runtime-service-account>@<google-cloud-project-id>.iam.gserviceaccount.com \
+CLOUD_TASKS_SERVICE_ACCOUNT_EMAIL=<task-invoker>@<google-cloud-project-id>.iam.gserviceaccount.com \
+ENRICHMENT_WORKER_URL=https://<private-worker-url> \
 WEB_URL=https://<your-project>.vercel.app \
 CORS_ORIGINS=https://<your-project>.vercel.app \
 ./scripts/deploy-cloud-run.sh <google-cloud-project-id>
@@ -138,9 +184,11 @@ request timeout. Cloud Run injects `PORT`; the container listens on
 container contract](https://cloud.google.com/run/docs/container-contract).
 
 The API image includes Python 3.12, Playwright Chromium and Linux dependencies,
-the CatBoost inference code, and `data_pipeline/fixtures`. CatBoost fitting is
-lazy and cached once per container from the immutable transaction snapshot;
-Chromium is never launched during startup or health checks.
+the CatBoost inference code, its prebuilt image-local artifact, and
+`data_pipeline/fixtures`. The artifact is trained during image build from the
+immutable transaction snapshot; runtime only loads and validates it, never fits
+or calibrates during enrichment. Chromium is never launched during startup or
+health checks.
 
 ## Configure Vercel
 
@@ -182,7 +230,8 @@ curl --fail https://<cloud-run-service-url>/api/v1/ready
 
 `/api/v1/health` only confirms the process is alive. `/api/v1/ready` performs a bounded
 database check; it does not load CatBoost, launch Chromium, or call external
-providers. In inline mode Redis reports `not_required`.
+providers. In Cloud Tasks mode Redis reports `not_required` and `job_execution`
+reports `cloud_tasks`.
 
 After Vercel is configured, use the read-only smoke check:
 
@@ -203,7 +252,12 @@ that browser bundles contain no secrets.
 ### Cloud Run normal variables
 
 `APP_ENV=production`, `DEMO_MODE=false`, `LOG_LEVEL=INFO`, `WEB_URL`,
-`CORS_ORIGINS`, `JOB_EXECUTION_MODE=inline`, `MAX_CONCURRENT_ENRICHMENTS=1`,
+`CORS_ORIGINS`, `JOB_EXECUTION_MODE=cloud_tasks`, `GCP_PROJECT_ID`,
+`CLOUD_TASKS_LOCATION`, `CLOUD_TASKS_QUEUE`, `ENRICHMENT_WORKER_URL`,
+`CLOUD_TASKS_SERVICE_ACCOUNT_EMAIL`, optional `CLOUD_TASKS_OIDC_AUDIENCE`,
+`CLOUD_TASKS_DISPATCH_DEADLINE_SECONDS=600`, `MAX_ENRICHMENT_JOB_ATTEMPTS=3`,
+`ENRICHMENT_JOB_STALE_SECONDS=660`,
+`MAX_CONCURRENT_ENRICHMENTS=1`,
 `ENABLE_PLAYWRIGHT_FALLBACK=true`, `PLAYWRIGHT_TIMEOUT_SECONDS=25`,
 `PLAYWRIGHT_MAX_CONCURRENCY=1`, `DATABASE_POOL_SIZE=3`,
 `DATABASE_MAX_OVERFLOW=2`, and `DATABASE_POOL_RECYCLE_SECONDS=300`.
@@ -212,8 +266,8 @@ that browser bundles contain no secrets.
 
 `DATABASE_URL`, `SECRET_KEY`, `GOOGLE_MAPS_API_KEY`, `ONEMAP_EMAIL`,
 `ONEMAP_PASSWORD`, and `GROQ_API_KEY`; optional `LTA_ACCOUNT_KEY` and
-`DATA_GOV_SG_API_KEY` only when configured. `REDIS_URL` is omitted in inline
-mode.
+`DATA_GOV_SG_API_KEY` only when configured. `REDIS_URL` is omitted in Cloud
+Tasks mode.
 
 ### Vercel values
 
@@ -224,22 +278,27 @@ mode.
 ### Local-only defaults
 
 Use `.env` copied from `.env.example`. Local PostgreSQL is supported. Inline
-mode works with no Redis. For the optional local ARQ worker, set
-`JOB_EXECUTION_MODE=arq` and a `REDIS_URL`, then start
-`python -m app.jobs.worker`.
+mode is allowed only locally and completes synchronously for simple development.
+To exercise the real queue path locally, point Cloud Tasks at a reachable worker
+URL with development configuration. ARQ remains a legacy local option, not the
+production enrichment architecture.
 
 ## Operational limitations and later scaling
 
 - Scale-to-zero may make the first request slower; the frontend reports a
   friendly service-starting message for production network failures.
-- One Cloud Run instance/concurrent request means one heavy enrichment at a
-  time. The API returns an existing inline run rather than starting a duplicate
-  for the same session in the same instance.
+- The public API never performs provider enrichment inline in production. It
+  returns HTTP 202 with a job status URL; the browser polls this lightweight
+  database-backed endpoint with bounded backoff.
+- The queue is configured with conservative dispatch rate/concurrency of one.
+  Cloud Tasks may deliver a task more than once, so the worker atomically claims
+  queued jobs and returns success for already-running/completed jobs.
 - Browser fallback is best effort. HTTP retrieval remains first, SSRF checks
   remain enabled, and users receive a copy/paste fallback if both methods fail.
 - In `DEMO_MODE`, Smart Paste uses deterministic fixture extraction that
   recognises common block-prefixed and bare-block Singapore address text; live
   deployments continue to use Groq extraction.
-- To restore queue-backed execution later, provision Redis, set
-  `JOB_EXECUTION_MODE=arq`, and run the existing worker. The enrichment
-  business logic remains unchanged.
+- Roll back safely by first pausing the Cloud Tasks queue, then redeploying the
+  prior API revision. Do not switch a production revision to inline mode: the
+  configuration validator rejects it. Existing completed job/result rows remain
+  in PostgreSQL for comparison display and audit.

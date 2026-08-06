@@ -20,7 +20,7 @@ NearHome is **not** a property search portal, grant calculator, mortgage adviser
 | Frontend | Next.js 15, React 19, TypeScript, Tailwind, React Hook Form, Zod, TanStack Query |
 | Backend | Python 3.12, FastAPI, Pydantic v2, SQLAlchemy 2, Alembic |
 | Database | PostgreSQL |
-| Cache / jobs | Redis, ARQ |
+| Durable jobs | Google Cloud Tasks, private Cloud Run enrichment worker |
 | Data processing | pandas/CatBoost for HDB transaction ingestion and fair-price estimation |
 | Tests | pytest, Vitest, Playwright |
 
@@ -64,15 +64,18 @@ docker compose up --build
 ## Production architecture
 
 ```text
-Vercel / Next.js -> Google Cloud Run / FastAPI -> Supabase PostgreSQL
+Browser -> Vercel / Next.js -> public Cloud Run API -> Cloud Tasks -> private enrichment worker
+                                      |                                  |
+                                      +----------- Supabase PostgreSQL ---+
 ```
 
-Cloud Run uses inline enrichment by default, so its first deployment does not
-need Redis or an ARQ worker. The API Docker image packages Playwright Chromium
+Production enrichment is dispatched through Google Cloud Tasks; the public API
+returns a job ID immediately and never runs long provider work inline. Local
+development can retain inline mode. The worker image packages Playwright Chromium
 and the reference fixtures required by Smart Paste and enrichment. Follow the
 [production deployment guide](docs/DEPLOYMENT.md) for Secret Manager,
-Supabase migrations, Cloud Run deployment, Vercel configuration, and smoke
-tests.
+Supabase migrations, Cloud Tasks/IAM setup, Cloud Run deployment, Vercel
+configuration, and smoke tests.
 
 ## Environment variables
 
@@ -96,8 +99,10 @@ read-only production smoke test.
 | DB migrations | `cd apps/api && alembic upgrade head` |
 | API tests | `cd apps/api && pytest` |
 | API integration tests | `DATABASE_URL=... pytest app/tests/test_api_integration.py` |
-| Worker | `cd apps/api && python -m app.jobs.worker` |
+| Legacy local ARQ worker | `cd apps/api && JOB_EXECUTION_MODE=arq REDIS_URL=redis://localhost:6379/0 python -m app.jobs.worker` |
+| Production enrichment worker | `./scripts/deploy-enrichment-worker.sh <google-cloud-project-id>` |
 | HDB carpark data ingest | `python data_pipeline/ingest_hdb_carparks.py --live` |
+| Enrichment performance operations | [docs/ENRICHMENT_PERFORMANCE.md](docs/ENRICHMENT_PERFORMANCE.md) |
 | HDB transaction ingest | `python data_pipeline/ingest_hdb_transactions.py path/to.csv` |
 | Web tests | `cd apps/web && npm test` |
 | E2E (Playwright) | `cd tests/e2e && npm install && npx playwright test` |

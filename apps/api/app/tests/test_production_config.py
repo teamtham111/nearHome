@@ -18,6 +18,12 @@ def _production_settings(**overrides: object) -> Settings:
         "onemap_email": "test@example.test",
         "onemap_password": "test-password",
         "groq_api_key": "test-groq-key",
+        "job_execution_mode": "cloud_tasks",
+        "gcp_project_id": "test-project",
+        "cloud_tasks_location": "asia-southeast1",
+        "cloud_tasks_queue": "nearhome-enrichment",
+        "enrichment_worker_url": "https://worker.example.test",
+        "cloud_tasks_service_account_email": "tasks@example.test",
     }
     values.update(overrides)
     return Settings(_env_file=None, **values)
@@ -27,7 +33,7 @@ def test_valid_production_settings_pass_validation() -> None:
     _production_settings().validate_production()
 
 
-def test_inline_execution_allows_an_absent_redis_url() -> None:
+def test_inline_execution_allows_an_absent_redis_url_locally() -> None:
     Settings(
         _env_file=None,
         app_env="development",
@@ -58,6 +64,8 @@ def test_production_postgres_connections_require_ssl() -> None:
         ({"database_url": "postgresql+psycopg://user:password@localhost:5432/nearhome"}, "DATABASE_URL"),
         ({"google_maps_api_key": ""}, "GOOGLE_MAPS_API_KEY"),
         ({"job_execution_mode": "arq", "redis_url": ""}, "REDIS_URL is required"),
+        ({"job_execution_mode": "inline"}, "JOB_EXECUTION_MODE must be cloud_tasks"),
+        ({"enrichment_worker_url": ""}, "ENRICHMENT_WORKER_URL"),
     ],
 )
 def test_invalid_production_settings_fail_closed(overrides: dict[str, object], expected_message: str) -> None:

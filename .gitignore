@@ -42,6 +42,7 @@ ml/artifacts/*.joblib
 ml/artifacts/*.json
 !ml/artifacts/.gitkeep
 apps/api/catboost_info/
+/artifacts/fair_price/catboost/
 
 # Data snapshots (large)
 data_pipeline/snapshots/
@@ -65,6 +66,7 @@ temp/
 *.sqlite3
 *.db
 evaluation_outputs/
+benchmark-enrichment-results.json
 
 # TypeScript incremental build metadata
 *.tsbuildinfo

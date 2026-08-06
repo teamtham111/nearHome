@@ -8,7 +8,7 @@ Estimate an analytical fair-price **range** for a shortlisted HDB resale flat us
 
 ## Production method
 
-NearHome uses CatBoost as the primary central estimator. It uses floor area,
+NearHome uses a prebuilt CatBoost artifact as the primary central estimator. It uses floor area,
 storey midpoint, lease commencement, remaining lease at the transaction date,
 transaction month, town, flat type and flat model. Training is restricted to
 transactions before the valuation month. The displayed range is calibrated from

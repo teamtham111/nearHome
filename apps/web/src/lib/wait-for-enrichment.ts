@@ -1,37 +1,45 @@
-import { getEnrichmentStatus } from "@/lib/api";
+import { getEnrichmentJob } from "@/lib/api";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/** Poll until queued background enrichment finishes. No-op for inline runs. */
-export async function waitForEnrichmentComplete(
+/** Poll one durable enrichment job with bounded exponential backoff. */
+export async function waitForEnrichmentJob(
   sessionId: string,
-  options?: { timeoutMs?: number; intervalMs?: number },
+  jobId: string,
+  options?: { timeoutMs?: number; initialIntervalMs?: number; maxIntervalMs?: number },
 ) {
-  const timeoutMs = options?.timeoutMs ?? 120_000;
-  const intervalMs = options?.intervalMs ?? 2_000;
+  const timeoutMs = options?.timeoutMs ?? 15 * 60_000;
+  const initialIntervalMs = options?.initialIntervalMs ?? 1_000;
+  const maxIntervalMs = options?.maxIntervalMs ?? 8_000;
   const deadline = Date.now() + timeoutMs;
+  let intervalMs = initialIntervalMs;
+  let lastTransientError: Error | null = null;
 
   while (Date.now() < deadline) {
-    const { runs } = await getEnrichmentStatus(sessionId);
-    const active = runs.some((run) => ["QUEUED", "RUNNING"].includes(run.status));
-    // UNAVAILABLE is a terminal, user-visible partial result (for example a
-    // provider may be disabled); only an actual FAILED run should reject the
-    // whole enrichment action.
-    const failures = runs.filter((run) => run.status === "FAILED");
-    const terminal = runs.length > 0 && runs.every((run) => ["SUCCEEDED", "FAILED", "UNAVAILABLE"].includes(run.status));
-
-    if (failures.length > 0 && !active) {
-      const firstFailure = failures.find((run) => run.error_message);
-      throw new Error(firstFailure?.error_message ?? "One or more enrichment steps failed. Please retry.");
+    let job;
+    try {
+      job = await getEnrichmentJob(sessionId, jobId);
+      lastTransientError = null;
+    } catch (error) {
+      // A temporary polling failure must not turn a healthy queued worker job
+      // into a visible enrichment failure. Real terminal state is authoritative.
+      lastTransientError = error instanceof Error ? error : new Error("Status temporarily unavailable");
     }
-    if (!active && terminal) {
-      return;
+
+    if (job?.status === "completed") return job;
+    if (job && ["failed", "cancelled"].includes(job.status)) {
+      throw new Error(job.error_message ?? "Enrichment could not be completed. Please retry.");
     }
 
     await sleep(intervalMs);
+    intervalMs = Math.min(maxIntervalMs, Math.round(intervalMs * 1.6));
   }
 
-  throw new Error("Enrichment is taking longer than expected. Please refresh in a moment.");
+  throw new Error(
+    lastTransientError
+      ? "We could not check enrichment progress. Please refresh in a moment."
+      : "Enrichment is taking longer than expected. Please refresh in a moment.",
+  );
 }

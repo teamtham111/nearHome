@@ -84,10 +84,7 @@ def test_manual_listing_comparison_flow(client: TestClient):
     assert len(comparison["immediate_metrics"]) > 0
     assert len(comparison["preference_scores"]) == 2
     assert all(1 < score["overall_fit_score"] < 100 for score in comparison["preference_scores"])
-    assert all(
-        score["overall_fit_score"] == score["total_score"]
-        for score in comparison["preference_scores"]
-    )
+    assert all(score["overall_fit_score"] == score["total_score"] for score in comparison["preference_scores"])
     assert {score["rank"] for score in comparison["preference_scores"]} == {1, 2}
 
     duplicate = client.post(
@@ -122,9 +119,7 @@ def test_delete_listing_removes_only_target_and_allows_small_shortlists(client: 
         created.append(response.json())
 
     deleted = created[1]
-    assert client.delete(
-        f"/api/v1/sessions/{session_id}/listings/{deleted['listing_id']}"
-    ).status_code == 204
+    assert client.delete(f"/api/v1/sessions/{session_id}/listings/{deleted['listing_id']}").status_code == 204
     assert client.get(f"/api/v1/listing-inputs/{deleted['listing_input_id']}").status_code == 404
 
     from uuid import UUID
@@ -136,9 +131,7 @@ def test_delete_listing_removes_only_target_and_allows_small_shortlists(client: 
         enrichment_repo = EnrichmentRepository(db)
         deleted_id = UUID(deleted["listing_id"])
         assert enrichment_repo.upsert_run(deleted_id, "FAIR_PRICE", "RUNNING") is None
-        enrichment_repo.save_enriched_field(
-            deleted_id, "fair_price", {"central_estimate": 1}, "AVAILABLE", "TEST"
-        )
+        enrichment_repo.save_enriched_field(deleted_id, "fair_price", {"central_estimate": 1}, "AVAILABLE", "TEST")
         assert enrichment_repo.get_enriched_fields(deleted_id) == []
 
     remaining = client.get(f"/api/v1/sessions/{session_id}").json()
@@ -150,28 +143,20 @@ def test_delete_listing_removes_only_target_and_allows_small_shortlists(client: 
     comparison = client.get(f"/api/v1/sessions/{session_id}/comparison")
     assert comparison.status_code == 200
     assert comparison.json()["listing_count"] == 2
-    assert deleted["listing_id"] not in {
-        metric["listing_id"] for metric in comparison.json()["immediate_metrics"]
-    }
+    assert deleted["listing_id"] not in {metric["listing_id"] for metric in comparison.json()["immediate_metrics"]}
 
-    assert client.delete(
-        f"/api/v1/sessions/{session_id}/listings/{created[0]['listing_id']}"
-    ).status_code == 204
+    assert client.delete(f"/api/v1/sessions/{session_id}/listings/{created[0]['listing_id']}").status_code == 204
     one_left = client.get(f"/api/v1/sessions/{session_id}/comparison")
     assert one_left.status_code == 200
     assert one_left.json()["listing_count"] == 1
     assert one_left.json()["can_compare"] is False
 
-    assert client.delete(
-        f"/api/v1/sessions/{session_id}/listings/{created[2]['listing_id']}"
-    ).status_code == 204
+    assert client.delete(f"/api/v1/sessions/{session_id}/listings/{created[2]['listing_id']}").status_code == 204
     empty = client.get(f"/api/v1/sessions/{session_id}/comparison")
     assert empty.status_code == 200
     assert empty.json()["listing_count"] == 0
     assert empty.json()["can_compare"] is False
-    assert client.delete(
-        f"/api/v1/sessions/{session_id}/listings/{created[2]['listing_id']}"
-    ).status_code == 404
+    assert client.delete(f"/api/v1/sessions/{session_id}/listings/{created[2]['listing_id']}").status_code == 404
 
 
 def test_smart_paste_flow(client: TestClient, monkeypatch):
@@ -182,13 +167,16 @@ def test_smart_paste_flow(client: TestClient, monkeypatch):
     session = client.post("/api/v1/sessions").json()
     session_id = session["session_id"]
 
-    paste_text = """
+    paste_text = (
+        """
     4 ROOM FLAT FOR SALE
     Blk 123 Bishan St 12
     Asking Price: $650,000
     Floor Area: 91 sqm
     Flat Type: 4 ROOM
-    """ * 2
+    """
+        * 2
+    )
 
     resp = client.post(
         f"/api/v1/sessions/{session_id}/smart-paste",
@@ -197,13 +185,11 @@ def test_smart_paste_flow(client: TestClient, monkeypatch):
     assert resp.status_code == 201
     data = resp.json()
     assert "listing_input_id" in data
-    assert client.delete(
-        f"/api/v1/sessions/{session_id}/listing-inputs/{data['listing_input_id']}"
-    ).status_code == 204
+    assert client.delete(f"/api/v1/sessions/{session_id}/listing-inputs/{data['listing_input_id']}").status_code == 204
     assert client.get(f"/api/v1/listing-inputs/{data['listing_input_id']}").status_code == 404
 
 
-def test_enrichment_inline(client: TestClient):
+def test_local_enrichment_job(client: TestClient):
     session = client.post("/api/v1/sessions").json()
     session_id = session["session_id"]
 
@@ -230,9 +216,15 @@ def test_enrichment_inline(client: TestClient):
         )
 
     enrich = client.post(f"/api/v1/sessions/{session_id}/enrichment/start")
-    assert enrich.status_code == 200
-    assert enrich.json()["mode"] in ("inline", "queued")
+    assert enrich.status_code == 202
+    job = enrich.json()
+    assert job["job_id"]
+    assert job["status_url"].endswith(f"session_id={session_id}")
+
+    job_status = client.get(f"/api/v1/jobs/{job['job_id']}?session_id={session_id}")
+    assert job_status.status_code == 200
+    assert job_status.json()["status"] in {"completed", "failed"}
 
     comparison = client.get(f"/api/v1/sessions/{session_id}/comparison").json()
-    if enrich.json()["mode"] == "inline":
+    if job_status.json()["status"] == "completed":
         assert comparison["fair_price_status"] in ("AVAILABLE", "INSUFFICIENT_EVIDENCE")

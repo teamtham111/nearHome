@@ -12,7 +12,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 from app.adapters.reference_data import ReferenceDataStore, haversine_m
-from app.adapters.routing.base import RouteResult, RoutingProvider, RoutingProviderError
+from app.adapters.routing.base import RouteResult, RoutingProvider
+from app.adapters.routing.batch import RouteCall, run_bounded_route_calls
 from app.adapters.transport_data.lta_bus import LtaBusDataStore, ServiceDirectionKey
 from app.domain.enums import ComponentStatus, Provenance
 from app.domain.transport_models import ComponentResult, provider_error
@@ -246,25 +247,32 @@ def compute_access(
     network = get_bus_network()
 
     walk_routes: dict[str, RouteResult] = {}
-    for stop in bus_candidates:
-        attempts += 1
-        try:
-            route = routing.get_walking_route((latitude, longitude), (stop.latitude, stop.longitude))
-            successful_routing = True
-            walk_routes[stop.stop_code] = route
-        except RoutingProviderError:
+    walk_targets: list[tuple[str, Any]] = [("bus", stop) for stop in bus_candidates]
+    walk_targets.extend(
+        ("station", station)
+        for station in station_candidates
+        if station.latitude is not None and station.longitude is not None
+    )
+    walk_calls = [
+        RouteCall(
+            key=f"walk:{latitude:.6f}:{longitude:.6f}:{target.latitude:.6f}:{target.longitude:.6f}",
+            call=lambda target=target: routing.get_walking_route(
+                (latitude, longitude), (target.latitude, target.longitude)
+            ),
+        )
+        for _kind, target in walk_targets
+    ]
+    attempts += len(walk_calls)
+    for (kind, target), outcome in zip(walk_targets, run_bounded_route_calls(walk_calls), strict=True):
+        if outcome.result is None:
             failures += 1
-    for station in station_candidates:
-        if station.latitude is None or station.longitude is None:
             continue
-        attempts += 1
-        try:
-            route = routing.get_walking_route((latitude, longitude), (station.latitude, station.longitude))
-            successful_routing = True
-            if route.duration_minutes <= config.max_practical_walk_minutes:
-                direct_rail_entries.append(_direct_rail_entry(station, route, config))
-        except RoutingProviderError:
-            failures += 1
+        route = outcome.result
+        successful_routing = True
+        if kind == "bus":
+            walk_routes[target.stop_code] = route
+        elif route.duration_minutes <= config.max_practical_walk_minutes:
+            direct_rail_entries.append(_direct_rail_entry(target, route, config))
 
     usable_corridors_by_stop: dict[str, list[dict[str, Any]]] = {}
     if LtaBusDataStore.is_usable():
@@ -300,6 +308,7 @@ def compute_access(
         if station.latitude is not None and station.longitude is not None
     ]
     feeder_pairs = 0
+    feeder_targets: list[tuple[Any, Any, RouteResult, list[dict[str, Any]]]] = []
     for stop in bus_candidates:
         walk_route = walk_routes.get(stop.stop_code)
         if walk_route is None or walk_route.duration_minutes > config.max_practical_walk_minutes:
@@ -311,38 +320,52 @@ def compute_access(
             if feeder_pairs >= config.max_feeder_route_pairs:
                 break
             feeder_pairs += 1
-            attempts += 1
-            try:
-                transit_route = routing.get_transit_route(
-                    (stop.latitude, stop.longitude),
-                    (station.latitude, station.longitude),
-                    datetime.now(UTC),
-                )
-                successful_routing = True
-            except RoutingProviderError:
-                failures += 1
-                continue
-            # Scheduled frequency must belong to the boarding stop. If the
-            # provider returns a service number, prefer its corridor; when
-            # provider naming differs, retain only a verified usable corridor.
-            service_names = {
-                step.transit_service_number or step.transit_line
-                for step in transit_route.route_steps
-                if step.mode == "TRANSIT"
-            }
-            matching = [
-                corridor
-                for corridor in corridors
-                if not service_names
-                or any(service["service"] in service_names for service in corridor["services"])
-            ]
-            if not matching:
-                continue
-            entry = _feeder_entry(stop, station, walk_route, transit_route, matching[0], config)
-            if entry is not None:
-                feeder_entries.append(entry)
+            feeder_targets.append((stop, station, walk_route, corridors))
         if feeder_pairs >= config.max_feeder_route_pairs:
             break
+    feeder_departure = datetime.now(UTC)
+    feeder_calls = [
+        RouteCall(
+            key=(
+                f"transit:{stop.latitude:.6f}:{stop.longitude:.6f}:{station.latitude:.6f}:"
+                f"{station.longitude:.6f}:{feeder_departure.isoformat()}"
+            ),
+            call=lambda stop=stop, station=station: routing.get_transit_route(
+                (stop.latitude, stop.longitude),
+                (station.latitude, station.longitude),
+                feeder_departure,
+            ),
+        )
+        for stop, station, _walk_route, _corridors in feeder_targets
+    ]
+    attempts += len(feeder_calls)
+    for (stop, station, walk_route, corridors), outcome in zip(
+        feeder_targets, run_bounded_route_calls(feeder_calls), strict=True
+    ):
+        if outcome.result is None:
+            failures += 1
+            continue
+        transit_route = outcome.result
+        successful_routing = True
+        # Scheduled frequency must belong to the boarding stop. If the
+        # provider returns a service number, prefer its corridor; when
+        # provider naming differs, retain only a verified usable corridor.
+        service_names = {
+            step.transit_service_number or step.transit_line
+            for step in transit_route.route_steps
+            if step.mode == "TRANSIT"
+        }
+        matching = [
+            corridor
+            for corridor in corridors
+            if not service_names
+            or any(service["service"] in service_names for service in corridor["services"])
+        ]
+        if not matching:
+            continue
+        entry = _feeder_entry(stop, station, walk_route, transit_route, matching[0], config)
+        if entry is not None:
+            feeder_entries.append(entry)
 
     all_paths = bus_entries + direct_rail_entries + feeder_entries
     all_evidence = walkable_stop_evidence + all_paths

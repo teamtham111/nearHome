@@ -158,6 +158,37 @@ class TestGoogleRoutingProvider:
         )
         assert routes == route_body["routes"]
 
+    def test_reuses_one_client_and_closes_an_owned_pool(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        created: list[object] = []
+
+        class FakeClient:
+            closed = False
+
+            def __init__(self) -> None:
+                created.append(self)
+
+            def post(self, endpoint, **_kwargs):
+                return httpx.Response(
+                    200,
+                    json={"routes": [{"duration": "60s", "distanceMeters": 1}]},
+                    request=httpx.Request("POST", endpoint),
+                )
+
+            def close(self) -> None:
+                self.closed = True
+
+        monkeypatch.setattr(settings, "google_maps_api_key", "test-key")
+        monkeypatch.setattr("app.adapters.routing.google.httpx.Client", lambda **_kwargs: FakeClient())
+        provider = GoogleRoutingProvider()
+        provider._cache = type("EmptyCache", (), {"get": lambda *_args: None, "set": lambda *_args, **_kwargs: None})()
+
+        provider.get_walking_route(DHOBY_GHAUT, TAMPINES)
+        provider.get_walking_route(TAMPINES, DHOBY_GHAUT)
+        provider.close()
+
+        assert len(created) == 1
+        assert created[0].closed is True
+
     def test_route_matrix_sets_traffic_aware_for_departure_time(self, monkeypatch: pytest.MonkeyPatch) -> None:
         captured: dict[str, object] = {}
 

@@ -137,8 +137,8 @@ def main() -> int:
 
         HdbCarparkStore.reset_cache()
         with SessionLocal() as db:
-            CarparkRepository(db).replace_static_records(HdbCarparkStore.load())
-        print("Mirrored official HDB carparks into the API database")
+            outcome = CarparkRepository(db).import_static_records(HdbCarparkStore.load())
+        print(f"Mirrored official HDB carparks into the API database: {outcome}")
     return 0
 
 

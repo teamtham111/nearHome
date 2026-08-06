@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "if [ -f ../../.env ]; then set -a; . ../../.env; set +a; fi; next dev",
+    "dev": "if [ -z \"${SKIP_ROOT_ENV:-}\" ] && [ -f ../../.env ]; then set -a; . ../../.env; set +a; fi; next dev",
     "build": "if [ -z \"${VERCEL:-}\" ] && [ -f ../../.env ]; then set -a; . ../../.env; set +a; fi; next build",
     "start": "if [ -f ../../.env ]; then set -a; . ../../.env; set +a; fi; next start",
     "lint": "eslint .",
@@ -15,6 +15,7 @@
     "@hookform/resolvers": "^3.9.1",
     "@tanstack/react-query": "^5.62.8",
     "clsx": "^2.1.1",
+    "lucide-react": "^1.28.0",
     "next": "^15.1.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

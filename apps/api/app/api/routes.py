@@ -1,13 +1,14 @@
 """API route handlers."""
 
 from datetime import UTC, datetime
+from hmac import compare_digest
 from uuid import UUID, uuid4
 
 import httpx
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi.responses import JSONResponse
 from redis import Redis
 from redis.exceptions import RedisError
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -23,6 +24,8 @@ from app.domain.models import (
     ImportantLocation,
     build_priorities,
 )
+from app.repositories.enrichment_repository import EnrichmentRepository
+from app.repositories.enrichment_job_repository import EnrichmentJobRepository
 from app.repositories.session_repository import SessionRepository
 from app.schemas.comparison import (
     BuyerProfileInput,
@@ -37,10 +40,11 @@ from app.schemas.comparison import (
     SessionCreateResponse,
     SmartPasteInput,
 )
+from app.schemas.enrichment_jobs import EnrichmentJobStartResponse, EnrichmentJobStatusResponse
 from app.services.comparison_service import ComparisonService
 from app.services.enrichment_service import EnrichmentService
 from app.services.observation_service import ObservationService
-from app.services.smart_paste.retrieval import ListingRetrievalError
+from app.services.smart_paste.retrieval import ListingRetrievalError, run_egress_diagnostic
 from app.services.smart_paste.service import SmartPasteService
 
 router = APIRouter(prefix="/api/v1")
@@ -52,12 +56,28 @@ def health() -> HealthResponse:
     return HealthResponse(status="ok", demo_mode=settings.demo_mode, checks={"api": "ok"})
 
 
+@router.get("/internal/egress-diagnostics", include_in_schema=False)
+def egress_diagnostics(x_nearhome_diagnostic_token: str | None = Header(default=None)) -> dict:
+    """Protected, fixed-target egress experiment diagnostics.
+
+    It is absent unless enabled on an explicitly tagged test revision and cannot
+    fetch arbitrary URLs or expose retrieved listing content.
+    """
+    if not settings.enable_egress_diagnostics:
+        raise HTTPException(status_code=404, detail="Not found")
+    if not x_nearhome_diagnostic_token or not compare_digest(
+        x_nearhome_diagnostic_token, settings.egress_diagnostics_token
+    ):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return run_egress_diagnostic()
+
+
 @router.get("/ready", response_model=HealthResponse)
 def ready(db: Session = Depends(get_db)) -> JSONResponse:
     """Report dependency state without disclosing connection details.
 
     PostgreSQL is required. Redis is only checked when ARQ execution is
-    explicitly selected; inline Cloud Run enrichment has no Redis dependency.
+    explicitly selected; Cloud Tasks and inline execution have no Redis dependency.
     """
     try:
         db.execute(__import__("sqlalchemy").text("SELECT 1"))
@@ -70,17 +90,21 @@ def ready(db: Session = Depends(get_db)) -> JSONResponse:
                 demo_mode=settings.demo_mode,
                 checks={
                     "database": "unavailable",
-                    "redis": "not_required" if settings.job_execution_mode == "inline" else "unknown",
+                    "redis": "not_required" if settings.job_execution_mode != "arq" else "unknown",
                 },
             ).model_dump(),
         )
 
-    if settings.job_execution_mode == "inline":
+    if settings.job_execution_mode in {"inline", "cloud_tasks"}:
         return JSONResponse(
             content=HealthResponse(
                 status="ready",
                 demo_mode=settings.demo_mode,
-                checks={"database": "ok", "redis": "not_required", "job_execution": "inline"},
+                checks={
+                    "database": "ok",
+                    "redis": "not_required",
+                    "job_execution": settings.job_execution_mode,
+                },
             ).model_dump()
         )
 
@@ -102,7 +126,7 @@ def ready(db: Session = Depends(get_db)) -> JSONResponse:
         content=HealthResponse(
             status="ready",
             demo_mode=settings.demo_mode,
-                checks={"database": "ok", "redis": "ok", "job_execution": "arq"},
+            checks={"database": "ok", "redis": "ok", "job_execution": "arq"},
         ).model_dump()
     )
 
@@ -121,26 +145,26 @@ def diagnose_google_routes(body: GoogleRoutesDiagnosticRequest = GoogleRoutesDia
     from app.adapters.routing.base import RoutingProviderError
     from app.adapters.routing.google import GoogleRoutingProvider
 
-    provider = GoogleRoutingProvider()
     origin, destination = body.origin, body.destination
-    try:
-        if body.travel_mode == "DRIVE":
-            route = provider.get_driving_route(origin, destination, datetime.now(UTC), traffic_aware=False)
-        elif body.travel_mode == "WALK":
-            route = provider.get_walking_route(origin, destination)
-        else:
-            route = provider.get_transit_route(origin, destination, datetime.now(UTC))
-    except RoutingProviderError as exc:
-        return JSONResponse(
-            content={
-                "success": False,
-                "provider": "google-routes",
-                "httpStatus": exc.http_status,
-                "errorCode": exc.error_code,
-                "message": str(exc),
-                "requestId": exc.request_id,
-            }
-        )
+    with GoogleRoutingProvider() as provider:
+        try:
+            if body.travel_mode == "DRIVE":
+                route = provider.get_driving_route(origin, destination, datetime.now(UTC), traffic_aware=False)
+            elif body.travel_mode == "WALK":
+                route = provider.get_walking_route(origin, destination)
+            else:
+                route = provider.get_transit_route(origin, destination, datetime.now(UTC))
+        except RoutingProviderError as exc:
+            return JSONResponse(
+                content={
+                    "success": False,
+                    "provider": "google-routes",
+                    "httpStatus": exc.http_status,
+                    "errorCode": exc.error_code,
+                    "message": str(exc),
+                    "requestId": exc.request_id,
+                }
+            )
 
     return JSONResponse(
         content={
@@ -380,13 +404,70 @@ def get_comparison(session_id: UUID, db: Session = Depends(get_db)) -> Compariso
         raise HTTPException(status_code=404, detail=str(e)) from e
 
 
-@router.post("/sessions/{session_id}/enrichment/start")
-async def start_enrichment(session_id: UUID, db: Session = Depends(get_db)) -> dict:
+@router.post(
+    "/sessions/{session_id}/enrichment/start",
+    response_model=EnrichmentJobStartResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def start_enrichment(session_id: UUID, db: Session = Depends(get_db)) -> EnrichmentJobStartResponse:
+    """Persist a job and dispatch it without running provider work in production."""
     if not SessionRepository(db).get_session(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
+    jobs = EnrichmentJobRepository(db)
+    job, created = jobs.create_or_get_active(session_id)
+    if created:
+        # The frontend polls these durable run rows for stage-level progress.
+        # Resetting prior results here prevents a new job from showing stale
+        # successes before this job has actually completed those checks.
+        session = SessionRepository(db).get_session(session_id)
+        if session is not None:
+            EnrichmentRepository(db).mark_runs_queued([listing.id for listing in session.listings])
+
+    if settings.job_execution_mode == "cloud_tasks":
+        if created:
+            from app.jobs.cloud_tasks import TaskDispatchError, get_cloud_tasks_dispatcher
+
+            try:
+                get_cloud_tasks_dispatcher().enqueue_enrichment(job.id)
+            except TaskDispatchError as exc:
+                jobs.mark_enqueue_failed(job.id, internal_detail=str(exc))
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Enrichment could not be queued. Please try again.",
+                ) from None
+        return _job_start_response(job.id, session_id, job.status)
+
+    # Local/test compatibility during the migration. Production validation
+    # rejects this mode, so public Cloud Run can never run providers inline.
+    if settings.job_execution_mode == "inline":
+        claimed = jobs.claim(job.id)
+        if claimed is not None:
+            try:
+                result = EnrichmentService(db).run_session_enrichment(
+                    session_id,
+                    simulate_delay=False,
+                    progress_callback=lambda stage: jobs.set_stage(job.id, stage),
+                )
+            except Exception as exc:
+                jobs.fail_permanently(
+                    job.id,
+                    error_code="local_enrichment_failed",
+                    safe_message="Enrichment could not be completed. Please try again.",
+                    internal_detail=str(exc),
+                )
+            else:
+                jobs.complete(
+                    job.id,
+                    {"listing_count": len(result.get("listings", [])), "error_count": len(result.get("errors", []))},
+                )
+        current = jobs.get(job.id)
+        return _job_start_response(job.id, session_id, current.status if current else "failed")
+
+    # Preserve the old ARQ path for local installations during migration.
     from app.jobs.queue import enqueue_enrichment
 
-    return await enqueue_enrichment(session_id)
+    await enqueue_enrichment(session_id)
+    return _job_start_response(job.id, session_id, job.status)
 
 
 @router.get("/sessions/{session_id}/enrichment/status", response_model=EnrichmentStatusResponse)
@@ -395,6 +476,42 @@ def enrichment_status(session_id: UUID, db: Session = Depends(get_db)) -> Enrich
     if not SessionRepository(db).get_session(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
     return EnrichmentStatusResponse(session_id=session_id, runs=service.get_status(session_id))
+
+
+@router.get("/jobs/{job_id}", response_model=EnrichmentJobStatusResponse)
+def enrichment_job_status(
+    job_id: UUID,
+    session_id: UUID,
+    db: Session = Depends(get_db),
+) -> EnrichmentJobStatusResponse:
+    """Read-only job polling endpoint scoped to the owning session."""
+    if not SessionRepository(db).get_session(session_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+    job = EnrichmentJobRepository(db).get_for_session(job_id, session_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Enrichment job not found")
+    return EnrichmentJobStatusResponse(
+        job_id=job.id,
+        session_id=job.session_id,
+        status=job.status,
+        progress_stage=job.progress_stage,
+        attempts=job.attempts,
+        error_code=job.error_code,
+        error_message=job.error_message,
+        result_available=job.result_json is not None,
+        created_at=job.created_at,
+        started_at=job.started_at,
+        completed_at=job.completed_at,
+        updated_at=job.updated_at,
+    )
+
+
+def _job_start_response(job_id: UUID, session_id: UUID, job_status: str) -> EnrichmentJobStartResponse:
+    return EnrichmentJobStartResponse(
+        job_id=job_id,
+        status=job_status,
+        status_url=f"/api/v1/jobs/{job_id}?session_id={session_id}",
+    )
 
 
 @router.get("/places/autocomplete", response_model=PlacesAutocompleteResponse)
@@ -538,7 +655,8 @@ def smart_paste(session_id: UUID, body: SmartPasteInput, db: Session = Depends(g
             )
         elif subtype_result.flat_model and isinstance(suggested.get("flat_model"), str):
             explicit_model_evidence = [
-                item for item in evidence.get("flat_model", [])
+                item
+                for item in evidence.get("flat_model", [])
                 if item.get("extraction_method") != "derived_from_subtype"
             ]
             normalized_explicit = " ".join(suggested["flat_model"].upper().split())
@@ -549,13 +667,15 @@ def smart_paste(session_id: UUID, body: SmartPasteInput, db: Session = Depends(g
                     f"while subtype {raw_subtype!r} deterministically maps to {subtype_result.flat_model!r}. "
                     "Review before confirming."
                 )
-                suggested["subtype_conflicts"] = [{
-                    "field": "flat_model",
-                    "confirmed_value": suggested["flat_model"],
-                    "derived_from_subtype": subtype_result.flat_model,
-                    "raw_listing_subtype": raw_subtype,
-                    "status": "conflict",
-                }]
+                suggested["subtype_conflicts"] = [
+                    {
+                        "field": "flat_model",
+                        "confirmed_value": suggested["flat_model"],
+                        "derived_from_subtype": subtype_result.flat_model,
+                        "raw_listing_subtype": raw_subtype,
+                        "status": "conflict",
+                    }
+                ]
     elif isinstance(suggested.get("flat_type"), str):
         type_attributes = normalize_flat_type(suggested["flat_type"])
         if type_attributes.listing_flat_subtype:
@@ -583,8 +703,10 @@ def smart_paste(session_id: UUID, body: SmartPasteInput, db: Session = Depends(g
     for field in ("flat_type", "listing_flat_subtype", "raw_listing_subtype"):
         field_evidence = evidence.get(field, [])
         section = field_evidence[0].get("source_section") if field_evidence else None
-        field_sources[field] = flat_type_source(source_type, section) if field != "raw_listing_subtype" else (
-            flat_type_source(source_type, section) if section else "listing_text"
+        field_sources[field] = (
+            flat_type_source(source_type, section)
+            if field != "raw_listing_subtype"
+            else (flat_type_source(source_type, section) if section else "listing_text")
         )
     if "flat_model" in suggested:
         model_evidence = evidence.get("flat_model", [])

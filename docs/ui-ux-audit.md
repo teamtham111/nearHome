@@ -36,8 +36,34 @@ provenance unchanged. It adds presentation-only workflow guidance, reusable scor
 clearer grouping, and more consistent action styling. It does not invent new requirements or
 change how any score is calculated.
 
-The buyer-profile UI deliberately exposes **budget only** as a requirement. Other backend
-hard-requirement capabilities are not surfaced in this workflow.
+## Homepage and workflow presentation
+
+The public homepage retains the compact slate-and-teal presentation used by the deployed product.
+It uses the existing start-comparison flow and three workflow cards; no navigation, routes, APIs,
+data models, calculations, or comparison behaviour are changed.
+
+The user-facing workflow has three stages: **Add flats**, **Select priorities**, and **Compare
+results**. Enrichment is shown as a genuine intermediate processing state, with weighted progress
+derived from the enrichment job and per-listing run statuses. It is not an additional input stage.
+
+The buyer-profile UI contains ordinary comparison context—budget, transport mode, ranked
+priorities, a regular destination, and schools. It deliberately contains no requirements or hard
+filtering controls. The comparison UI likewise does not show requirement results or state that a
+flat is included or excluded based on a pass/fail condition.
+
+Smart Paste keeps copied listing text as the recommended route. URL input remains available
+because it is connected, but accurately warns that listing websites can restrict automated
+retrieval. The entry screen acknowledges a valid typed URL immediately, but only displays field
+values after the user selects **Add a flat** and the real extraction completes; it never creates
+a speculative link preview. Marketing previews are explicitly illustrative and isolated from the persisted
+shortlist and API responses.
+
+The homepage places a buyer-readable explanation directly after its three workflow cards. It
+distinguishes discovery on a property portal from making a decision in NearHome, then presents
+the four active assessments as responsive, equal-height evidence cards. Each card separates the
+assessment purpose, the evidence it considers, and why that outcome matters to a buyer. The
+following personalised-comparison section explains the concrete comparison outputs and links to
+the existing evaluation route; it does not add routes, scoring, sample scores, or product claims.
 
 ## Preferences-step refinement
 

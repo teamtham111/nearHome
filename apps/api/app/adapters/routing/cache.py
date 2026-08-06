@@ -20,6 +20,7 @@ logger = get_logger(__name__)
 # Walking/transit topology rarely changes within a day; driving traffic
 # conditions are only representative for the same broad time-of-day bucket.
 DEFAULT_TTL_SECONDS = 24 * 60 * 60
+TRANSIT_TTL_SECONDS = 6 * 60 * 60
 TRAFFIC_AWARE_TTL_SECONDS = 15 * 60
 
 
@@ -62,7 +63,9 @@ def build_cache_key(
     }
     raw = json.dumps(parts, sort_keys=True)
     digest = hashlib.sha256(raw.encode()).hexdigest()[:32]
-    return f"route_cache:{digest}"
+    # The namespace is configurable so a response-schema or scoring-evidence
+    # change can be isolated without flushing a shared Redis instance.
+    return f"{settings.route_cache_namespace}:{digest}"
 
 
 class RouteCache:
@@ -110,6 +113,14 @@ class RouteCache:
             client.set(key, json.dumps(value), ex=ttl_seconds)
         except Exception as exc:  # pragma: no cover
             logger.warning("route_cache_write_failed", error_category="redis", error_type=type(exc).__name__)
+
+    def close(self) -> None:
+        if self._client is not None:
+            close = getattr(self._client, "close", None)
+            if callable(close):
+                close()
+        self._client = None
+        self._connect_failed = False
 
 
 _shared_cache = RouteCache()

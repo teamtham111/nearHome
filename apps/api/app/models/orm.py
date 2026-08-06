@@ -43,6 +43,12 @@ class ComparisonSessionORM(Base):
     buyer_profile: Mapped[BuyerProfileORM | None] = relationship(back_populates="session", uselist=False)
     listings: Mapped[list[ConfirmedListingORM]] = relationship(back_populates="session")
     extractions: Mapped[list[ExtractionAttemptORM]] = relationship(back_populates="session")
+    # PostgreSQL owns removal through the `ON DELETE CASCADE` foreign key. Do
+    # not have SQLAlchemy null the non-nullable job.session_id first when a
+    # user deletes a session.
+    enrichment_jobs: Mapped[list[EnrichmentJobORM]] = relationship(
+        back_populates="session", passive_deletes=True
+    )
 
 
 class BuyerProfileORM(Base):
@@ -212,6 +218,9 @@ class ConfirmedListingORM(Base):
     enrichment_runs: Mapped[list[EnrichmentRunORM]] = relationship(back_populates="listing")
     enriched_fields: Mapped[list[EnrichedFieldORM]] = relationship(back_populates="listing")
     journey_estimates: Mapped[list[JourneyEstimateORM]] = relationship(back_populates="listing")
+    enrichment_jobs: Mapped[list[EnrichmentJobORM]] = relationship(
+        back_populates="listing", passive_deletes=True
+    )
 
     __table_args__ = (
         Index("ix_confirmed_listings_session", "session_id"),
@@ -254,6 +263,44 @@ class EnrichmentRunORM(Base):
     listing: Mapped[ConfirmedListingORM] = relationship(back_populates="enrichment_runs")
 
     __table_args__ = (Index("ix_enrichment_runs_listing_type", "listing_id", "enrichment_type"),)
+
+
+class EnrichmentJobORM(Base):
+    """Durable state for one independently-dispatched enrichment request."""
+
+    __tablename__ = "enrichment_jobs"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    session_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("comparison_sessions.id", ondelete="CASCADE"), nullable=False
+    )
+    listing_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("confirmed_listings.id", ondelete="CASCADE"), nullable=True
+    )
+    job_type: Mapped[str] = mapped_column(String(80), nullable=False, default="SESSION_ENRICHMENT")
+    status: Mapped[str] = mapped_column(String(30), nullable=False, default="queued")
+    progress_stage: Mapped[str] = mapped_column(String(100), nullable=False, default="queued")
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    error_code: Mapped[str | None] = mapped_column(String(80))
+    error_message: Mapped[str | None] = mapped_column(Text)
+    internal_error_detail: Mapped[str | None] = mapped_column(Text)
+    result_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    session: Mapped[ComparisonSessionORM] = relationship(back_populates="enrichment_jobs")
+    listing: Mapped[ConfirmedListingORM | None] = relationship(back_populates="enrichment_jobs")
+
+    __table_args__ = (
+        Index("ix_enrichment_jobs_session", "session_id"),
+        Index("ix_enrichment_jobs_listing", "listing_id"),
+        Index("ix_enrichment_jobs_status", "status"),
+        Index("ix_enrichment_jobs_created_at", "created_at"),
+    )
 
 
 class EnrichedFieldORM(Base):

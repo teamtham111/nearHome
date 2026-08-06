@@ -14,8 +14,8 @@ The runtime roles are separate:
 
 | Display concern | Runtime source |
 | --- | --- |
-| Central estimate | CatBoost (`catboost_v1`), trained only on transactions before the valuation month |
-| Likely range | Asymmetric CatBoost residual interval calibrated from the latest temporal holdout |
+| Central estimate | Prebuilt CatBoost artifact (`catboost_v2_artifact`), validated against the bundled transaction snapshot |
+| Likely range | Asymmetric residual interval saved with the prebuilt artifact |
 | Comparable transactions | Weighted-comparable selector (`weighted_comparables_v3`), used as market evidence and as the explicit fallback when CatBoost cannot produce a prediction |
 | Confidence | Comparable-selection evidence: effective weighted count, similarity, recency, spread, missing optional fields and filter relaxation; when no comparable selection exists, the CatBoost calibration-row availability is used as a fallback signal |
 | Remaining lease | Separate canonical lease estimator, using official exact evidence, exact-block transaction expiry evidence, HDB commencement-year evidence, then low-confidence listing-stated evidence |

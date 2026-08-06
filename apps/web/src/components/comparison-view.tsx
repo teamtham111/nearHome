@@ -966,31 +966,16 @@ export function ComparisonView({ data, session }: Props) {
   );
   const showSchools = session?.buyer_profile?.schools_matter === true;
   const observations = data.observations ?? [];
-  const reqResults = data.requirement_results ?? [];
-
-  const statusIcon = (status: string) => {
-    if (status === "PASS") return "✓";
-    if (status === "FAIL") return "✗";
-    if (status === "CANNOT_DETERMINE") return "?";
-    return "—";
-  };
-
   const recommendationId = rec?.recommended_listing_id;
-  const requirementStatusLabel = (status: string) => {
-    if (status === "PASS") return "Pass";
-    if (status === "FAIL") return "Does not meet requirement";
-    if (status === "CANNOT_DETERMINE") return "Needs more information";
-    return "Not assessed";
-  };
 
   return (
     <div className="space-y-6">
-      <section className="nh-card border-teal-200 bg-gradient-to-br from-white to-teal-50/60" aria-labelledby="decision-overview-heading">
+      <section className="nh-card border-blue-200 bg-gradient-to-br from-white to-blue-50/70" aria-labelledby="decision-overview-heading">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="nh-section-kicker">Decision overview</p>
-            <h3 id="decision-overview-heading" className="mt-1 text-xl font-semibold">Which flat fits best?</h3>
-            <p className="mt-1 max-w-2xl text-sm text-slate-600">Requirements are checked first; your saved preferences guide the recommendation among eligible flats.</p>
+            <p className="nh-section-kicker">Comparison overview</p>
+            <h3 id="decision-overview-heading" className="mt-1 text-2xl font-bold tracking-tight text-blue-950">Your comparison is ready</h3>
+            <p className="mt-1 max-w-2xl text-sm text-slate-600">Review the factor-level evidence and the trade-offs most relevant to your selected priorities.</p>
           </div>
           {rec?.is_provisional && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">Provisional recommendation</span>}
         </div>
@@ -998,10 +983,10 @@ export function ComparisonView({ data, session }: Props) {
           {listingIds.map((id) => {
             const isRecommended = recommendationId === id;
             return (
-              <article key={id} className={`rounded-xl border p-4 ${isRecommended ? "border-teal-500 bg-white shadow-sm ring-1 ring-teal-200" : "border-slate-200 bg-white"}`}>
+              <article key={id} className={`rounded-xl border p-4 ${isRecommended ? "border-emerald-500 bg-white shadow-sm ring-1 ring-emerald-200" : "border-slate-200 bg-white"}`}>
                 <div className="min-w-0">
                   <h4 className="truncate font-semibold text-slate-900">{listingNames[id] ?? id.slice(0, 8)}</h4>
-                  {isRecommended && <span className="mt-2 inline-flex rounded-full bg-teal-100 px-2 py-1 text-xs font-semibold text-teal-800">Recommended</span>}
+                  {isRecommended && <span className="mt-2 inline-flex rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800">Leading option</span>}
                 </div>
                 {isRecommended && rec?.one_sentence_summary && <p className="mt-3 text-sm text-slate-700">{rec.one_sentence_summary}</p>}
                 {!isRecommended && rec?.why_not_selected?.[id] && <p className="mt-3 text-sm text-slate-600">{rec.why_not_selected[id]}</p>}
@@ -1010,51 +995,6 @@ export function ComparisonView({ data, session }: Props) {
           })}
         </div>
       </section>
-      {reqResults.length > 0 && (
-        <section className="nh-card" aria-labelledby="req-strip-heading">
-          <div className="flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <p className="nh-section-kicker">Must-haves</p>
-              <h3 id="req-strip-heading" className="mt-1 text-lg font-semibold text-slate-900">Requirement status</h3>
-            </div>
-            <p className="text-xs text-slate-500">A failed requirement can remove a flat from recommendation.</p>
-          </div>
-          <ul className="mt-4 grid gap-2 md:grid-cols-2">
-            {reqResults.map((r, i) => (
-              <li key={i} className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
-                <div className="flex items-start gap-2">
-                  <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${String(r.status) === "PASS" ? "bg-green-100 text-green-700" : String(r.status) === "FAIL" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`} aria-hidden="true">{statusIcon(String(r.status))}</span>
-                  <div>
-                    <p className="font-medium text-slate-900">{listingNames[String(r.listing_id)] ?? String(r.listing_id).slice(0, 8)}</p>
-                    <p className="mt-0.5 text-xs font-medium text-slate-600">{requirementStatusLabel(String(r.status))}</p>
-                    <p className="mt-1 text-slate-600">{String(r.explanation)}</p>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      {data.enrichment_summary.length > 0 && (
-        <section className="nh-card" aria-label="Enrichment status">
-          <h3 className="text-sm font-medium text-slate-700">Enrichment status</h3>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {[...new Set(data.enrichment_summary.map((r) => r.enrichment_type))].map((t) => {
-              const runs = data.enrichment_summary.filter((r) => r.enrichment_type === t);
-              const allOk = runs.every((r) => r.status === "SUCCEEDED");
-              return (
-                <span
-                  key={t}
-                  className={`rounded-full px-2 py-0.5 text-xs ${allOk ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-600"}`}
-                >
-                  {humanizeLabel(t)}: {allOk ? "Ready" : "Partial"}
-                </span>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
       {rec && (
         <section className="nh-card border-teal-300 bg-teal-50/40" aria-labelledby="rec-heading">
           <p className="nh-section-kicker">Recommendation rationale</p>
@@ -1230,7 +1170,7 @@ export function ComparisonView({ data, session }: Props) {
           <h3 id="obs-heading" className="text-lg font-semibold">
             Your observations
           </h3>
-          <p className="text-xs text-slate-500">Unverified notes — not used in scoring unless confirmed as requirements</p>
+          <p className="text-xs text-slate-500">Unverified notes — shown as context and not used in scoring.</p>
           <ul className="mt-2 space-y-2 text-sm">
             {observations.map((o) => (
               <li key={o.observation_id} className="rounded border border-slate-200 p-2">

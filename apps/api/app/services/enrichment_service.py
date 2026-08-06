@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import replace
 from datetime import date
 from uuid import UUID
@@ -16,7 +17,6 @@ from app.adapters.factory import (
     get_transactions_adapter,
 )
 from app.adapters.parking.hdb_availability import CarparkAvailabilityProvider
-from app.adapters.parking.hdb_carpark import HdbCarparkStore
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.domain.enums import DataStatus, EnrichmentStatus, EnrichmentType, JourneyMode, MainTransportMode
@@ -36,6 +36,7 @@ from app.repositories.carpark_repository import CarparkRepository
 from app.repositories.enrichment_repository import EnrichmentRepository
 from app.repositories.mappers import confirmed_listing_from_orm
 from app.repositories.session_repository import SessionRepository
+from app.services.enrichment_metrics import collect_enrichment_metrics, measure_stage
 from app.services.journey.timestamp_resolver import resolve_departure_timestamp
 from app.services.lease_estimation import LeaseEvidenceCache, estimate_remaining_lease
 from app.utils.hdb_address import canonical_hdb_address_key
@@ -109,31 +110,76 @@ class EnrichmentService:
                     types.append(EnrichmentType.IMPORTANT_LOCATION_DRIVING.value)
         return list(dict.fromkeys(types))
 
-    def run_session_enrichment(self, session_id: UUID, simulate_delay: bool = True) -> dict:
+    def run_session_enrichment(
+        self,
+        session_id: UUID,
+        simulate_delay: bool = True,
+        progress_callback: Callable[[str], None] | None = None,
+        job_id: UUID | None = None,
+    ) -> dict:
+        """Run one session with request-scoped performance diagnostics."""
+        routing_provider = get_routing_provider()
+        try:
+            with collect_enrichment_metrics(job_id=str(job_id) if job_id else None, session_id=str(session_id)):
+                return self._run_session_enrichment(
+                    session_id,
+                    simulate_delay=simulate_delay,
+                    progress_callback=progress_callback,
+                    routing_provider=routing_provider,
+                )
+        finally:
+            close = getattr(routing_provider, "close", None)
+            if callable(close):
+                close()
+
+    def _run_session_enrichment(
+        self,
+        session_id: UUID,
+        simulate_delay: bool = True,
+        progress_callback: Callable[[str], None] | None = None,
+        routing_provider=None,
+    ) -> dict:
+        """Run existing enrichment logic with optional durable job-stage updates.
+
+        The callback deliberately reports only coarse safe stages. It never
+        receives raw listing text, provider credentials, or exception details.
+        """
+
+        def report(stage: str) -> None:
+            if progress_callback is not None:
+                progress_callback(stage)
+
         session = self.session_repo.get_session(session_id)
         if not session:
             raise ValueError("Session not found")
         profile = self.session_repo.get_buyer_profile(session_id)
         listings = session.listings
         results = {"listings": [], "errors": []}
+        report("preparing_data")
 
         availability_provider = CarparkAvailabilityProvider()
-        if profile and profile.main_transport_mode in (MainTransportMode.MAINLY_DRIVING, MainTransportMode.BOTH):
-            # Static records are refreshed by the pipeline and mirrored here so
-            # production comparisons have an auditable official-data copy.
-            try:
-                self.carpark_repo.replace_static_records(HdbCarparkStore.load())
-            except Exception as exc:
-                results["errors"].append(f"HDB carpark persistence unavailable: {exc}")
 
         for listing_orm in listings:
             listing = confirmed_listing_from_orm(listing_orm)
-            listing_result = self._enrich_listing(listing, profile, simulate_delay, availability_provider)
+            # Status transitions commit before provider calls; subsequent
+            # related field writes are coalesced until the next transition.
+            with self.repo.batch():
+                listing_result = self._enrich_listing(
+                    listing,
+                    profile,
+                    simulate_delay,
+                    availability_provider,
+                    routing_provider,
+                    progress_callback=report,
+                )
             results["listings"].append(listing_result)
 
         if profile and profile.important_locations:
-            self._enrich_journeys(listings, profile, simulate_delay)
+            report("calculating_journeys")
+            with self.repo.batch():
+                self._enrich_journeys(listings, profile, simulate_delay)
 
+        report("finalising_results")
         return results
 
     def _enrich_listing(
@@ -142,6 +188,8 @@ class EnrichmentService:
         profile: BuyerProfile | None,
         simulate_delay: bool,
         availability_provider: CarparkAvailabilityProvider | None = None,
+        routing_provider=None,
+        progress_callback: Callable[[str], None] | None = None,
     ) -> dict:
         lid = listing.listing_id
         town: str | None = None
@@ -150,17 +198,21 @@ class EnrichmentService:
         lat: float | None = None
         lng: float | None = None
         transaction_records = []
-        try:
-            transaction_records = get_transactions_adapter().all_records()
-        except Exception:
-            transaction_records = []
+        with measure_stage("transaction_fixture_loading", listing_id=str(lid)):
+            try:
+                transaction_records = get_transactions_adapter().all_records()
+            except Exception:
+                transaction_records = []
 
+        if progress_callback is not None:
+            progress_callback("geocoding_and_property")
         # Geocoding
         self.repo.upsert_run(lid, EnrichmentType.GEOCODING.value, EnrichmentStatus.RUNNING.value)
         if simulate_delay:
             time.sleep(0.05)
         try:
-            geo = get_geocoding_adapter().geocode(listing.address)
+            with measure_stage("onemap_geocoding", listing_id=str(lid)):
+                geo = get_geocoding_adapter().geocode(listing.address)
             if geo.town:
                 town = geo.town
                 town_source = "reverse_geocode"
@@ -254,6 +306,7 @@ class EnrichmentService:
             remaining_lease_as_of_date=valuation_listing.remaining_lease_as_of_date
             or date.fromisoformat(lease_estimate.as_of_date),
             remaining_lease_status=valuation_listing.remaining_lease_status,
+            commit=False,
         )
         self.repo.save_enriched_field(
             lid,
@@ -306,9 +359,12 @@ class EnrichmentService:
         lease_provenance = lease_estimate.source.upper()
         self.repo.upsert_run(lid, EnrichmentType.LEASE.value, EnrichmentStatus.SUCCEEDED.value)
 
+        if progress_callback is not None:
+            progress_callback("calculating_fair_price")
         # Fair price
         self.repo.upsert_run(lid, EnrichmentType.FAIR_PRICE.value, EnrichmentStatus.RUNNING.value)
-        fp = FairPriceEngine.estimate(valuation_listing, town, town_source=town_source, records=transaction_records)
+        with measure_stage("fair_price_prediction", listing_id=str(lid)):
+            fp = FairPriceEngine.estimate(valuation_listing, town, town_source=town_source, records=transaction_records)
         if settings.app_env == "development":
             filter_status = fp.filter_status or {}
             applied = [
@@ -388,6 +444,8 @@ class EnrichmentService:
             else EnrichmentStatus.UNAVAILABLE.value,
         )
 
+        if progress_callback is not None:
+            progress_callback("calculating_transport")
         # Public transport
         if profile and profile.main_transport_mode in (
             MainTransportMode.MAINLY_PUBLIC_TRANSPORT,
@@ -402,7 +460,8 @@ class EnrichmentService:
                     "Coordinates unavailable",
                 )
             else:
-                pt_rollup = compute_public_transport_model(lat, lng, get_routing_provider())
+                with measure_stage("public_transport_enrichment", listing_id=str(lid)):
+                    pt_rollup = compute_public_transport_model(lat, lng, routing_provider)
                 self.repo.save_enriched_field(
                     lid,
                     "public_transport",
@@ -419,6 +478,8 @@ class EnrichmentService:
                     else EnrichmentStatus.UNAVAILABLE.value,
                 )
 
+        if progress_callback is not None:
+            progress_callback("calculating_driving")
         # Driving
         if profile and profile.main_transport_mode in (MainTransportMode.MAINLY_DRIVING, MainTransportMode.BOTH):
             self.repo.upsert_run(lid, EnrichmentType.DRIVING_ACCESS.value, EnrichmentStatus.RUNNING.value)
@@ -430,20 +491,21 @@ class EnrichmentService:
                     "Coordinates unavailable",
                 )
             else:
-                dr_rollup = compute_driving_model(
-                    lat,
-                    lng,
-                    get_routing_provider(),
-                    availability_provider=availability_provider,
-                    history_lookup=self.carpark_repo.historical_summary,
-                    listing_address=listing.address,
-                )
+                with measure_stage("driving_enrichment", listing_id=str(lid)):
+                    dr_rollup = compute_driving_model(
+                        lat,
+                        lng,
+                        routing_provider,
+                        availability_provider=availability_provider,
+                        history_lookup=self.carpark_repo.historical_summary,
+                        listing_address=listing.address,
+                    )
                 parking_component = next(
                     (component for component in dr_rollup.components if component.name == "parking_convenience"), None
                 )
                 if parking_component is not None:
                     try:
-                        self.carpark_repo.save_matches_and_metric(lid, parking_component)
+                        self.carpark_repo.save_matches_and_metric(lid, parking_component, commit=False)
                     except Exception as exc:
                         self.repo.save_enriched_field(
                             lid,
@@ -468,10 +530,13 @@ class EnrichmentService:
                     else EnrichmentStatus.UNAVAILABLE.value,
                 )
 
+        if progress_callback is not None:
+            progress_callback("checking_schools")
         # Schools
         if profile and profile.schools_matter:
             self.repo.upsert_run(lid, EnrichmentType.SCHOOLS.value, EnrichmentStatus.RUNNING.value)
-            schools = SchoolsEngine.compute(lid, lat, lng, named_schools=profile.school_names)
+            with measure_stage("school_enrichment", listing_id=str(lid)):
+                schools = SchoolsEngine.compute(lid, lat, lng, named_schools=profile.school_names)
             self.repo.save_enriched_field(
                 lid,
                 "schools",
@@ -535,7 +600,8 @@ class EnrichmentService:
                     time.sleep(0.05)
 
                 try:
-                    matrix = routes.route_matrix(coords, dest, mode, departure)
+                    with measure_stage("important_location_journey_matrix"):
+                        matrix = routes.route_matrix(coords, dest, mode, departure)
                 except Exception as exc:
                     for lid in listing_ids:
                         # Keep a local, destination-scoped failure record so

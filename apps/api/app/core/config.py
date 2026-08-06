@@ -33,14 +33,30 @@ class Settings(BaseSettings):
     database_max_overflow: int = 2
     database_pool_recycle_seconds: int = 300
     redis_url: str = ""
+    route_cache_namespace: str = "nearhome:routes:v1"
+    route_request_concurrency: int = 4
     job_execution_mode: str = "inline"
     max_concurrent_enrichments: int = 1
+    gcp_project_id: str = ""
+    cloud_tasks_location: str = "asia-southeast1"
+    cloud_tasks_queue: str = "nearhome-enrichment"
+    enrichment_worker_url: str = ""
+    cloud_tasks_service_account_email: str = ""
+    cloud_tasks_oidc_audience: str = ""
+    cloud_tasks_dispatch_deadline_seconds: int = 600
+    max_enrichment_job_attempts: int = 3
+    enrichment_job_stale_seconds: int = 660
 
     enable_playwright_fallback: bool = True
     playwright_timeout_seconds: int = 25
     playwright_max_concurrency: int = 1
+    # Disabled by default. When explicitly enabled on a tagged test revision,
+    # this exposes only fixed, non-sensitive egress diagnostics behind a token.
+    enable_egress_diagnostics: bool = False
+    egress_diagnostics_token: str = ""
 
     google_maps_api_key: str = ""
+    fair_price_model_artifact_path: str = ""
     onemap_email: str = ""
     onemap_password: str = ""
     lta_account_key: str = ""
@@ -92,12 +108,20 @@ class Settings(BaseSettings):
         application logs.  This runs before the API begins accepting traffic.
         """
         problems: list[str] = []
-        if self.job_execution_mode not in {"inline", "arq"}:
-            problems.append("JOB_EXECUTION_MODE must be either inline or arq")
+        if self.job_execution_mode not in {"inline", "arq", "cloud_tasks"}:
+            problems.append("JOB_EXECUTION_MODE must be inline, arq, or cloud_tasks")
         if self.job_execution_mode == "arq" and not self.redis_url:
             problems.append("REDIS_URL is required when JOB_EXECUTION_MODE=arq")
+        if self.cloud_tasks_dispatch_deadline_seconds < 15:
+            problems.append("CLOUD_TASKS_DISPATCH_DEADLINE_SECONDS must be at least 15")
+        if self.max_enrichment_job_attempts < 1:
+            problems.append("MAX_ENRICHMENT_JOB_ATTEMPTS must be at least 1")
+        if self.enrichment_job_stale_seconds <= self.cloud_tasks_dispatch_deadline_seconds:
+            problems.append("ENRICHMENT_JOB_STALE_SECONDS must exceed the Cloud Tasks dispatch deadline")
         if self.max_concurrent_enrichments < 1:
             problems.append("MAX_CONCURRENT_ENRICHMENTS must be at least 1")
+        if self.route_request_concurrency < 1:
+            problems.append("ROUTE_REQUEST_CONCURRENCY must be at least 1")
         if self.playwright_timeout_seconds < 1 or self.playwright_max_concurrency < 1:
             problems.append("Playwright timeout and concurrency must both be at least 1")
         if not self.is_production:
@@ -128,6 +152,24 @@ class Settings(BaseSettings):
             problems.append("ONEMAP_EMAIL and ONEMAP_PASSWORD are required when APP_ENV=production")
         if not self.groq_api_key:
             problems.append("GROQ_API_KEY is required when APP_ENV=production")
+        if self.job_execution_mode != "cloud_tasks":
+            problems.append("JOB_EXECUTION_MODE must be cloud_tasks when APP_ENV=production")
+        required_task_settings = {
+            "GCP_PROJECT_ID": self.gcp_project_id,
+            "CLOUD_TASKS_LOCATION": self.cloud_tasks_location,
+            "CLOUD_TASKS_QUEUE": self.cloud_tasks_queue,
+            "ENRICHMENT_WORKER_URL": self.enrichment_worker_url,
+            "CLOUD_TASKS_SERVICE_ACCOUNT_EMAIL": self.cloud_tasks_service_account_email,
+        }
+        for name, value in required_task_settings.items():
+            if not value:
+                problems.append(f"{name} is required when APP_ENV=production")
+        if self.enrichment_worker_url and not self.enrichment_worker_url.startswith("https://"):
+            problems.append("ENRICHMENT_WORKER_URL must be an HTTPS URL")
+        if self.enable_egress_diagnostics and len(self.egress_diagnostics_token) < 32:
+            problems.append(
+                "EGRESS_DIAGNOSTICS_TOKEN must be a unique value of at least 32 characters when diagnostics are enabled"
+            )
 
         if problems:
             raise RuntimeError("Invalid production configuration: " + "; ".join(problems))

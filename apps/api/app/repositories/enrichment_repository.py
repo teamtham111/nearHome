@@ -2,18 +2,53 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from datetime import UTC, datetime
+from time import perf_counter
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from app.domain.enums import EnrichmentStatus
 from app.models.orm import ConfirmedListingORM, EnrichedFieldORM, EnrichmentRunORM, JourneyEstimateORM
+from app.services.enrichment_metrics import record_database_read, record_database_write
 
 
 class EnrichmentRepository:
     def __init__(self, db: Session) -> None:
         self.db = db
+        self._batch_depth = 0
+
+    @contextmanager
+    def batch(self):
+        """Commit one short logical persistence transaction after calculations.
+
+        Callers must not hold this context across external provider calls. The
+        service enters it only after each listing's remote calculations finish.
+        """
+        self._batch_depth += 1
+        try:
+            yield
+            if self._batch_depth == 1:
+                self._commit()
+        except Exception:
+            self.db.rollback()
+            raise
+        finally:
+            self._batch_depth -= 1
+
+    def _commit(self, *, force: bool = False) -> None:
+        if self._batch_depth > 1 and not force:
+            return
+        if self._batch_depth and not force and not (self.db.new or self.db.dirty or self.db.deleted):
+            return
+        started = perf_counter()
+        self.db.commit()
+        record_database_write((perf_counter() - started) * 1000, committed=True)
+
+    def _flush_before_read(self) -> None:
+        if self._batch_depth:
+            self.db.flush()
 
     def upsert_run(
         self,
@@ -24,6 +59,8 @@ class EnrichmentRepository:
     ) -> EnrichmentRunORM | None:
         if not self._listing_exists(listing_id):
             return None
+        self._flush_before_read()
+        started = perf_counter()
         existing = (
             self.db.query(EnrichmentRunORM)
             .filter(
@@ -32,6 +69,7 @@ class EnrichmentRepository:
             )
             .first()
         )
+        record_database_read((perf_counter() - started) * 1000)
         now = datetime.now(UTC)
         if existing:
             existing.status = status
@@ -45,8 +83,12 @@ class EnrichmentRepository:
             if status in terminal_statuses:
                 existing.completed_at = now
             existing.error_message = error_message
-            self.db.commit()
-            self.db.refresh(existing)
+            # Persist the running marker before a potentially slow external
+            # provider call; batching never leaves a DB transaction open while
+            # the worker waits on Google or OneMap.
+            self._commit(force=status == EnrichmentStatus.RUNNING.value)
+            if not self._batch_depth:
+                self.db.refresh(existing)
             return existing
 
         run = EnrichmentRunORM(
@@ -61,8 +103,9 @@ class EnrichmentRepository:
             error_message=error_message,
         )
         self.db.add(run)
-        self.db.commit()
-        self.db.refresh(run)
+        self._commit(force=status == EnrichmentStatus.RUNNING.value)
+        if not self._batch_depth:
+            self.db.refresh(run)
         return run
 
     def save_enriched_field(
@@ -78,6 +121,8 @@ class EnrichmentRepository:
     ) -> None:
         if not self._listing_exists(listing_id):
             return
+        self._flush_before_read()
+        started = perf_counter()
         existing = (
             self.db.query(EnrichedFieldORM)
             .filter(
@@ -86,6 +131,7 @@ class EnrichmentRepository:
             )
             .first()
         )
+        record_database_read((perf_counter() - started) * 1000)
         now = datetime.now(UTC)
         if existing:
             existing.value_json = value
@@ -109,7 +155,7 @@ class EnrichmentRepository:
                     assumptions_json=assumptions or [],
                 )
             )
-        self.db.commit()
+        self._commit()
 
     def get_enriched_fields(self, listing_id: UUID) -> list[EnrichedFieldORM]:
         return self.db.query(EnrichedFieldORM).filter(EnrichedFieldORM.listing_id == listing_id).all()
@@ -163,6 +209,8 @@ class EnrichmentRepository:
     ) -> JourneyEstimateORM | None:
         if not self._listing_exists(listing_id):
             return None
+        self._flush_before_read()
+        started = perf_counter()
         existing = (
             self.db.query(JourneyEstimateORM)
             .filter(
@@ -172,6 +220,7 @@ class EnrichmentRepository:
             )
             .first()
         )
+        record_database_read((perf_counter() - started) * 1000)
         # `timezone` is the persisted IANA timezone string for the journey.
         # Use the imported UTC singleton for the retrieval timestamp.
         now = datetime.now(UTC)
@@ -183,8 +232,9 @@ class EnrichmentRepository:
             existing.provider_status = provider_status
             existing.resolved_departure_at = resolved_departure_at
             existing.retrieved_at = now
-            self.db.commit()
-            self.db.refresh(existing)
+            self._commit()
+            if not self._batch_depth:
+                self.db.refresh(existing)
             return existing
 
         row = JourneyEstimateORM(
@@ -204,8 +254,9 @@ class EnrichmentRepository:
             retrieved_at=now,
         )
         self.db.add(row)
-        self.db.commit()
-        self.db.refresh(row)
+        self._commit()
+        if not self._batch_depth:
+            self.db.refresh(row)
         return row
 
     def get_journey_estimates(self, listing_ids: list[UUID]) -> list[JourneyEstimateORM]:
@@ -228,9 +279,12 @@ class EnrichmentRepository:
         )
 
     def _listing_exists(self, listing_id: UUID) -> bool:
-        return (
+        started = perf_counter()
+        result = (
             self.db.query(ConfirmedListingORM.id)
             .filter(ConfirmedListingORM.id == listing_id)
             .first()
             is not None
         )
+        record_database_read((perf_counter() - started) * 1000)
+        return result

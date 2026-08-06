@@ -3,16 +3,25 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
 import { ComparisonView } from "@/components/comparison-view";
 import { WorkflowStepper } from "@/components/workflow-stepper";
 import { EnrichmentProgress } from "@/components/enrichment-progress";
 import { getComparison, getSession, startEnrichment } from "@/lib/api";
-import { waitForEnrichmentComplete } from "@/lib/wait-for-enrichment";
+import { waitForEnrichmentJob } from "@/lib/wait-for-enrichment";
 
 export default function SessionComparisonPage() {
   const params = useParams<{ sessionId: string }>();
   const sessionId = params.sessionId;
   const qc = useQueryClient();
+  const [activeEnrichmentJobId, setActiveEnrichmentJobId] = useState<string | null>(null);
+  const [completedEnrichmentJobId, setCompletedEnrichmentJobId] = useState<string | null>(null);
+  const enrichmentStorageKey = `nearhome:enrichment-job:${sessionId}`;
+
+  useEffect(() => {
+    const savedJobId = window.sessionStorage.getItem(enrichmentStorageKey);
+    if (savedJobId) setActiveEnrichmentJobId(savedJobId);
+  }, [enrichmentStorageKey]);
 
   const sessionQuery = useQuery({
     queryKey: ["session", sessionId],
@@ -26,15 +35,29 @@ export default function SessionComparisonPage() {
     refetchInterval: 8000,
   });
 
+  const handleEnrichmentTerminal = useCallback((jobStatus: "completed" | "failed" | "cancelled", jobId: string) => {
+    window.sessionStorage.removeItem(enrichmentStorageKey);
+    setActiveEnrichmentJobId(null);
+    if (jobStatus === "completed") {
+      setCompletedEnrichmentJobId(jobId);
+      qc.invalidateQueries({ queryKey: ["comparison", sessionId] });
+      qc.invalidateQueries({ queryKey: ["session", sessionId] });
+    }
+  }, [enrichmentStorageKey, qc, sessionId]);
+
   const enrich = useMutation({
     mutationFn: async () => {
       const result = await startEnrichment(sessionId);
-      if (result.mode === "queued") {
-        await waitForEnrichmentComplete(sessionId);
-      }
+      setCompletedEnrichmentJobId(null);
+      window.sessionStorage.setItem(enrichmentStorageKey, result.job_id);
+      setActiveEnrichmentJobId(result.job_id);
+      await waitForEnrichmentJob(sessionId, result.job_id);
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      window.sessionStorage.removeItem(enrichmentStorageKey);
+      setActiveEnrichmentJobId(null);
+      setCompletedEnrichmentJobId(result.job_id);
       qc.invalidateQueries({ queryKey: ["comparison", sessionId] });
       qc.invalidateQueries({ queryKey: ["session", sessionId] });
     },
@@ -62,32 +85,39 @@ export default function SessionComparisonPage() {
   if (!session || !comparison) return null;
 
   return (
-    <div className="nh-workflow-grid space-y-7">
+    <div className="nh-workflow-grid space-y-7 py-8 sm:py-10">
       <div className="space-y-4">
         <Link href={`/session/${sessionId}`} className="text-sm text-teal-700 hover:underline">
           ← Back to workspace
         </Link>
         <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="nh-section-kicker">Step 3 · Compare results</p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight">Your shortlist at a glance</h2>
-            <p className="mt-1 text-sm text-slate-600">Start with the recommendation, then open the sections below to inspect the evidence.</p>
+            <p className="nh-section-kicker">Step 3 of 3 · Compare results</p>
+            <h2 className="mt-1 text-3xl font-bold tracking-tight text-blue-950">Your comparison is ready</h2>
+            <p className="mt-1 text-sm text-slate-600">Review the available factor results, trade-offs and supporting evidence across your shortlisted flats.</p>
           </div>
           {session.listing_count >= 2 && (
             <button
               type="button"
               className="nh-primary"
               onClick={() => enrich.mutate()}
-              disabled={enrich.isPending}
+              disabled={enrich.isPending || Boolean(activeEnrichmentJobId)}
             >
-              {enrich.isPending ? "Running enrichment…" : "Run enrichment"}
+              {enrich.isPending || activeEnrichmentJobId ? "Enrichment in progress…" : "Run enrichment"}
             </button>
           )}
         </div>
         {enrich.isError && (
           <p className="mt-2 text-sm text-red-600" role="alert">{String(enrich.error.message)}</p>
         )}
-        {enrich.isPending && <EnrichmentProgress sessionId={sessionId} />}
+        {(activeEnrichmentJobId || completedEnrichmentJobId) && (
+          <EnrichmentProgress
+            sessionId={sessionId}
+            jobId={activeEnrichmentJobId ?? completedEnrichmentJobId ?? ""}
+            listings={session.listings}
+            onTerminal={activeEnrichmentJobId ? handleEnrichmentTerminal : undefined}
+          />
+        )}
         <WorkflowStepper current="compare" profileSaved={Boolean(session.profile_saved)} listingCount={session.listing_count} sessionId={sessionId} />
       </div>
 

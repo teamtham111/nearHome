@@ -2,7 +2,7 @@
 
 NearHome production now uses `CATBOOST` as the primary fair-price estimator.
 The transparent weighted-comparable engine remains active as supporting
-evidence and as an explicit runtime fallback if CatBoost cannot load or train.
+evidence and as an explicit runtime fallback if the prebuilt CatBoost artifact cannot load or validate.
 
 ## Commands
 

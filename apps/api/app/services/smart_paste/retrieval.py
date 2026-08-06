@@ -17,6 +17,7 @@ import ipaddress
 import json
 import re
 import threading
+import time
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
@@ -42,6 +43,14 @@ MAX_STRUCTURED_SCRIPT_LENGTH = 20_000
 
 _BLOCKED_HOSTNAME_SUFFIXES = (".local", ".localhost", ".internal")
 _BLOCKED_HOSTNAMES = {"localhost", "localhost.localdomain"}
+
+# This deliberately fixed URL is used only by the protected egress experiment.
+# It is not accepted from callers and therefore cannot turn the endpoint into a
+# general-purpose fetching proxy.
+DIAGNOSTIC_PROPERTYGURU_URL = (
+    "https://www.propertyguru.com.sg/listing/hdb-for-sale-217-bishan-street-23-60027295"
+)
+DIAGNOSTIC_IP_ECHO_URLS = ("https://api.ipify.org", "https://checkip.amazonaws.com")
 
 
 class ListingRetrievalError(Exception):
@@ -547,3 +556,112 @@ def retrieve_listing_content(source_url: str) -> RetrievedListingContent:
         except ListingRetrievalError:
             # The plain-fetch error is generally the more informative one to show the user.
             raise http_error from None
+
+
+def run_egress_diagnostic() -> dict[str, object]:
+    """Return bounded, content-free facts for the fixed egress experiment.
+
+    This function intentionally has no caller-supplied URL. It never returns
+    HTML, cookies, headers, credentials, or extracted listing text, and it does
+    not call Groq. The normal Smart Paste endpoint remains responsible for the
+    real extraction flow.
+    """
+
+    ip_results: list[dict[str, str | None]] = []
+    for endpoint in DIAGNOSTIC_IP_ECHO_URLS:
+        try:
+            response = httpx.get(endpoint, timeout=5.0, follow_redirects=False)
+            value = response.text.strip()
+            ip_results.append(
+                {
+                    "endpoint": endpoint,
+                    "ip": value if response.status_code == 200 and len(value) <= 64 else None,
+                }
+            )
+        except httpx.HTTPError:
+            ip_results.append({"endpoint": endpoint, "ip": None})
+
+    started = time.monotonic()
+    http_result: dict[str, object] = {
+        "attempted": True,
+        "succeeded": False,
+        "status": None,
+        "final_url": None,
+        "content_type": None,
+        "page_title": None,
+        "body_length": None,
+        "challenge_detected": None,
+        "usable_text_length": 0,
+    }
+    html = ""
+    try:
+        current_url = DIAGNOSTIC_PROPERTYGURU_URL
+        redirects = 0
+        headers = {"Accept": "text/html,application/xhtml+xml", "User-Agent": "NearHome Listing Importer/1.0"}
+        with httpx.Client(
+            timeout=httpx.Timeout(REQUEST_TIMEOUT_SECONDS), follow_redirects=False, headers=headers
+        ) as client:
+            while True:
+                with client.stream("GET", current_url) as response:
+                    if (
+                        300 <= response.status_code < 400
+                        and response.headers.get("location")
+                        and redirects < MAX_REDIRECTS
+                    ):
+                        current_url = validate_listing_url(urljoin(current_url, response.headers["location"]))
+                        redirects += 1
+                        continue
+                    raw = b"".join(chunk for chunk in response.iter_bytes())[:MAX_RESPONSE_BYTES]
+                    html = raw.decode("utf-8", errors="replace")
+                    parser = _ListingHTMLParser()
+                    parser.feed(html)
+                    parser.close()
+                    title = " ".join(parser.title_parts).strip() or parser.metadata.get("og:title", "")
+                    visible_text = "\n".join(_clean_visible_lines(parser.visible_lines))
+                    challenge = response.status_code in {401, 403, 429} or _is_blocked_page(html, title, visible_text)
+                    http_result.update(
+                        {
+                            "status": response.status_code,
+                            "final_url": current_url,
+                            "content_type": response.headers.get("content-type", "").split(";", 1)[0] or None,
+                            "page_title": title[:200] or None,
+                            "body_length": len(raw),
+                            "challenge_detected": challenge,
+                        }
+                    )
+                    if response.status_code < 400 and not challenge:
+                        try:
+                            cleaned = extract_listing_content(html, current_url)
+                        except ListingRetrievalError:
+                            pass
+                        else:
+                            http_result["succeeded"] = True
+                            http_result["usable_text_length"] = len(cleaned)
+                    break
+    except (httpx.HTTPError, ListingRetrievalError, ValueError):
+        # The public result intentionally reports only the failed outcome; it
+        # never includes network exception internals or response payloads.
+        pass
+
+    headless_result: dict[str, object] = {"attempted": False, "succeeded": False, "usable_text_length": 0}
+    if not http_result["succeeded"] and settings.enable_playwright_fallback:
+        headless_result["attempted"] = True
+        try:
+            rendered = _fetch_via_headless_browser(DIAGNOSTIC_PROPERTYGURU_URL)
+        except ListingRetrievalError:
+            pass
+        else:
+            headless_result.update({"succeeded": True, "usable_text_length": len(rendered.cleaned_text)})
+
+    usable = int(http_result["usable_text_length"]) or int(headless_result["usable_text_length"])
+    return {
+        "outbound_ip_checks": ip_results,
+        "propertyguru": {
+            "source": "fixed_allowlisted_test_listing",
+            "http": http_result,
+            "playwright": headless_result,
+            "groq_attempted": False,
+            "groq_eligible": usable >= 30,
+            "total_latency_ms": round((time.monotonic() - started) * 1000, 1),
+        },
+    }

@@ -10,26 +10,33 @@ the prediction interval is calibrated on the latest historical holdout.
 from __future__ import annotations
 
 import hashlib
-import logging
+import json
+import os
 import re
+import shutil
+import tempfile
 from dataclasses import dataclass
 from datetime import date, datetime
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
 
 from app.adapters.base import TransactionRecord
+from app.core.config import settings
+from app.core.logging import get_logger
 from app.domain.models import ConfirmedListing
 from app.engines.fair_price_comparables import _flat_type_key
 from app.evaluation.data import CATEGORICAL_FEATURES, NUMERIC_FEATURES
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
-MODEL_VERSION = "catboost_v1"
+MODEL_VERSION = "catboost_v2_artifact"
 _ITERATIONS = 400
 _SEED = 42
-_CACHE: dict[str, _FittedCatBoost] = {}
+_ARTIFACT_CACHE: dict[str, _FittedCatBoost] = {}
+_REPO_ROOT = Path(__file__).resolve().parents[4]
 
 
 @dataclass(frozen=True)
@@ -80,11 +87,9 @@ def predict(
     ):
         return None
 
-    cache_key = _snapshot_key(history)
-    fitted = _CACHE.get(cache_key)
+    fitted = load_artifact(history)
     if fitted is None:
-        fitted = _fit(history)
-        _CACHE[cache_key] = fitted
+        return None
 
     target = _listing_frame(listing, town, valuation_date)
     target = _prepare_frame(target, fitted.numeric_medians)
@@ -101,6 +106,142 @@ def predict(
         calibration_rows=fitted.calibration_rows,
         calibration_source=fitted.calibration_source,
     )
+
+
+def train_artifact(
+    records: list[TransactionRecord], artifact_dir: str, valuation_date: date | None = None
+) -> dict[str, object]:
+    """Train outside the request path and save a reproducible model artifact."""
+    valuation_month = (valuation_date or date.today()).strftime("%Y-%m")
+    history = _records_to_frame(records, before_month=valuation_month)
+    if history.empty:
+        raise ValueError("No transaction rows are available for CatBoost artifact training")
+    fitted = _fit(history)
+    target = resolve_artifact_dir(artifact_dir)
+    metadata = {
+        "model_version": MODEL_VERSION,
+        "transaction_snapshot_key": _snapshot_key(history),
+        "feature_columns": CATEGORICAL_FEATURES + NUMERIC_FEATURES,
+        "numeric_medians": {key: float(value) for key, value in fitted.numeric_medians.items()},
+        "residual_low": fitted.residual_low,
+        "residual_high": fitted.residual_high,
+        "training_rows": fitted.training_rows,
+        "calibration_rows": fitted.calibration_rows,
+        "calibration_source": fitted.calibration_source,
+        "supported_flat_types": sorted(fitted.supported_flat_types),
+        "training_cutoff_month": valuation_month,
+    }
+    _publish_artifact(target, fitted.model, metadata)
+    _ARTIFACT_CACHE.pop(str(target), None)
+    logger.info("fair_price_model_artifact_trained", extra={"artifact_path": str(target)})
+    return {"artifact_dir": str(target), **metadata}
+
+
+def load_artifact(history: pd.DataFrame) -> _FittedCatBoost | None:
+    """Load a compatible prebuilt artifact once; never fit during inference."""
+    configured_path = settings.fair_price_model_artifact_path.strip()
+    if not configured_path:
+        logger.warning("fair_price_model_artifact_missing", reason="path_not_configured")
+        return None
+    root = resolve_artifact_dir(configured_path)
+    cache_key = str(root)
+    cached = _ARTIFACT_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+    model_path = root / "model.cbm"
+    metadata_path = root / "metadata.json"
+    if not model_path.is_file() or not metadata_path.is_file():
+        logger.warning(
+            "fair_price_model_artifact_missing",
+            reason="files_not_present",
+            artifact_path=str(root),
+        )
+        return None
+    try:
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        if not isinstance(metadata, dict):
+            raise ValueError("metadata must be an object")
+        required_features = CATEGORICAL_FEATURES + NUMERIC_FEATURES
+        if (
+            metadata.get("model_version") != MODEL_VERSION
+            or metadata.get("transaction_snapshot_key") != _snapshot_key(history)
+            or metadata.get("feature_columns") != required_features
+        ):
+            logger.warning(
+                "fair_price_model_artifact_incompatible",
+                reason="model_or_snapshot_mismatch",
+                artifact_path=str(root),
+            )
+            return None
+
+        numeric_medians = pd.Series(metadata["numeric_medians"], dtype=float)
+        if set(NUMERIC_FEATURES) - set(numeric_medians.index) or not np.isfinite(numeric_medians).all():
+            raise ValueError("numeric medians are incomplete or invalid")
+        residual_low = float(metadata["residual_low"])
+        residual_high = float(metadata["residual_high"])
+        training_rows = int(metadata["training_rows"])
+        calibration_rows = int(metadata["calibration_rows"])
+        supported_flat_types = frozenset(str(value) for value in metadata["supported_flat_types"])
+        if (
+            not np.isfinite([residual_low, residual_high]).all()
+            or residual_low > residual_high
+            or training_rows <= 0
+            or calibration_rows < 0
+            or not supported_flat_types
+        ):
+            raise ValueError("artifact metadata values are invalid")
+        from catboost import CatBoostRegressor
+
+        model = CatBoostRegressor()
+        model.load_model(str(model_path))
+        fitted = _FittedCatBoost(
+            model=model,
+            numeric_medians=numeric_medians,
+            residual_low=residual_low,
+            residual_high=residual_high,
+            training_rows=training_rows,
+            calibration_rows=calibration_rows,
+            calibration_source=str(metadata["calibration_source"]),
+            supported_flat_types=supported_flat_types,
+        )
+    except Exception as exc:  # Provider/model parsing must never break enrichment.
+        logger.warning(
+            "fair_price_model_artifact_invalid",
+            error_type=type(exc).__name__,
+            artifact_path=str(root),
+        )
+        return None
+    _ARTIFACT_CACHE[cache_key] = fitted
+    logger.info("fair_price_model_artifact_loaded", artifact_path=str(root))
+    return fitted
+
+
+def resolve_artifact_dir(value: str) -> Path:
+    """Resolve local relative artifact paths from the repository root."""
+
+    path = Path(value).expanduser()
+    return path.resolve() if path.is_absolute() else (_REPO_ROOT / path).resolve()
+
+
+def _publish_artifact(target: Path, model: Any, metadata: dict[str, object]) -> None:
+    """Stage both artifact files, then atomically replace each published file."""
+
+    target.mkdir(parents=True, exist_ok=True)
+    staging = Path(tempfile.mkdtemp(prefix=".catboost-build-", dir=target.parent))
+    try:
+        staged_model = staging / "model.cbm"
+        staged_metadata = staging / "metadata.json"
+        model.save_model(str(staged_model))
+        staged_metadata.write_text(json.dumps(metadata, sort_keys=True), encoding="utf-8")
+        os.replace(staged_model, target / "model.cbm")
+        os.replace(staged_metadata, target / "metadata.json")
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)
+
+
+def _clear_artifact_cache() -> None:
+    """Test-only cache reset; runtime has no retraining hook."""
+    _ARTIFACT_CACHE.clear()
 
 
 def _fit(history: pd.DataFrame) -> _FittedCatBoost:
@@ -289,3 +430,21 @@ def _snapshot_key(frame: pd.DataFrame) -> str:
 def _storey_midpoint(value: object) -> float:
     numbers = [int(number) for number in re.findall(r"\d+", str(value or ""))]
     return float(sum(numbers) / len(numbers)) if numbers else np.nan
+
+
+def _main() -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Train the immutable NearHome CatBoost artifact")
+    parser.add_argument("train", nargs="?", choices=["train"], default="train")
+    parser.add_argument("--artifact-dir", default="artifacts/fair_price/catboost")
+    args = parser.parse_args()
+    from app.adapters.factory import get_transactions_adapter
+
+    outcome = train_artifact(get_transactions_adapter().all_records(), args.artifact_dir)
+    print(json.dumps({key: outcome[key] for key in ("artifact_dir", "model_version", "training_rows")}, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(_main())

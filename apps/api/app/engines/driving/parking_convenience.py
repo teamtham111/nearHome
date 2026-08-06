@@ -18,7 +18,8 @@ from app.adapters.parking.hdb_availability import (
     CarparkAvailabilityProvider,
 )
 from app.adapters.parking.hdb_carpark import CarparkCandidate, HdbCarpark, HdbCarparkStore, normalize_carpark_type
-from app.adapters.routing.base import RoutingProvider, RoutingProviderError
+from app.adapters.routing.base import RoutingProvider
+from app.adapters.routing.batch import RouteCall, run_bounded_route_calls
 from app.core.config import settings
 from app.domain.enums import ComponentStatus, Provenance
 from app.domain.transport_models import ComponentResult, not_assessed, provider_error
@@ -144,11 +145,21 @@ def compute_parking_convenience(
 
     routed: list[dict[str, Any]] = []
     route_succeeded = False
-    for rank, candidate in enumerate(candidates, 1):
-        try:
-            route = routing.get_walking_route(
+    calls = [
+        RouteCall(
+            key=(
+                f"walk:{latitude:.6f}:{longitude:.6f}:{candidate.carpark.latitude:.6f}:"
+                f"{candidate.carpark.longitude:.6f}"
+            ),
+            call=lambda candidate=candidate: routing.get_walking_route(
                 (latitude, longitude), (candidate.carpark.latitude, candidate.carpark.longitude)
-            )
+            ),
+        )
+        for candidate in candidates
+    ]
+    for rank, (candidate, outcome) in enumerate(zip(candidates, run_bounded_route_calls(calls), strict=True), 1):
+        if outcome.result is not None:
+            route = outcome.result
             route_succeeded = True
             walk_minutes = float(route.duration_minutes)
             if walk_minutes <= config.max_practical_carpark_walk_minutes:
@@ -173,8 +184,6 @@ def compute_parking_convenience(
                         "relevance_score": round(sum(relevance_parts) / len(relevance_parts), 1),
                     }
                 )
-        except RoutingProviderError:
-            continue
 
     if not routed:
         if route_succeeded:

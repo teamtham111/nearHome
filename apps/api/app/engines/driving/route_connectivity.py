@@ -12,7 +12,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.adapters.routing.base import RoutingProvider, RoutingProviderError
+from app.adapters.routing.base import RoutingProvider
+from app.adapters.routing.batch import RouteCall, run_bounded_route_calls
 from app.domain.enums import ComponentStatus, Provenance
 from app.domain.transport_models import ComponentResult, not_assessed, provider_error
 from app.engines.driving.major_road_access import MajorRoadAccessOutcome
@@ -55,14 +56,20 @@ def compute_route_connectivity(
     provider_failures = 0
     reached_expressways: set[str] = set()
 
-    for dest in destinations:
-        try:
-            alternatives = routing.get_driving_alternatives(
+    calls = [
+        RouteCall(
+            key=f"drive_alts:{latitude:.6f}:{longitude:.6f}:{dest.latitude:.6f}:{dest.longitude:.6f}:{departure.isoformat()}",
+            call=lambda dest=dest: routing.get_driving_alternatives(
                 (latitude, longitude), (dest.latitude, dest.longitude), departure
-            )
-        except RoutingProviderError:
+            ),
+        )
+        for dest in destinations
+    ]
+    for dest, outcome in zip(destinations, run_bounded_route_calls(calls), strict=True):
+        if outcome.error is not None:
             provider_failures += 1
             continue
+        alternatives = outcome.result or []
         if not alternatives:
             continue
         primary, *alts = alternatives

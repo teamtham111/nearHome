@@ -301,14 +301,17 @@ export interface ComparisonResponse {
     source: string;
     confidence: string;
   }>;
-  enrichment_summary: Array<{
-    listing_id: string;
-    enrichment_type: string;
-    status: string;
-  }>;
+  enrichment_summary: Array<EnrichmentRunStatus>;
   requirement_results?: Array<Record<string, unknown>>;
   demo_mode: boolean;
 }
+
+export type EnrichmentRunStatus = {
+    listing_id: string;
+    enrichment_type: string;
+    status: string;
+    error_message?: string | null;
+};
 
 export function createSession() {
   return apiFetch<SessionResponse>("/api/v1/sessions", { method: "POST" });
@@ -369,15 +372,39 @@ export function getSession(sessionId: string) {
 }
 
 export function startEnrichment(sessionId: string) {
-  return apiFetch<{ mode: "queued" | "inline"; job_id?: string; result?: unknown }>(
+  return apiFetch<{
+    job_id: string;
+    status: "queued" | "running" | "completed" | "failed" | "cancelled";
+    status_url: string;
+  }>(
     `/api/v1/sessions/${sessionId}/enrichment/start`,
-    { method: "POST", timeoutMs: 610_000 },
+    { method: "POST" },
   );
+}
+
+export type EnrichmentJobStatus = {
+  job_id: string;
+  session_id: string;
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
+  progress_stage: string;
+  attempts: number;
+  error_code: string | null;
+  error_message: string | null;
+  result_available: boolean;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  updated_at: string;
+};
+
+export function getEnrichmentJob(sessionId: string, jobId: string) {
+  const query = new URLSearchParams({ session_id: sessionId });
+  return apiFetch<EnrichmentJobStatus>(`/api/v1/jobs/${jobId}?${query.toString()}`);
 }
 
 export function getEnrichmentStatus(sessionId: string) {
   return apiFetch<{
-    runs: Array<{ enrichment_type: string; status: string; listing_id?: string; error_message?: string | null }>;
+    runs: EnrichmentRunStatus[];
   }>(`/api/v1/sessions/${sessionId}/enrichment/status`);
 }
 

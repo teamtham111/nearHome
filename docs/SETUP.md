@@ -141,6 +141,11 @@ python data_pipeline/ingest_hdb_carparks.py --live --persist-db
 cd apps/api && alembic upgrade head
 ```
 
+This is an explicit maintenance/import operation, not part of **Run
+enrichment**. See [enrichment performance operations](ENRICHMENT_PERFORMANCE.md)
+for its idempotent behaviour, optional Redis route caching and CatBoost artifact
+build command.
+
 The live [HDB Carpark Availability API](https://data.gov.sg/datasets/d_ca933a644e55d34fe21f28b8052fac63/view)
 is read server-side. Set `DATA_GOV_SG_API_KEY` if using a data.gov.sg API
 key, and adjust `HDB_CARPARK_AVAILABILITY_CACHE_SECONDS`,
@@ -200,9 +205,12 @@ Before confirming an extraction, use **Discard listing** if the wrong URL or tex
 NearHome clears the review form and removes the unconfirmed extraction draft; no listing is added
 to the shortlist.
 
-When **Run enrichment** is active, NearHome shows a progress bar. For queued work, completion is
-based on the current enrichment-task statuses; inline work remains in a clearly labelled starting
-state until the server returns the finished result.
+When **Run enrichment** is active, NearHome starts at 0% and derives progress only from durable
+backend run statuses. It shows weighted completion for geocoding, property and lease data,
+transaction data, schools, fair price, public transport and driving access; a running check does
+not contribute progress. Optional unavailable checks are labelled as such, rather than as ready.
+At terminal completion, the compact progress card replaces its running message with a success
+summary; the comparison page does not duplicate this with a separate eight-badge status card.
 
 ### 4. LTA DataMall (full bus network — optional)
 
@@ -263,7 +271,25 @@ The buyer profile accepts up to 10 named schools and reports each selected schoo
 
 ## Fair-price data maintenance
 
-Fair price uses CatBoost as the primary estimator, trained from the cached HDB transaction fixture. After HDB transactions are ingested, restart the API/worker so the transaction adapter and CatBoost snapshot reload. The model uses the benchmarked feature set, trains only on transactions before the valuation month, caches the fitted snapshot and calibrates its range from a recent temporal holdout. Weighted comparables still provide buyer-visible evidence and are an explicit fallback if CatBoost cannot load or train. Lease is resolved once by the canonical estimator and stored internally as months: official exact value, recent exact-block transaction expiry median, commencement-year fallback, then low-confidence listing text. Missing/invalid transaction lease values remain missing; they are never replaced with a default such as 65 years. A remaining lease of zero is treated as missing; the listing must have a positive canonical lease for valuation.
+Fair price uses a prebuilt CatBoost artifact as the primary estimator. After HDB
+transactions are ingested, rebuild the artifact with the command in
+[enrichment performance operations](ENRICHMENT_PERFORMANCE.md); runtime validates
+the transaction snapshot and never fits or calibrates during a user request.
+Weighted comparables still provide buyer-visible evidence and are the explicit
+fallback if the artifact cannot load or validate. Lease is resolved once by the
+canonical estimator and stored internally as months: official exact value, recent
+exact-block transaction expiry median, commencement-year fallback, then
+low-confidence listing text. Missing/invalid transaction lease values remain
+missing; they are never replaced with a default such as 65 years. A remaining
+lease of zero is treated as missing; the listing must have a positive canonical
+lease for valuation.
+
+For local development, run `./scripts/train-fair-price-model.sh` from the
+repository root once after setting up the API environment, and set
+`FAIR_PRICE_MODEL_ARTIFACT_PATH=artifacts/fair_price/catboost` in the root
+`.env`. The directory is generated locally and intentionally ignored by Git.
+Restart the API and ARQ worker after rebuilding it. Neither process trains a
+model while serving a listing or an enrichment job.
 
 The buyer-facing valuation card translates this response into a central estimate,
 likely range, asking-price comparison, confidence explanation, property details,
@@ -307,7 +333,10 @@ docker compose up -d redis
 cd apps/api && python -m app.jobs.worker
 ```
 
-`POST /api/v1/sessions/{id}/enrichment/start` queues jobs when Redis is available; otherwise runs inline.
+`POST /api/v1/sessions/{id}/enrichment/start` returns a durable job reference.
+Local inline mode completes it synchronously for compatibility; production mode
+uses Cloud Tasks and a private worker. Poll `GET /api/v1/jobs/{job_id}?session_id={session_id}`
+for stored job status without triggering work.
 Before a queued run starts, prior enrichment rows are marked `QUEUED`, so the browser
 does not mistake results from an earlier run for completion of the current run. The
 browser waits for the current run and reports failed enrichment steps instead of treating
@@ -338,6 +367,17 @@ cd tests/e2e && npm install && npx playwright install chromium && npm test
 ```
 
 The Smart Paste E2E scenario supplies sample listing text before clicking **Add a flat**; the button is intentionally disabled for an empty paste.
+
+To run E2E tests alongside an already-running local stack, use isolated ports. The test runner
+starts the API with the matching CORS origin and the web app with the matching public API URL:
+
+```bash
+cd tests/e2e
+WEB_URL=http://localhost:3001 API_URL=http://localhost:8001 npx playwright test
+```
+
+`SKIP_ROOT_ENV=1` is used internally by this isolated E2E path only. Normal `npm run dev`
+continues to load the root `.env` file.
 
 ---
 

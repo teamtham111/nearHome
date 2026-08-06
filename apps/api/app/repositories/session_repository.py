@@ -340,6 +340,7 @@ class SessionRepository:
         remaining_lease_confidence: str,
         remaining_lease_as_of_date: date,
         remaining_lease_status: DataStatus,
+        commit: bool = True,
     ) -> None:
         """Persist the canonical lease result produced during enrichment."""
         listing = self.db.query(ConfirmedListingORM).filter(ConfirmedListingORM.id == listing_id).first()
@@ -353,7 +354,8 @@ class SessionRepository:
         listing.remaining_lease_confidence = remaining_lease_confidence
         listing.remaining_lease_as_of_date = remaining_lease_as_of_date
         listing.remaining_lease_status = remaining_lease_status.value
-        self.db.commit()
+        if commit:
+            self.db.commit()
 
     def get_buyer_profile(self, session_id: UUID) -> BuyerProfile | None:
         session = self.get_session(session_id)
