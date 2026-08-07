@@ -194,6 +194,10 @@ appropriate; an unusable page still returns a copy-and-paste fallback. Normal Cl
 references on a successfully rendered listing are not treated as a block, and no CAPTCHA or
 access-control bypass is attempted.
 
+The web app allows Smart Paste up to two minutes to complete because URL retrieval and a bounded
+headless-browser fallback can run before Groq extraction. Other interactive API calls keep their
+shorter timeout, so a slow Smart Paste request does not change ordinary form behaviour.
+
 If Groq rejects a generated object for omitting required JSON-schema fields, NearHome makes
 one bounded retry with an explicit schema-repair instruction. In development, any remaining
 provider failure includes the provider HTTP status and safe provider message under
