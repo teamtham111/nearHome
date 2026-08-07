@@ -42,9 +42,11 @@ The public homepage retains the compact slate-and-teal presentation used by the 
 It uses the existing start-comparison flow and three workflow cards; no navigation, routes, APIs,
 data models, calculations, or comparison behaviour are changed.
 
-The user-facing workflow has three stages: **Add flats**, **Select priorities**, and **Compare
-results**. Enrichment is shown as a genuine intermediate processing state, with weighted progress
-derived from the enrichment job and per-listing run statuses. It is not an additional input stage.
+The user-facing workflow has three stages: **Buyer profile**, **Add flats**, and **Compare
+results**. A new session starts with the buyer profile; after the profile is saved, the listing
+entry card becomes the next focused action. Enrichment is shown as a genuine intermediate
+processing state, with weighted progress derived from the enrichment job and per-listing run
+statuses. It is not an additional input stage.
 
 The buyer-profile UI contains ordinary comparison context—budget, transport mode, ranked
 priorities, a regular destination, and schools. It deliberately contains no requirements or hard

@@ -1,6 +1,16 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("NearHome manual comparison (no external API)", () => {
+  test("starts with the buyer profile, then advances to flat entry", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: /start new comparison/i }).click();
+
+    await expect(page.getByRole("heading", { level: 2, name: "Tell NearHome what matters most" })).toBeVisible();
+    await expect(page.locator("#add-flat-heading")).toHaveCount(0);
+    await page.getByRole("button", { name: "Save profile and continue to flats" }).click();
+    await expect(page.locator("#add-flat-heading")).toBeVisible();
+  });
+
   test("buyer profile accepts multiple named schools", async ({ page }) => {
     await page.route("**/api/geocode", async (route) => {
       const query = JSON.parse(route.request().postData() ?? "{}").query as string;

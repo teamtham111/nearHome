@@ -183,6 +183,7 @@ export default function SessionPage() {
   const savedListings = sessionQuery.data?.listings ?? [];
   const listingCount = sessionQuery.data?.listing_count ?? 0;
   const isDemo = sessionQuery.data?.demo_mode ?? false;
+  const hasSavedProfile = Boolean(profileSaved || sessionQuery.data?.profile_saved);
 
   const enrichmentStorageKey = `nearhome:enrichment-job:${sessionId}`;
 
@@ -330,6 +331,10 @@ export default function SessionPage() {
       setProfileSaved(true);
       qc.invalidateQueries({ queryKey: ["session", sessionId] });
       qc.invalidateQueries({ queryKey: ["comparison", sessionId] });
+      window.requestAnimationFrame(() => {
+        addFlatHeadingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        addFlatHeadingRef.current?.focus();
+      });
     },
   });
 
@@ -643,7 +648,11 @@ export default function SessionPage() {
     };
   }, [schoolQuery]);
 
-  const workflowStep: "listings" | "priorities" | "compare" = listingCount < 2 ? "listings" : profileSaved || sessionQuery.data?.profile_saved ? "compare" : "priorities";
+  const workflowStep: "profile" | "listings" | "compare" = !hasSavedProfile
+    ? "profile"
+    : listingCount < 2
+      ? "listings"
+      : "compare";
 
   return (
     <div className="nh-workflow-grid flex flex-col gap-8 py-8 sm:py-10">
@@ -651,23 +660,23 @@ export default function SessionPage() {
         <Link href="/" className="text-sm text-teal-700 hover:underline">← Home</Link>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="nh-section-kicker">Step {workflowStep === "listings" ? "1" : workflowStep === "priorities" ? "2" : "3"} of 3</p>
-            <h2 className="mt-1 text-3xl font-bold tracking-tight text-blue-950">{workflowStep === "listings" ? "Add the flats you want to compare" : workflowStep === "priorities" ? "Tell NearHome what matters most" : "Your comparison is ready"}</h2>
-            <p className="mt-1 max-w-2xl text-sm text-slate-600">{workflowStep === "listings" ? "Add two to five confirmed listings, then select the factors you want to emphasise." : workflowStep === "priorities" ? "Choose the factors that should receive the most attention in your comparison." : "Review the available evidence and trade-offs across your shortlisted flats."}</p>
+            <p className="nh-section-kicker">Step {workflowStep === "profile" ? "1" : workflowStep === "listings" ? "2" : "3"} of 3</p>
+            <h2 className="mt-1 text-3xl font-bold tracking-tight text-blue-950">{workflowStep === "profile" ? "Tell NearHome what matters most" : workflowStep === "listings" ? "Add the flats you want to compare" : "Your comparison is ready"}</h2>
+            <p className="mt-1 max-w-2xl text-sm text-slate-600">{workflowStep === "profile" ? "Set your budget and preferences first, then add the flats you want to compare." : workflowStep === "listings" ? "Add two to five confirmed listings to prepare your comparison." : "Review the available evidence and trade-offs across your shortlisted flats."}</p>
           </div>
           <p className="text-sm text-slate-500">{listingCount}/5 flats added</p>
         </div>
         <WorkflowStepper current={workflowStep} profileSaved={Boolean(profileSaved || sessionQuery.data?.profile_saved)} listingCount={listingCount} sessionId={sessionId} />
       </div>
 
-      <section id="buyer-profile" className="nh-card order-3 border-blue-100">
+      <section id="buyer-profile" className="nh-card order-1 border-blue-100">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="nh-section-kicker">Step 2 of 3 · Priorities and context</p>
+            <p className="nh-section-kicker">Step 1 of 3 · Buyer profile</p>
             <h3 className="mt-1 text-2xl font-semibold tracking-tight text-blue-950">Tell NearHome what matters most</h3>
             <p className="mt-1 text-sm text-slate-600">Choose the factors that should receive the most attention in your comparison.</p>
           </div>
-          {(profileSaved || sessionQuery.data?.profile_saved) && (
+          {hasSavedProfile && (
             <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
               Profile saved
             </span>
@@ -825,7 +834,7 @@ export default function SessionPage() {
               className="nh-primary"
               disabled={saveProfile.isPending || !profileForm.formState.isValid}
             >
-              {saveProfile.isPending ? "Saving…" : profileSaved || sessionQuery.data?.profile_saved ? "Update profile" : "Save profile and continue"}
+              {saveProfile.isPending ? "Saving…" : hasSavedProfile ? "Update profile" : "Save profile and continue to flats"}
             </button>
             {!profileForm.formState.isValid && <p className="text-xs text-slate-500">Enter a positive budget and choose a first priority to continue.</p>}
             {saveProfile.isError && (
@@ -835,8 +844,8 @@ export default function SessionPage() {
         </form>
       </section>
 
-      {savedListings.length > 0 && (
-        <section className="nh-card order-2 border-blue-100" aria-labelledby="saved-listings-heading">
+      {hasSavedProfile && savedListings.length > 0 && (
+        <section className="nh-card order-3 border-blue-100" aria-labelledby="saved-listings-heading">
           <h3 ref={shortlistHeadingRef} tabIndex={-1} id="saved-listings-heading" className="text-lg font-medium">
             Your shortlist ({savedListings.length}/5)
           </h3>
@@ -871,9 +880,9 @@ export default function SessionPage() {
         </section>
       )}
 
-      {listingCount < 5 && (
-        <section className="nh-card order-1 border-blue-100" aria-labelledby="add-flat-heading">
-          <p className="nh-section-kicker">Step 1 of 3 · Add flats</p>
+      {hasSavedProfile && listingCount < 5 && (
+        <section className="nh-card order-2 border-blue-100" aria-labelledby="add-flat-heading">
+          <p className="nh-section-kicker">Step 2 of 3 · Add flats</p>
           <h3 ref={addFlatHeadingRef} tabIndex={-1} id="add-flat-heading" className="mt-1 text-2xl font-bold tracking-tight text-blue-950">
             Add the flats you want to compare
           </h3>
