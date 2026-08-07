@@ -150,6 +150,9 @@ consistent 44px targets, focus rings, selected states, disabled states, border t
 number-input styling. These are presentation-only classes: API contracts, validation, enrichment,
 and all recommendation logic are unchanged.
 
+The transport and driving comparison panels use the medium score-ring size so the score and its
+`/100` context remain comfortably legible without changing any score calculation or rating.
+
 The Buyer Profile now presents budget as a compact SGD field group, priority ordering with
 accessible move/remove icons, and clearly labelled optional destination and school controls.
 Its primary action reads **Save profile and continue** before an initial save. Add a flat now
