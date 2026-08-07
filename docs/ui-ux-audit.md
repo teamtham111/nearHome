@@ -46,7 +46,10 @@ The user-facing workflow has three stages: **Buyer profile**, **Add flats**, and
 results**. A new session starts with the buyer profile; after the profile is saved, the listing
 entry card becomes the next focused action. Enrichment is shown as a genuine intermediate
 processing state, with weighted progress derived from the enrichment job and per-listing run
-statuses. It is not an additional input stage.
+statuses. It is not an additional input stage. The workspace never renders enrichment progress or
+comparison results inline: once at least two flats are confirmed, its single action opens the
+dedicated comparison route and starts enrichment there. That route shows progress until the
+durable job reaches a terminal state, then refreshes and renders the full comparison.
 
 The buyer-profile UI contains ordinary comparison context—budget, transport mode, ranked
 priorities, a regular destination, and schools. It deliberately contains no requirements or hard

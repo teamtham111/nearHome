@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,19 +13,14 @@ import {
   discardListingInput,
   deleteListing,
   geocodeAddress,
-  getComparison,
   getSession,
   saveBuyerProfile,
   smartPaste,
-  startEnrichment,
 } from "@/lib/api";
 import type { GeocodeSuggestion, SessionListing } from "@/lib/api";
 import { buildSmartPasteRequest } from "@/lib/smart-paste";
-import { waitForEnrichmentJob } from "@/lib/wait-for-enrichment";
-import { ComparisonView } from "@/components/comparison-view";
 import { SmartPasteProgress } from "@/components/smart-paste-progress";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { EnrichmentProgress } from "@/components/enrichment-progress";
 import { PriorityRanking } from "@/components/priority-ranking";
 import { WorkflowStepper } from "@/components/workflow-stepper";
 
@@ -170,8 +165,6 @@ export default function SessionPage() {
   const [pasteFieldSources, setPasteFieldSources] = useState<Record<string, string>>({});
   const [pasteInitialCanonical, setPasteInitialCanonical] = useState<{ flat_type?: string; flat_model?: string }>({});
   const [pendingRemoval, setPendingRemoval] = useState<SessionListing | null>(null);
-  const [activeEnrichmentJobId, setActiveEnrichmentJobId] = useState<string | null>(null);
-  const [completedEnrichmentJobId, setCompletedEnrichmentJobId] = useState<string | null>(null);
   const shortlistHeadingRef = useRef<HTMLHeadingElement>(null);
   const addFlatHeadingRef = useRef<HTMLHeadingElement>(null);
 
@@ -182,22 +175,7 @@ export default function SessionPage() {
 
   const savedListings = sessionQuery.data?.listings ?? [];
   const listingCount = sessionQuery.data?.listing_count ?? 0;
-  const isDemo = sessionQuery.data?.demo_mode ?? false;
   const hasSavedProfile = Boolean(profileSaved || sessionQuery.data?.profile_saved);
-
-  const enrichmentStorageKey = `nearhome:enrichment-job:${sessionId}`;
-
-  useEffect(() => {
-    const savedJobId = window.sessionStorage.getItem(enrichmentStorageKey);
-    if (savedJobId) setActiveEnrichmentJobId(savedJobId);
-  }, [enrichmentStorageKey]);
-
-  const comparisonQuery = useQuery({
-    queryKey: ["comparison", sessionId],
-    queryFn: ({ signal }) => getComparison(sessionId, signal),
-    enabled: listingCount >= 2,
-    refetchInterval: 8000,
-  });
 
   const profileForm = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -441,34 +419,6 @@ export default function SessionPage() {
     },
     onError: (error) => {
       setPasteError(error instanceof Error ? error.message : "Could not discard this extraction. Please retry.");
-    },
-  });
-
-  const handleEnrichmentTerminal = useCallback((jobStatus: "completed" | "failed" | "cancelled", jobId: string) => {
-    window.sessionStorage.removeItem(enrichmentStorageKey);
-    setActiveEnrichmentJobId(null);
-    if (jobStatus === "completed") {
-      setCompletedEnrichmentJobId(jobId);
-      qc.invalidateQueries({ queryKey: ["comparison", sessionId] });
-      qc.invalidateQueries({ queryKey: ["session", sessionId] });
-    }
-  }, [enrichmentStorageKey, qc, sessionId]);
-
-  const enrich = useMutation({
-    mutationFn: async () => {
-      const result = await startEnrichment(sessionId);
-      setCompletedEnrichmentJobId(null);
-      window.sessionStorage.setItem(enrichmentStorageKey, result.job_id);
-      setActiveEnrichmentJobId(result.job_id);
-      await waitForEnrichmentJob(sessionId, result.job_id);
-      return result;
-    },
-    onSuccess: (result) => {
-      window.sessionStorage.removeItem(enrichmentStorageKey);
-      setActiveEnrichmentJobId(null);
-      setCompletedEnrichmentJobId(result.job_id);
-      qc.invalidateQueries({ queryKey: ["comparison", sessionId] });
-      qc.invalidateQueries({ queryKey: ["session", sessionId] });
     },
   });
 
@@ -1058,45 +1008,18 @@ export default function SessionPage() {
 
       {listingCount >= 2 && (
         <section className="nh-card order-4 border-blue-100">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Enrichment</h3>
-            <div className="flex flex-wrap items-center gap-2">
-              <Link
-                href={`/session/${sessionId}/comparison`}
-                className="nh-secondary"
-              >
-                Open comparison
-              </Link>
-              <button
-                type="button"
-                className="nh-primary"
-                onClick={() => enrich.mutate()}
-                disabled={enrich.isPending || Boolean(activeEnrichmentJobId)}
-              >
-                {enrich.isPending || activeEnrichmentJobId ? "Enrichment in progress…" : "Run enrichment"}
-              </button>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-medium">Your shortlist is ready</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Open your comparison to begin analysis and follow the live progress there.
+              </p>
             </div>
+            <Link href={`/session/${sessionId}/comparison?run=1`} className="nh-primary">
+              Open comparison and run enrichment
+            </Link>
           </div>
-          <p className="mt-1 text-xs text-slate-500">
-            Geocoding, fair-price, transport, driving and journey estimates
-            {isDemo ? " (demo fixtures when API keys unavailable)" : " using live data sources"}
-          </p>
-          {enrich.isError && (
-            <p className="mt-2 text-sm text-red-600" role="alert">{String(enrich.error.message)}</p>
-          )}
-          {(activeEnrichmentJobId || completedEnrichmentJobId) && (
-            <EnrichmentProgress
-            sessionId={sessionId}
-            jobId={activeEnrichmentJobId ?? completedEnrichmentJobId ?? ""}
-            listings={savedListings}
-            onTerminal={activeEnrichmentJobId ? handleEnrichmentTerminal : undefined}
-            />
-          )}
         </section>
-      )}
-
-      {listingCount >= 2 && comparisonQuery.data && (
-        <ComparisonView data={comparisonQuery.data} session={sessionQuery.data} />
       )}
 
       {listingCount === 1 && (
