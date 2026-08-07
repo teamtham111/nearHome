@@ -63,6 +63,7 @@ Playwright flows from master prompt §31:
 7. Budget requirement pass/fail
 8. Practical tie
 9. Mobile comparison
+10. Priority custom factor picker and drag-and-drop/keyboard reordering, with ranks updating after a drop
 
 ## CI gates
 

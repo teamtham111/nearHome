@@ -71,8 +71,9 @@ The buyer-profile card is now a centred, responsive Preferences step. Its buyer-
 are ordered as main transport mode, decision priorities, then an optional regular destination;
 the existing budget field and API payload are preserved. Main transport mode uses accessible
 segmented buttons while retaining the existing `MAINLY_PUBLIC_TRANSPORT`, `MAINLY_DRIVING`, and
-`BOTH` values. Priorities are a keyboard-operable ranked list of one to three unique factors,
-with explicit move and remove actions; their saved order remains the order sent to the
+`BOTH` values. Priorities are a keyboard-operable ranked list of one to three unique factors.
+Users add a factor through the app-styled picker, reorder it with a drag handle or keyboard, and
+can remove it with the matching compact action; their saved order remains the order sent to the
 recommendation engine.
 
 Regular destination details are hidden until requested. A confirmed OneMap address can be

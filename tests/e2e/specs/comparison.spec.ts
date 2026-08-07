@@ -99,11 +99,17 @@ test.describe("NearHome manual comparison (no external API)", () => {
     const transport = page.getByRole("group", { name: "Main transport mode" });
     await transport.getByRole("button", { name: "Driving" }).click();
     await expect(transport.getByRole("button", { name: /Driving/ })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByLabel("Priority 1 factor")).toHaveValue("AFFORDABILITY");
 
-    await page.getByLabel("Add another priority").selectOption("PUBLIC_TRANSPORT");
-    await expect(page.getByRole("list", { name: "Decision priorities" })).toHaveCount(1);
-    await expect(page.getByRole("button", { name: /Move Public transport up/ })).toBeEnabled();
-    await page.getByRole("button", { name: /Move Public transport up/ }).click();
+    await page.getByRole("button", { name: /Add a priority/ }).click();
+    await page.getByRole("button", { name: "Choose a priority to add" }).click();
+    await page.getByRole("listbox", { name: "Available priorities" }).getByRole("option", { name: "Public transport" }).click();
+    await expect(page.getByRole("list", { name: "Decision priorities" }).getByRole("listitem")).toHaveCount(2);
+    const transportDragHandle = page.getByRole("button", { name: "Drag to reorder Public transport" });
+    await transportDragHandle.focus();
+    await transportDragHandle.press("Enter");
+    await transportDragHandle.press("ArrowUp");
+    await transportDragHandle.press("Enter");
     await expect(page.getByLabel("Priority 1 factor")).toHaveValue("PUBLIC_TRANSPORT");
     await page.getByRole("button", { name: /Remove Public transport/ }).click();
     await expect(page.getByLabel("Priority 1 factor")).toHaveValue("AFFORDABILITY");

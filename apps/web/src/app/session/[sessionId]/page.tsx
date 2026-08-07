@@ -26,6 +26,7 @@ import { ComparisonView } from "@/components/comparison-view";
 import { SmartPasteProgress } from "@/components/smart-paste-progress";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EnrichmentProgress } from "@/components/enrichment-progress";
+import { PriorityRanking } from "@/components/priority-ranking";
 import { WorkflowStepper } from "@/components/workflow-stepper";
 
 const PRIORITY_VALUES = [
@@ -47,6 +48,8 @@ const PRIORITY_LABELS: Record<(typeof PRIORITY_VALUES)[number], string> = {
   SCHOOLS: "Schools",
   FAIR_PRICE: "Fair price",
 };
+
+type PriorityValue = (typeof PRIORITY_VALUES)[number];
 
 const SCHOOL_NAME_PATTERN = /\b(school|college|institution|institute|academy|madrasah|polytechnic)\b/i;
 
@@ -288,14 +291,6 @@ export default function SessionPage() {
   function removePriority(index: number) {
     if (orderedPriorities.length <= 1) return;
     setOrderedPriorities(orderedPriorities.filter((_, priorityIndex) => priorityIndex !== index));
-  }
-
-  function movePriority(index: number, direction: -1 | 1) {
-    const target = index + direction;
-    if (target < 0 || target >= orderedPriorities.length) return;
-    const next = [...orderedPriorities];
-    [next[index], next[target]] = [next[target], next[index]];
-    setOrderedPriorities(next);
   }
 
   const saveProfile = useMutation({
@@ -713,48 +708,16 @@ export default function SessionPage() {
           <section aria-labelledby="decision-priorities-heading">
             <h4 id="decision-priorities-heading" className="text-base font-semibold text-slate-900">Decision priorities</h4>
             <p className="mt-1 text-sm text-slate-600">Choose up to three factors, ordered from most to least important.</p>
-            <ol className="mt-4 space-y-2" aria-label="Decision priorities">
-              {orderedPriorities.map((priority, index) => (
-                <li key={priority} className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white p-3">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-50 text-sm font-semibold text-teal-800" aria-label={`Priority ${index + 1}`}>{index + 1}</span>
-                  <select
-                    className="nh-select mt-0 min-w-48 flex-1"
-                    aria-label={`Priority ${index + 1} factor`}
-                    value={priority}
-                    onChange={(event) => replacePriority(index, event.target.value as (typeof PRIORITY_VALUES)[number])}
-                  >
-                    {PRIORITY_VALUES.filter((value) => value === priority || !orderedPriorities.includes(value)).map((value) => (
-                      <option key={value} value={value}>{PRIORITY_LABELS[value]}</option>
-                    ))}
-                  </select>
-                  <div className="flex items-center gap-1">
-                    <button type="button" className="nh-icon-button" onClick={() => movePriority(index, -1)} disabled={index === 0} aria-label={`Move ${PRIORITY_LABELS[priority]} up`} title="Move up">↑</button>
-                    <button type="button" className="nh-icon-button" onClick={() => movePriority(index, 1)} disabled={index === orderedPriorities.length - 1} aria-label={`Move ${PRIORITY_LABELS[priority]} down`} title="Move down">↓</button>
-                    <button type="button" className="nh-icon-button" onClick={() => removePriority(index)} disabled={orderedPriorities.length <= 1} aria-label={`Remove ${PRIORITY_LABELS[priority]}`} title="Remove priority">×</button>
-                  </div>
-                </li>
-              ))}
-            </ol>
-            {orderedPriorities.length < 3 ? (
-              <label className="nh-label mt-3 block max-w-sm">
-                Add another priority ({3 - orderedPriorities.length} available)
-                <select
-                  className="nh-select"
-                  aria-label="Add another priority"
-                  defaultValue=""
-                  onChange={(event) => {
-                    const value = event.target.value as (typeof PRIORITY_VALUES)[number];
-                    if (value) setOrderedPriorities([...orderedPriorities, value]);
-                    event.currentTarget.value = "";
-                  }}
-                >
-                  <option value="">Choose a factor…</option>
-                  {PRIORITY_VALUES.filter((value) => !orderedPriorities.includes(value)).map((value) => (
-                    <option key={value} value={value}>{PRIORITY_LABELS[value]}</option>
-                  ))}
-                </select>
-              </label>
-            ) : <p className="mt-3 text-xs text-slate-500">You can rank up to three priorities. Remove one to choose another.</p>}
+            <div className="mt-4">
+              <PriorityRanking
+                priorities={orderedPriorities}
+                options={PRIORITY_VALUES.map((value) => ({ value, label: PRIORITY_LABELS[value] }))}
+                onReplace={(index, value) => replacePriority(index, value as PriorityValue)}
+                onRemove={removePriority}
+                onReorder={(next) => setOrderedPriorities(next as typeof orderedPriorities)}
+                onAdd={(value) => setOrderedPriorities([...orderedPriorities, value as PriorityValue])}
+              />
+            </div>
           </section>
           <section className="nh-optional-section" aria-labelledby="regular-destination-heading">
             <div className="flex flex-wrap items-center gap-2">
