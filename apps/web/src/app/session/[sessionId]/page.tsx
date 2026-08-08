@@ -927,7 +927,7 @@ export default function SessionPage() {
               </label>
               <label className="nh-label">
                 Asking price <span className="text-red-700">*</span>
-                <span className="relative mt-1 block"><span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-slate-500">S$</span><input type="number" inputMode="numeric" className="nh-input mt-0 pl-10" {...listingForm.register("asking_price")} /></span>
+                <input type="number" inputMode="numeric" className="nh-input" {...listingForm.register("asking_price")} />
               </label>
               <label className="nh-label">
                 Floor area (sqm) <span className="text-red-700">*</span>

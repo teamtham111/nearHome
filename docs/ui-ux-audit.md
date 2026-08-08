@@ -164,3 +164,6 @@ steps remain informative but are not misleading navigation links.
 The budget amount remains a numeric form value with no in-input currency decoration. The field
 label and helper text identify Singapore dollars, leaving the value fully unobstructed and
 ensuring no formatting can become part of the submitted value.
+
+The manual listing **Asking price** field follows the same numeric-input treatment: it has no
+currency prefix inside the input, so every entered digit remains fully visible.
