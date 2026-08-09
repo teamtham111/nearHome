@@ -1,5 +1,9 @@
 type ApiFetchInit = RequestInit & { timeoutMs?: number };
 
+// URL retrieval can fall back to a browser before Groq extraction begins. Keep this
+// bounded, but do not apply the ordinary interaction timeout to Smart Paste.
+const SMART_PASTE_TIMEOUT_MS = 120_000;
+
 function getApiUrl(): string {
   const deploymentEnvironment = process.env.NEXT_PUBLIC_DEPLOYMENT_ENV;
   const configuredUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -426,6 +430,7 @@ export function smartPaste(
   }>(`/api/v1/sessions/${sessionId}/smart-paste`, {
     method: "POST",
     body: JSON.stringify(body),
+    timeoutMs: SMART_PASTE_TIMEOUT_MS,
   });
 }
 

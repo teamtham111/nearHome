@@ -705,7 +705,7 @@ function PublicTransportPanel({ listingIds, listingNames, byListing }: { listing
     return <article key={id} className="rounded-lg border border-slate-200 bg-white p-4" aria-labelledby={`transport-${id}`}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h4 id={`transport-${id}`} className="font-semibold">{listingNames[id]}</h4>
-        <ScoreRing score={overall.rawScore} label="Transport strength" size="sm" partial={!rollup.is_complete} statusLabel={rollup.is_complete ? "Complete" : "Partial"} />
+        <ScoreRing score={overall.rawScore} label="Transport strength" size="md" partial={!rollup.is_complete} statusLabel={rollup.is_complete ? "Complete" : "Partial"} />
       </div>
       <p className="mt-1 text-sm font-medium text-slate-800">{buildTransportHeadline(rollup)}</p>
       <p className="mt-2 text-sm text-slate-600">{buildTransportExplanation(rollup)}</p>
@@ -831,7 +831,7 @@ function DrivingPanel({ listingIds, listingNames, byListing, hasDestination }: {
     return <article key={id} className="rounded-lg border border-slate-200 bg-white p-4" aria-labelledby={`driving-${id}`}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h4 id={`driving-${id}`} className="font-semibold">{listingNames[id]}</h4>
-        <ScoreRing score={status === "Unavailable" ? null : score.rawScore} label="Driving connectivity" size="sm" partial={status === "Provisional"} statusLabel={status} />
+        <ScoreRing score={status === "Unavailable" ? null : score.rawScore} label="Driving connectivity" size="md" partial={status === "Provisional"} statusLabel={status} />
       </div>
       <p className="mt-1 text-sm font-medium text-slate-800">{drivingHeadline(rollup)}</p>
       <p className="mt-2 text-sm text-slate-600">{drivingExplanation(rollup)}</p>

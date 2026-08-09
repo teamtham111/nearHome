@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,19 +13,14 @@ import {
   discardListingInput,
   deleteListing,
   geocodeAddress,
-  getComparison,
   getSession,
   saveBuyerProfile,
   smartPaste,
-  startEnrichment,
 } from "@/lib/api";
 import type { GeocodeSuggestion, SessionListing } from "@/lib/api";
 import { buildSmartPasteRequest } from "@/lib/smart-paste";
-import { waitForEnrichmentJob } from "@/lib/wait-for-enrichment";
-import { ComparisonView } from "@/components/comparison-view";
 import { SmartPasteProgress } from "@/components/smart-paste-progress";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { EnrichmentProgress } from "@/components/enrichment-progress";
 import { PriorityRanking } from "@/components/priority-ranking";
 import { WorkflowStepper } from "@/components/workflow-stepper";
 
@@ -140,7 +135,6 @@ export default function SessionPage() {
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [pasteSourceUrl, setPasteSourceUrl] = useState<string | null>(null);
   const pasteInputRef = useRef<HTMLTextAreaElement>(null);
-  const pasteUrlTabRef = useRef<HTMLButtonElement>(null);
   const manualEntryTabRef = useRef<HTMLButtonElement>(null);
   const smartPasteTabRef = useRef<HTMLButtonElement>(null);
   const pasteGenerationRef = useRef(0);
@@ -171,8 +165,6 @@ export default function SessionPage() {
   const [pasteFieldSources, setPasteFieldSources] = useState<Record<string, string>>({});
   const [pasteInitialCanonical, setPasteInitialCanonical] = useState<{ flat_type?: string; flat_model?: string }>({});
   const [pendingRemoval, setPendingRemoval] = useState<SessionListing | null>(null);
-  const [activeEnrichmentJobId, setActiveEnrichmentJobId] = useState<string | null>(null);
-  const [completedEnrichmentJobId, setCompletedEnrichmentJobId] = useState<string | null>(null);
   const shortlistHeadingRef = useRef<HTMLHeadingElement>(null);
   const addFlatHeadingRef = useRef<HTMLHeadingElement>(null);
 
@@ -183,21 +175,7 @@ export default function SessionPage() {
 
   const savedListings = sessionQuery.data?.listings ?? [];
   const listingCount = sessionQuery.data?.listing_count ?? 0;
-  const isDemo = sessionQuery.data?.demo_mode ?? false;
-
-  const enrichmentStorageKey = `nearhome:enrichment-job:${sessionId}`;
-
-  useEffect(() => {
-    const savedJobId = window.sessionStorage.getItem(enrichmentStorageKey);
-    if (savedJobId) setActiveEnrichmentJobId(savedJobId);
-  }, [enrichmentStorageKey]);
-
-  const comparisonQuery = useQuery({
-    queryKey: ["comparison", sessionId],
-    queryFn: ({ signal }) => getComparison(sessionId, signal),
-    enabled: listingCount >= 2,
-    refetchInterval: 8000,
-  });
+  const hasSavedProfile = Boolean(profileSaved || sessionQuery.data?.profile_saved);
 
   const profileForm = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -331,6 +309,10 @@ export default function SessionPage() {
       setProfileSaved(true);
       qc.invalidateQueries({ queryKey: ["session", sessionId] });
       qc.invalidateQueries({ queryKey: ["comparison", sessionId] });
+      window.requestAnimationFrame(() => {
+        addFlatHeadingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        addFlatHeadingRef.current?.focus();
+      });
     },
   });
 
@@ -440,34 +422,6 @@ export default function SessionPage() {
     },
   });
 
-  const handleEnrichmentTerminal = useCallback((jobStatus: "completed" | "failed" | "cancelled", jobId: string) => {
-    window.sessionStorage.removeItem(enrichmentStorageKey);
-    setActiveEnrichmentJobId(null);
-    if (jobStatus === "completed") {
-      setCompletedEnrichmentJobId(jobId);
-      qc.invalidateQueries({ queryKey: ["comparison", sessionId] });
-      qc.invalidateQueries({ queryKey: ["session", sessionId] });
-    }
-  }, [enrichmentStorageKey, qc, sessionId]);
-
-  const enrich = useMutation({
-    mutationFn: async () => {
-      const result = await startEnrichment(sessionId);
-      setCompletedEnrichmentJobId(null);
-      window.sessionStorage.setItem(enrichmentStorageKey, result.job_id);
-      setActiveEnrichmentJobId(result.job_id);
-      await waitForEnrichmentJob(sessionId, result.job_id);
-      return result;
-    },
-    onSuccess: (result) => {
-      window.sessionStorage.removeItem(enrichmentStorageKey);
-      setActiveEnrichmentJobId(null);
-      setCompletedEnrichmentJobId(result.job_id);
-      qc.invalidateQueries({ queryKey: ["comparison", sessionId] });
-      qc.invalidateQueries({ queryKey: ["session", sessionId] });
-    },
-  });
-
   const removeListing = useMutation({
     mutationFn: (listingId: string) => deleteListing(sessionId, listingId),
     onMutate: async (listingId) => {
@@ -505,26 +459,6 @@ export default function SessionPage() {
     if (moveFocus) {
       window.requestAnimationFrame(() => (mode === "manual" ? manualEntryTabRef : smartPasteTabRef).current?.focus());
     }
-  }
-
-  function handleAddFlatTabKeyDown(event: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) {
-    const tabs = [smartPasteTabRef, pasteUrlTabRef, manualEntryTabRef];
-    let nextIndex: number | null = null;
-    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
-    if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-    if (event.key === "Home") nextIndex = 0;
-    if (event.key === "End") nextIndex = tabs.length - 1;
-    if (nextIndex === null) return;
-
-    event.preventDefault();
-    const nextIsManual = nextIndex === 2;
-    if (nextIsManual) {
-      selectInputMode("manual");
-    } else {
-      setPasteVariant(nextIndex === 0 ? "text" : "url");
-      selectInputMode("paste");
-    }
-    window.requestAnimationFrame(() => tabs[nextIndex ?? 0].current?.focus());
   }
 
   function handleLocationQueryChange(q: string) {
@@ -664,7 +598,11 @@ export default function SessionPage() {
     };
   }, [schoolQuery]);
 
-  const workflowStep: "listings" | "priorities" | "compare" = listingCount < 2 ? "listings" : profileSaved || sessionQuery.data?.profile_saved ? "compare" : "priorities";
+  const workflowStep: "profile" | "listings" | "compare" = !hasSavedProfile
+    ? "profile"
+    : listingCount < 2
+      ? "listings"
+      : "compare";
 
   return (
     <div className="nh-workflow-grid flex flex-col gap-8 py-8 sm:py-10">
@@ -672,23 +610,23 @@ export default function SessionPage() {
         <Link href="/" className="text-sm text-teal-700 hover:underline">← Home</Link>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="nh-section-kicker">Step {workflowStep === "listings" ? "1" : workflowStep === "priorities" ? "2" : "3"} of 3</p>
-            <h2 className="mt-1 text-3xl font-bold tracking-tight text-blue-950">{workflowStep === "listings" ? "Add the flats you want to compare" : workflowStep === "priorities" ? "Tell NearHome what matters most" : "Your comparison is ready"}</h2>
-            <p className="mt-1 max-w-2xl text-sm text-slate-600">{workflowStep === "listings" ? "Add two to five confirmed listings, then select the factors you want to emphasise." : workflowStep === "priorities" ? "Choose the factors that should receive the most attention in your comparison." : "Review the available evidence and trade-offs across your shortlisted flats."}</p>
+            <p className="nh-section-kicker">Step {workflowStep === "profile" ? "1" : workflowStep === "listings" ? "2" : "3"} of 3</p>
+            <h2 className="mt-1 text-3xl font-bold tracking-tight text-blue-950">{workflowStep === "profile" ? "Tell NearHome what matters most" : workflowStep === "listings" ? "Add the flats you want to compare" : "Your comparison is ready"}</h2>
+            <p className="mt-1 max-w-2xl text-sm text-slate-600">{workflowStep === "profile" ? "Set your budget and preferences first, then add the flats you want to compare." : workflowStep === "listings" ? "Add two to five confirmed listings to prepare your comparison." : "Review the available evidence and trade-offs across your shortlisted flats."}</p>
           </div>
           <p className="text-sm text-slate-500">{listingCount}/5 flats added</p>
         </div>
         <WorkflowStepper current={workflowStep} profileSaved={Boolean(profileSaved || sessionQuery.data?.profile_saved)} listingCount={listingCount} sessionId={sessionId} />
       </div>
 
-      <section id="buyer-profile" className="nh-card order-3 border-blue-100">
+      <section id="buyer-profile" className="nh-card order-1 border-blue-100">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="nh-section-kicker">Step 2 of 3 · Priorities and context</p>
+            <p className="nh-section-kicker">Step 1 of 3 · Buyer profile</p>
             <h3 className="mt-1 text-2xl font-semibold tracking-tight text-blue-950">Tell NearHome what matters most</h3>
             <p className="mt-1 text-sm text-slate-600">Choose the factors that should receive the most attention in your comparison.</p>
           </div>
-          {(profileSaved || sessionQuery.data?.profile_saved) && (
+          {hasSavedProfile && (
             <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
               Profile saved
             </span>
@@ -846,7 +784,7 @@ export default function SessionPage() {
               className="nh-primary"
               disabled={saveProfile.isPending || !profileForm.formState.isValid}
             >
-              {saveProfile.isPending ? "Saving…" : profileSaved || sessionQuery.data?.profile_saved ? "Update profile" : "Save profile and continue"}
+              {saveProfile.isPending ? "Saving…" : hasSavedProfile ? "Update profile" : "Save profile and continue to flats"}
             </button>
             {!profileForm.formState.isValid && <p className="text-xs text-slate-500">Enter a positive budget and choose a first priority to continue.</p>}
             {saveProfile.isError && (
@@ -856,8 +794,8 @@ export default function SessionPage() {
         </form>
       </section>
 
-      {savedListings.length > 0 && (
-        <section className="nh-card order-2 border-blue-100" aria-labelledby="saved-listings-heading">
+      {hasSavedProfile && savedListings.length > 0 && (
+        <section className="nh-card order-3 border-blue-100" aria-labelledby="saved-listings-heading">
           <h3 ref={shortlistHeadingRef} tabIndex={-1} id="saved-listings-heading" className="text-lg font-medium">
             Your shortlist ({savedListings.length}/5)
           </h3>
@@ -892,9 +830,9 @@ export default function SessionPage() {
         </section>
       )}
 
-      {listingCount < 5 && (
-        <section className="nh-card order-1 border-blue-100" aria-labelledby="add-flat-heading">
-          <p className="nh-section-kicker">Step 1 of 3 · Add flats</p>
+      {hasSavedProfile && listingCount < 5 && (
+        <section className="nh-card order-2 border-blue-100" aria-labelledby="add-flat-heading">
+          <p className="nh-section-kicker">Step 2 of 3 · Add flats</p>
           <h3 ref={addFlatHeadingRef} tabIndex={-1} id="add-flat-heading" className="mt-1 text-2xl font-bold tracking-tight text-blue-950">
             Add the flats you want to compare
           </h3>
@@ -902,9 +840,9 @@ export default function SessionPage() {
             NearHome works best with a small shortlist. Add each listing and review extracted details before confirming it.
           </p>
           <div className="mt-6 grid overflow-hidden rounded-xl border border-blue-100 bg-slate-50 sm:grid-cols-3" role="tablist" aria-label="How to add a flat">
-            <button ref={smartPasteTabRef} type="button" role="tab" aria-selected={inputMode === "paste" && pasteVariant === "text"} aria-controls="smart-paste-panel" id="smart-paste-text-tab" className={`nh-tab justify-center rounded-none border-b sm:border-b-0 sm:border-r ${inputMode === "paste" && pasteVariant === "text" ? "nh-tab-active" : ""}`} onClick={() => { setPasteVariant("text"); selectInputMode("paste"); }} onKeyDown={(event) => handleAddFlatTabKeyDown(event, 0)}>Paste listing text <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">Recommended</span></button>
-            <button ref={pasteUrlTabRef} type="button" role="tab" aria-selected={inputMode === "paste" && pasteVariant === "url"} aria-controls="smart-paste-panel" id="smart-paste-url-tab" className={`nh-tab justify-center rounded-none border-b sm:border-b-0 sm:border-r ${inputMode === "paste" && pasteVariant === "url" ? "nh-tab-active" : ""}`} onClick={() => { setPasteVariant("url"); selectInputMode("paste"); }} onKeyDown={(event) => handleAddFlatTabKeyDown(event, 1)}>Paste listing URL</button>
-            <button ref={manualEntryTabRef} type="button" role="tab" aria-selected={inputMode === "manual"} aria-controls="manual-listing-form" id="manual-entry-tab" className={`nh-tab justify-center rounded-none ${inputMode === "manual" ? "nh-tab-active" : ""}`} onClick={() => selectInputMode("manual")} onKeyDown={(event) => handleAddFlatTabKeyDown(event, 2)}>Enter manually</button>
+            <button ref={smartPasteTabRef} type="button" role="tab" aria-selected={inputMode === "paste" && pasteVariant === "text"} aria-controls="smart-paste-panel" id="smart-paste-text-tab" className={`nh-tab justify-center rounded-none border-b sm:border-b-0 sm:border-r ${inputMode === "paste" && pasteVariant === "text" ? "nh-tab-active" : ""}`} onClick={() => { setPasteVariant("text"); selectInputMode("paste"); }}>Paste listing text <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">Recommended</span></button>
+            <button type="button" role="tab" aria-selected={inputMode === "paste" && pasteVariant === "url"} aria-controls="smart-paste-panel" id="smart-paste-url-tab" className={`nh-tab justify-center rounded-none border-b sm:border-b-0 sm:border-r ${inputMode === "paste" && pasteVariant === "url" ? "nh-tab-active" : ""}`} onClick={() => { setPasteVariant("url"); selectInputMode("paste"); }}>Paste listing URL</button>
+            <button ref={manualEntryTabRef} type="button" role="tab" aria-selected={inputMode === "manual"} aria-controls="manual-listing-form" id="manual-entry-tab" className={`nh-tab justify-center rounded-none ${inputMode === "manual" ? "nh-tab-active" : ""}`} onClick={() => selectInputMode("manual")}>Enter manually</button>
           </div>
 
           {inputMode === "paste" && !listingInputId && (
@@ -989,7 +927,7 @@ export default function SessionPage() {
               </label>
               <label className="nh-label">
                 Asking price <span className="text-red-700">*</span>
-                <span className="relative mt-1 block"><span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-slate-500">S$</span><input type="number" inputMode="numeric" className="nh-input mt-0 pl-10" {...listingForm.register("asking_price")} /></span>
+                <input type="number" inputMode="numeric" className="nh-input" {...listingForm.register("asking_price")} />
               </label>
               <label className="nh-label">
                 Floor area (sqm) <span className="text-red-700">*</span>
@@ -1070,45 +1008,18 @@ export default function SessionPage() {
 
       {listingCount >= 2 && (
         <section className="nh-card order-4 border-blue-100">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Enrichment</h3>
-            <div className="flex flex-wrap items-center gap-2">
-              <Link
-                href={`/session/${sessionId}/comparison`}
-                className="nh-secondary"
-              >
-                Open comparison
-              </Link>
-              <button
-                type="button"
-                className="nh-primary"
-                onClick={() => enrich.mutate()}
-                disabled={enrich.isPending || Boolean(activeEnrichmentJobId)}
-              >
-                {enrich.isPending || activeEnrichmentJobId ? "Enrichment in progress…" : "Run enrichment"}
-              </button>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-medium">Your shortlist is ready</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Open your comparison to begin analysis and follow the live progress there.
+              </p>
             </div>
+            <Link href={`/session/${sessionId}/comparison?run=1`} className="nh-primary">
+              Open comparison and run enrichment
+            </Link>
           </div>
-          <p className="mt-1 text-xs text-slate-500">
-            Geocoding, fair-price, transport, driving and journey estimates
-            {isDemo ? " (demo fixtures when API keys unavailable)" : " using live data sources"}
-          </p>
-          {enrich.isError && (
-            <p className="mt-2 text-sm text-red-600" role="alert">{String(enrich.error.message)}</p>
-          )}
-          {(activeEnrichmentJobId || completedEnrichmentJobId) && (
-            <EnrichmentProgress
-            sessionId={sessionId}
-            jobId={activeEnrichmentJobId ?? completedEnrichmentJobId ?? ""}
-            listings={savedListings}
-            onTerminal={activeEnrichmentJobId ? handleEnrichmentTerminal : undefined}
-            />
-          )}
         </section>
-      )}
-
-      {listingCount >= 2 && comparisonQuery.data && (
-        <ComparisonView data={comparisonQuery.data} session={sessionQuery.data} />
       )}
 
       {listingCount === 1 && (

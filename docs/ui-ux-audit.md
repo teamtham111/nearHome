@@ -42,9 +42,14 @@ The public homepage retains the compact slate-and-teal presentation used by the 
 It uses the existing start-comparison flow and three workflow cards; no navigation, routes, APIs,
 data models, calculations, or comparison behaviour are changed.
 
-The user-facing workflow has three stages: **Add flats**, **Select priorities**, and **Compare
-results**. Enrichment is shown as a genuine intermediate processing state, with weighted progress
-derived from the enrichment job and per-listing run statuses. It is not an additional input stage.
+The user-facing workflow has three stages: **Buyer profile**, **Add flats**, and **Compare
+results**. A new session starts with the buyer profile; after the profile is saved, the listing
+entry card becomes the next focused action. Enrichment is shown as a genuine intermediate
+processing state, with weighted progress derived from the enrichment job and per-listing run
+statuses. It is not an additional input stage. The workspace never renders enrichment progress or
+comparison results inline: once at least two flats are confirmed, its single action opens the
+dedicated comparison route and starts enrichment there. That route shows progress until the
+durable job reaches a terminal state, then refreshes and renders the full comparison.
 
 The buyer-profile UI contains ordinary comparison context—budget, transport mode, ranked
 priorities, a regular destination, and schools. It deliberately contains no requirements or hard
@@ -71,8 +76,9 @@ The buyer-profile card is now a centred, responsive Preferences step. Its buyer-
 are ordered as main transport mode, decision priorities, then an optional regular destination;
 the existing budget field and API payload are preserved. Main transport mode uses accessible
 segmented buttons while retaining the existing `MAINLY_PUBLIC_TRANSPORT`, `MAINLY_DRIVING`, and
-`BOTH` values. Priorities are a keyboard-operable ranked list of one to three unique factors,
-with explicit move and remove actions; their saved order remains the order sent to the
+`BOTH` values. Priorities are a keyboard-operable ranked list of one to three unique factors.
+Users add a factor through the app-styled picker, reorder it with a drag handle or keyboard, and
+can remove it with the matching compact action; their saved order remains the order sent to the
 recommendation engine.
 
 Regular destination details are hidden until requested. A confirmed OneMap address can be
@@ -144,6 +150,9 @@ consistent 44px targets, focus rings, selected states, disabled states, border t
 number-input styling. These are presentation-only classes: API contracts, validation, enrichment,
 and all recommendation logic are unchanged.
 
+The transport and driving comparison panels use the medium score-ring size so the score and its
+`/100` context remain comfortably legible without changing any score calculation or rating.
+
 The Buyer Profile now presents budget as a compact SGD field group, priority ordering with
 accessible move/remove icons, and clearly labelled optional destination and school controls.
 Its primary action reads **Save profile and continue** before an initial save. Add a flat now
@@ -155,3 +164,6 @@ steps remain informative but are not misleading navigation links.
 The budget amount remains a numeric form value with no in-input currency decoration. The field
 label and helper text identify Singapore dollars, leaving the value fully unobstructed and
 ensuring no formatting can become part of the submitted value.
+
+The manual listing **Asking price** field follows the same numeric-input treatment: it has no
+currency prefix inside the input, so every entered digit remains fully visible.

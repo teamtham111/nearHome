@@ -1,6 +1,62 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("NearHome manual comparison (no external API)", () => {
+  test("starts enrichment only after entering the dedicated comparison route", async ({ page }) => {
+    const sessionId = "comparison-route-test";
+    let enrichmentStarts = 0;
+    const session = {
+      session_id: sessionId,
+      profile_saved: true,
+      buyer_profile: {
+        max_budget: 730000,
+        main_transport_mode: "MAINLY_PUBLIC_TRANSPORT",
+        schools_matter: false,
+        named_schools: [],
+        named_school: null,
+        priorities: ["AFFORDABILITY"],
+        important_locations: [],
+      },
+      listings: [
+        { listing_id: "flat-1", display_name: "123 Bishan St 12", address: "123 Bishan St 12", asking_price: 650000, floor_area_sqm: 91, flat_type: "4 ROOM", flat_model: null, storey_range: null, remaining_lease_months: 720 },
+        { listing_id: "flat-2", display_name: "201 Tampines St 21", address: "201 Tampines St 21", asking_price: 680000, floor_area_sqm: 93, flat_type: "4 ROOM", flat_model: null, storey_range: null, remaining_lease_months: 700 },
+      ],
+      listing_count: 2,
+      demo_mode: true,
+    };
+
+    await page.route(`**/api/v1/sessions/${sessionId}**`, async (route) => {
+      const path = new URL(route.request().url()).pathname;
+      if (path.endsWith("/enrichment/start")) {
+        enrichmentStarts += 1;
+        await route.fulfill({ status: 202, contentType: "application/json", body: JSON.stringify({ job_id: "job-1", status: "queued", status_url: "/api/v1/jobs/job-1" }) });
+      } else if (path.endsWith("/enrichment/status")) {
+        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ runs: [] }) });
+      } else if (path.endsWith("/comparison")) {
+        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) });
+      } else {
+        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(session) });
+      }
+    });
+    await page.route("**/api/v1/jobs/job-1**", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ job_id: "job-1", session_id: sessionId, status: "running", progress_stage: "starting", attempts: 1, error_code: null, error_message: null, result_available: false, created_at: null, started_at: null, completed_at: null, updated_at: "2026-08-07T00:00:00Z" }) });
+    });
+
+    await page.goto(`/session/${sessionId}/comparison?run=1`);
+    await expect.poll(() => enrichmentStarts).toBe(1);
+    await expect(page.getByRole("region", { name: "Listing enrichment progress" })).toBeVisible();
+    await expect(page.getByText("Your comparison is ready")).toHaveCount(0);
+  });
+
+  test("starts with the buyer profile, then advances to flat entry", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: /start new comparison/i }).click();
+
+    await expect(page.getByRole("heading", { level: 2, name: "Tell NearHome what matters most" })).toBeVisible();
+    await expect(page.locator("#add-flat-heading")).toHaveCount(0);
+    await page.getByRole("button", { name: "Save profile and continue to flats" }).click();
+    await expect(page.locator("#add-flat-heading")).toBeVisible();
+  });
+
   test("buyer profile accepts multiple named schools", async ({ page }) => {
     await page.route("**/api/geocode", async (route) => {
       const query = JSON.parse(route.request().postData() ?? "{}").query as string;
@@ -99,11 +155,17 @@ test.describe("NearHome manual comparison (no external API)", () => {
     const transport = page.getByRole("group", { name: "Main transport mode" });
     await transport.getByRole("button", { name: "Driving" }).click();
     await expect(transport.getByRole("button", { name: /Driving/ })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByLabel("Priority 1 factor")).toHaveValue("AFFORDABILITY");
 
-    await page.getByLabel("Add another priority").selectOption("PUBLIC_TRANSPORT");
-    await expect(page.getByRole("list", { name: "Decision priorities" })).toHaveCount(1);
-    await expect(page.getByRole("button", { name: /Move Public transport up/ })).toBeEnabled();
-    await page.getByRole("button", { name: /Move Public transport up/ }).click();
+    await page.getByRole("button", { name: /Add a priority/ }).click();
+    await page.getByRole("button", { name: "Choose a priority to add" }).click();
+    await page.getByRole("listbox", { name: "Available priorities" }).getByRole("option", { name: "Public transport" }).click();
+    await expect(page.getByRole("list", { name: "Decision priorities" }).getByRole("listitem")).toHaveCount(2);
+    const transportDragHandle = page.getByRole("button", { name: "Drag to reorder Public transport" });
+    await transportDragHandle.focus();
+    await transportDragHandle.press("Enter");
+    await transportDragHandle.press("ArrowUp");
+    await transportDragHandle.press("Enter");
     await expect(page.getByLabel("Priority 1 factor")).toHaveValue("PUBLIC_TRANSPORT");
     await page.getByRole("button", { name: /Remove Public transport/ }).click();
     await expect(page.getByLabel("Priority 1 factor")).toHaveValue("AFFORDABILITY");

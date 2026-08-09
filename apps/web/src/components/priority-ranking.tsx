@@ -101,15 +101,10 @@ function SortablePriorityRow({
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
   return (
     <li
       ref={setNodeRef}
-      style={style}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
       className={`flex items-center gap-2 rounded-lg border bg-white px-2 py-2 transition-shadow ${
         isDragging
           ? "z-10 border-teal-200 shadow-md ring-2 ring-teal-600/15"
@@ -126,14 +121,12 @@ function SortablePriorityRow({
       >
         <GripVertical className="h-4 w-4" aria-hidden="true" />
       </button>
-
       <span
         className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-700 text-xs font-semibold leading-none text-white"
         aria-label={`Priority ${index + 1}`}
       >
         {index + 1}
       </span>
-
       <PrioritySelect
         id={selectId}
         label={`Priority ${index + 1} factor`}
@@ -141,7 +134,6 @@ function SortablePriorityRow({
         options={rowOptions}
         onChange={onReplace}
       />
-
       <button
         type="button"
         className="nh-ghost-icon-button text-slate-400 hover:text-red-600"
@@ -167,6 +159,7 @@ export function PriorityRanking({
 }: PriorityRankingProps) {
   const baseId = useId();
   const [addPickerOpen, setAddPickerOpen] = useState(false);
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
   const remainingSlots = maxPriorities - priorities.length;
   const availableOptions = options.filter((option) => !priorities.includes(option.value));
   const sensors = useSensors(
@@ -178,21 +171,19 @@ export function PriorityRanking({
     if (!value) return;
     onAdd(value);
     setAddPickerOpen(false);
+    setAddMenuOpen(false);
   }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-
     const oldIndex = priorities.indexOf(String(active.id));
     const newIndex = priorities.indexOf(String(over.id));
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    onReorder(arrayMove(priorities, oldIndex, newIndex));
+    if (oldIndex !== -1 && newIndex !== -1) onReorder(arrayMove(priorities, oldIndex, newIndex));
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/50 p-2 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-2 shadow-sm">
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={priorities} strategy={verticalListSortingStrategy}>
           <ol className="space-y-2" aria-label="Decision priorities">
@@ -201,7 +192,6 @@ export function PriorityRanking({
                 (option) => option.value === priority || !priorities.includes(option.value),
               );
               const label = options.find((option) => option.value === priority)?.label ?? priority;
-
               return (
                 <SortablePriorityRow
                   key={priority}
@@ -220,26 +210,50 @@ export function PriorityRanking({
           </ol>
         </SortableContext>
       </DndContext>
-
       {remainingSlots > 0 ? (
         <div className="mt-2 px-0.5">
           {addPickerOpen ? (
             <div className="flex items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white px-2 py-2">
-              <PrioritySelect
-                id={`${baseId}-add-priority`}
-                label="Choose a priority to add"
-                value=""
-                options={availableOptions}
-                placeholder="Choose a factor…"
-                onChange={handleAdd}
-              />
-              <button
-                type="button"
-                className="nh-ghost-icon-button shrink-0"
-                onClick={() => setAddPickerOpen(false)}
-                aria-label="Cancel adding priority"
-                title="Cancel"
-              >
+              <div className="relative min-w-0 flex-1">
+                <button
+                  id={`${baseId}-add-priority`}
+                  type="button"
+                  aria-label="Choose a priority to add"
+                  aria-haspopup="listbox"
+                  aria-expanded={addMenuOpen}
+                  aria-controls={`${baseId}-add-priority-options`}
+                  className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm font-medium text-slate-900 shadow-sm transition hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
+                  onClick={() => setAddMenuOpen((open) => !open)}
+                >
+                  <span>Choose a factor…</span>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${addMenuOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {addMenuOpen ? (
+                  <div
+                    id={`${baseId}-add-priority-options`}
+                    role="listbox"
+                    aria-label="Available priorities"
+                    className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+                  >
+                    {availableOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        role="option"
+                        aria-selected="false"
+                        className="block w-full px-3 py-2 text-left text-sm font-medium text-slate-900 transition hover:bg-teal-50 focus:bg-teal-50 focus:outline-none"
+                        onClick={() => handleAdd(option.value)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+              <button type="button" className="nh-ghost-icon-button shrink-0" onClick={() => { setAddPickerOpen(false); setAddMenuOpen(false); }} aria-label="Cancel adding priority" title="Cancel">
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
@@ -255,9 +269,7 @@ export function PriorityRanking({
           )}
         </div>
       ) : (
-        <p className="mt-2 px-1 text-xs text-slate-500">
-          You can rank up to three priorities. Remove one to choose another.
-        </p>
+        <p className="mt-2 px-1 text-xs text-slate-500">You can rank up to three priorities. Remove one to choose another.</p>
       )}
     </div>
   );
