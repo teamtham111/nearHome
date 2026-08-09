@@ -48,6 +48,18 @@ body {
   @apply inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-base font-medium text-slate-700 transition hover:border-teal-500 hover:bg-teal-50 hover:text-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400;
 }
 
+.nh-ghost-icon-button {
+  @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-600/30 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent;
+}
+
+.nh-priority-select-wrap {
+  @apply relative min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2;
+}
+
+.nh-priority-select {
+  @apply w-full cursor-pointer appearance-none bg-transparent pr-7 text-sm font-medium text-slate-900 outline-none focus:ring-0;
+}
+
 .nh-input,
 .nh-select,
 .nh-textarea {

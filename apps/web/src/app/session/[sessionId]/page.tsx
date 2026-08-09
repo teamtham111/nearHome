@@ -26,6 +26,7 @@ import { ComparisonView } from "@/components/comparison-view";
 import { SmartPasteProgress } from "@/components/smart-paste-progress";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EnrichmentProgress } from "@/components/enrichment-progress";
+import { PriorityRanking } from "@/components/priority-ranking";
 import { WorkflowStepper } from "@/components/workflow-stepper";
 
 const PRIORITY_VALUES = [
@@ -47,6 +48,8 @@ const PRIORITY_LABELS: Record<(typeof PRIORITY_VALUES)[number], string> = {
   SCHOOLS: "Schools",
   FAIR_PRICE: "Fair price",
 };
+
+type PriorityValue = (typeof PRIORITY_VALUES)[number];
 
 const SCHOOL_NAME_PATTERN = /\b(school|college|institution|institute|academy|madrasah|polytechnic)\b/i;
 
@@ -137,6 +140,7 @@ export default function SessionPage() {
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [pasteSourceUrl, setPasteSourceUrl] = useState<string | null>(null);
   const pasteInputRef = useRef<HTMLTextAreaElement>(null);
+  const pasteUrlTabRef = useRef<HTMLButtonElement>(null);
   const manualEntryTabRef = useRef<HTMLButtonElement>(null);
   const smartPasteTabRef = useRef<HTMLButtonElement>(null);
   const pasteGenerationRef = useRef(0);
@@ -288,14 +292,6 @@ export default function SessionPage() {
   function removePriority(index: number) {
     if (orderedPriorities.length <= 1) return;
     setOrderedPriorities(orderedPriorities.filter((_, priorityIndex) => priorityIndex !== index));
-  }
-
-  function movePriority(index: number, direction: -1 | 1) {
-    const target = index + direction;
-    if (target < 0 || target >= orderedPriorities.length) return;
-    const next = [...orderedPriorities];
-    [next[index], next[target]] = [next[target], next[index]];
-    setOrderedPriorities(next);
   }
 
   const saveProfile = useMutation({
@@ -511,6 +507,26 @@ export default function SessionPage() {
     }
   }
 
+  function handleAddFlatTabKeyDown(event: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) {
+    const tabs = [smartPasteTabRef, pasteUrlTabRef, manualEntryTabRef];
+    let nextIndex: number | null = null;
+    if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+    if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = tabs.length - 1;
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+    const nextIsManual = nextIndex === 2;
+    if (nextIsManual) {
+      selectInputMode("manual");
+    } else {
+      setPasteVariant(nextIndex === 0 ? "text" : "url");
+      selectInputMode("paste");
+    }
+    window.requestAnimationFrame(() => tabs[nextIndex ?? 0].current?.focus());
+  }
+
   function handleLocationQueryChange(q: string) {
     setLocQuery(q);
     setSelectedPlace(null);
@@ -713,48 +729,16 @@ export default function SessionPage() {
           <section aria-labelledby="decision-priorities-heading">
             <h4 id="decision-priorities-heading" className="text-base font-semibold text-slate-900">Decision priorities</h4>
             <p className="mt-1 text-sm text-slate-600">Choose up to three factors, ordered from most to least important.</p>
-            <ol className="mt-4 space-y-2" aria-label="Decision priorities">
-              {orderedPriorities.map((priority, index) => (
-                <li key={priority} className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white p-3">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-teal-50 text-sm font-semibold text-teal-800" aria-label={`Priority ${index + 1}`}>{index + 1}</span>
-                  <select
-                    className="nh-select mt-0 min-w-48 flex-1"
-                    aria-label={`Priority ${index + 1} factor`}
-                    value={priority}
-                    onChange={(event) => replacePriority(index, event.target.value as (typeof PRIORITY_VALUES)[number])}
-                  >
-                    {PRIORITY_VALUES.filter((value) => value === priority || !orderedPriorities.includes(value)).map((value) => (
-                      <option key={value} value={value}>{PRIORITY_LABELS[value]}</option>
-                    ))}
-                  </select>
-                  <div className="flex items-center gap-1">
-                    <button type="button" className="nh-icon-button" onClick={() => movePriority(index, -1)} disabled={index === 0} aria-label={`Move ${PRIORITY_LABELS[priority]} up`} title="Move up">↑</button>
-                    <button type="button" className="nh-icon-button" onClick={() => movePriority(index, 1)} disabled={index === orderedPriorities.length - 1} aria-label={`Move ${PRIORITY_LABELS[priority]} down`} title="Move down">↓</button>
-                    <button type="button" className="nh-icon-button" onClick={() => removePriority(index)} disabled={orderedPriorities.length <= 1} aria-label={`Remove ${PRIORITY_LABELS[priority]}`} title="Remove priority">×</button>
-                  </div>
-                </li>
-              ))}
-            </ol>
-            {orderedPriorities.length < 3 ? (
-              <label className="nh-label mt-3 block max-w-sm">
-                Add another priority ({3 - orderedPriorities.length} available)
-                <select
-                  className="nh-select"
-                  aria-label="Add another priority"
-                  defaultValue=""
-                  onChange={(event) => {
-                    const value = event.target.value as (typeof PRIORITY_VALUES)[number];
-                    if (value) setOrderedPriorities([...orderedPriorities, value]);
-                    event.currentTarget.value = "";
-                  }}
-                >
-                  <option value="">Choose a factor…</option>
-                  {PRIORITY_VALUES.filter((value) => !orderedPriorities.includes(value)).map((value) => (
-                    <option key={value} value={value}>{PRIORITY_LABELS[value]}</option>
-                  ))}
-                </select>
-              </label>
-            ) : <p className="mt-3 text-xs text-slate-500">You can rank up to three priorities. Remove one to choose another.</p>}
+            <div className="mt-4">
+              <PriorityRanking
+                priorities={orderedPriorities}
+                options={PRIORITY_VALUES.map((value) => ({ value, label: PRIORITY_LABELS[value] }))}
+                onReplace={(index, value) => replacePriority(index, value as PriorityValue)}
+                onRemove={removePriority}
+                onReorder={(next) => setOrderedPriorities(next as typeof orderedPriorities)}
+                onAdd={(value) => setOrderedPriorities([...orderedPriorities, value as PriorityValue])}
+              />
+            </div>
           </section>
           <section className="nh-optional-section" aria-labelledby="regular-destination-heading">
             <div className="flex flex-wrap items-center gap-2">
@@ -918,9 +902,9 @@ export default function SessionPage() {
             NearHome works best with a small shortlist. Add each listing and review extracted details before confirming it.
           </p>
           <div className="mt-6 grid overflow-hidden rounded-xl border border-blue-100 bg-slate-50 sm:grid-cols-3" role="tablist" aria-label="How to add a flat">
-            <button ref={smartPasteTabRef} type="button" role="tab" aria-selected={inputMode === "paste" && pasteVariant === "text"} aria-controls="smart-paste-panel" id="smart-paste-text-tab" className={`nh-tab justify-center rounded-none border-b sm:border-b-0 sm:border-r ${inputMode === "paste" && pasteVariant === "text" ? "nh-tab-active" : ""}`} onClick={() => { setPasteVariant("text"); selectInputMode("paste"); }}>Paste listing text <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">Recommended</span></button>
-            <button type="button" role="tab" aria-selected={inputMode === "paste" && pasteVariant === "url"} aria-controls="smart-paste-panel" id="smart-paste-url-tab" className={`nh-tab justify-center rounded-none border-b sm:border-b-0 sm:border-r ${inputMode === "paste" && pasteVariant === "url" ? "nh-tab-active" : ""}`} onClick={() => { setPasteVariant("url"); selectInputMode("paste"); }}>Paste listing URL</button>
-            <button ref={manualEntryTabRef} type="button" role="tab" aria-selected={inputMode === "manual"} aria-controls="manual-listing-form" id="manual-entry-tab" className={`nh-tab justify-center rounded-none ${inputMode === "manual" ? "nh-tab-active" : ""}`} onClick={() => selectInputMode("manual")}>Enter manually</button>
+            <button ref={smartPasteTabRef} type="button" role="tab" aria-selected={inputMode === "paste" && pasteVariant === "text"} aria-controls="smart-paste-panel" id="smart-paste-text-tab" className={`nh-tab justify-center rounded-none border-b sm:border-b-0 sm:border-r ${inputMode === "paste" && pasteVariant === "text" ? "nh-tab-active" : ""}`} onClick={() => { setPasteVariant("text"); selectInputMode("paste"); }} onKeyDown={(event) => handleAddFlatTabKeyDown(event, 0)}>Paste listing text <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">Recommended</span></button>
+            <button ref={pasteUrlTabRef} type="button" role="tab" aria-selected={inputMode === "paste" && pasteVariant === "url"} aria-controls="smart-paste-panel" id="smart-paste-url-tab" className={`nh-tab justify-center rounded-none border-b sm:border-b-0 sm:border-r ${inputMode === "paste" && pasteVariant === "url" ? "nh-tab-active" : ""}`} onClick={() => { setPasteVariant("url"); selectInputMode("paste"); }} onKeyDown={(event) => handleAddFlatTabKeyDown(event, 1)}>Paste listing URL</button>
+            <button ref={manualEntryTabRef} type="button" role="tab" aria-selected={inputMode === "manual"} aria-controls="manual-listing-form" id="manual-entry-tab" className={`nh-tab justify-center rounded-none ${inputMode === "manual" ? "nh-tab-active" : ""}`} onClick={() => selectInputMode("manual")} onKeyDown={(event) => handleAddFlatTabKeyDown(event, 2)}>Enter manually</button>
           </div>
 
           {inputMode === "paste" && !listingInputId && (
