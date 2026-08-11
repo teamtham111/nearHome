@@ -76,28 +76,6 @@ export default function HomePage() {
         ].map(([title, desc]) => <div key={title} className="rounded-xl border border-slate-200 bg-white p-4"><p className="text-sm font-semibold text-slate-900">{title}</p><p className="mt-1 text-sm text-slate-600">{desc}</p></div>)}
       </section>
 
-      <section aria-labelledby="how-nearhome-helps" className="pt-2 sm:pt-4">
-        <div className="max-w-3xl">
-          <p className="nh-section-kicker">HOW NEARHOME HELPS</p>
-          <h2 id="how-nearhome-helps" className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">From property search to property decision</h2>
-          <p className="mt-4 leading-7 text-slate-600">Traditional property portals are designed to help you discover available homes. NearHome is designed for the next step: deciding which of your shortlisted flats fits you best.</p>
-          <p className="mt-4 leading-7 text-slate-600">Instead of presenting isolated facts such as the nearest MRT station, nearby schools or recent transactions, NearHome processes property, transport and location data through purpose-built models. The results are compared consistently across every flat and organised around the factors that matter to you.</p>
-        </div>
-
-        <div className="mt-8 grid items-stretch gap-4 md:grid-cols-2">
-          {assessments.map((assessment) => <article key={assessment.title} className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5"><h3 className="text-lg font-semibold text-slate-900">{assessment.title}</h3><p className="mt-2 text-sm font-medium leading-6 text-teal-700">{assessment.supportingLine}</p><p className="mt-3 text-sm leading-6 text-slate-600">{assessment.description}</p><div className="mt-5 rounded-lg bg-slate-50 p-3"><p className="text-xs font-semibold uppercase tracking-wide text-slate-700">Why it matters</p><p className="mt-1 text-sm leading-6 text-slate-600">{assessment.outcome}</p></div></article>)}
-        </div>
-      </section>
-
-      <section aria-labelledby="comparison-around-you" className="border-t border-slate-200 pt-10">
-        <p className="nh-section-kicker">COMPARED AROUND YOUR PRIORITIES</p>
-        <h2 id="comparison-around-you" className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">One comparison built around you</h2>
-        <p className="mt-4 max-w-3xl leading-7 text-slate-600">NearHome brings these assessments together in one place and compares your shortlisted flats according to the factors you selected, such as affordability, space, transport and proximity to important locations.</p>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          {["Where each flat performs strongly", "Which flat has the advantage for each priority", "What trade-offs you would be accepting", "The evidence supporting every assessment"].map((item) => <p key={item} className="flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"><span className="mt-0.5 text-teal-700" aria-hidden="true">✓</span>{item}</p>)}
-        </div>
-        <p className="mt-6 text-sm leading-6 text-slate-600">No unexplained overall ranking. NearHome shows the priorities, evidence and trade-offs behind each comparison.</p>
-      </section>
 
       <section aria-labelledby="how-nearhome-helps" className="pt-2 sm:pt-4">
         <div className="max-w-3xl">

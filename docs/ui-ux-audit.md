@@ -63,7 +63,8 @@ values after the user selects **Add a flat** and the real extraction completes; 
 a speculative link preview. Marketing previews are explicitly illustrative and isolated from the persisted
 shortlist and API responses.
 
-The homepage places a buyer-readable explanation directly after its three workflow cards. It
+The homepage places one buyer-readable explanation directly after its three workflow cards; the
+duplicate lower copy is removed so the explanation and its heading IDs are not repeated. It
 distinguishes discovery on a property portal from making a decision in NearHome, then presents
 the four active assessments as responsive, equal-height evidence cards. Each card separates the
 assessment purpose, the evidence it considers, and why that outcome matters to a buyer. The
