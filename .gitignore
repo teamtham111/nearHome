@@ -82,3 +82,6 @@ apps/api/cache/
 data_pipeline/validation/
 # Google Roads corroboration responses are generated audit evidence, never source data.
 data_pipeline/cache/google_roads_validation/
+
+# Local-only technical working document.
+docs/tier-1-technical-understanding.md
