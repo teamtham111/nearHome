@@ -1,0 +1,627 @@
+<!DOCTYPE qgis PUBLIC '-//Quantum GIS//DTD QGIS 1.0//EN' 'http://mrcc.com/qgis.dtd'>
+<qgis projectname="NearHome Validation" version="3.44.13-Solothurn" saveDateTime="2026-08-14T06:15:00" saveUser="" saveUserFull="">
+  <homePath path="."/>
+  <title>NearHome QGIS Validation</title>
+  <autotransaction active="0"/>
+  <evaluateDefaultValues active="0"/>
+  <trust active="0"/>
+  <projectCrs>
+    <spatialrefsys nativeFormat="Wkt">
+      <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+      <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+      <srsid>1372</srsid>
+      <srid>3414</srid>
+      <authid>EPSG:3414</authid>
+      <description>SVY21 / Singapore TM</description>
+      <projectionacronym>tmerc</projectionacronym>
+      <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+      <geographicflag>false</geographicflag>
+    </spatialrefsys>
+  </projectCrs>
+  <layer-tree-group expanded="1" checked="Qt::Checked" name="">
+    <customproperties><Option/></customproperties>
+    <layer-tree-group expanded="1" checked="Qt::Checked" name="Access Analysis">
+      <customproperties><Option/></customproperties>
+      <layer-tree-layer source="./data/access_candidates_svy21.geojson" providerKey="ogr" checked="Qt::Checked" id="access_41fddb16200240c2b996e9891dbd26c3" expanded="1" name="Access Candidates" legend_exp="" patch_size="-1,-1" legend_split_behavior="0">
+        <customproperties><Option/></customproperties>
+      </layer-tree-layer>
+    </layer-tree-group>
+    <layer-tree-group expanded="1" checked="Qt::Checked" name="Road Matching">
+      <customproperties><Option/></customproperties>
+      <layer-tree-layer source="./data/sla_major_roads_svy21.geojson" providerKey="ogr" checked="Qt::Checked" id="sla_d65d85d0ab424cd29e2fd5ee2d9f3873" expanded="1" name="SLA Major Roads" legend_exp="" patch_size="-1,-1" legend_split_behavior="0">
+        <customproperties><Option/></customproperties>
+      </layer-tree-layer>
+      <layer-tree-layer source="./data/access_candidates_nearest_sla_svy21.geojson" providerKey="ogr" checked="Qt::Unchecked" id="nearest_c6034bf4414e41be92f76a9e53810265" expanded="1" name="Candidates Nearest SLA" legend_exp="" patch_size="-1,-1" legend_split_behavior="0">
+        <customproperties><Option/></customproperties>
+      </layer-tree-layer>
+      <layer-tree-layer source="./data/sla_major_roads_buffer_35m.geojson" providerKey="ogr" checked="Qt::Checked" id="buffer_1f27eda752324924a96d369c209af927" expanded="1" name="SLA Major Roads — 35 m Buffer" legend_exp="" patch_size="-1,-1" legend_split_behavior="0">
+        <customproperties><Option/></customproperties>
+      </layer-tree-layer>
+      <layer-tree-layer source="./data/osm_matched_edges_svy21.geojson" providerKey="ogr" checked="Qt::Checked" id="osm_fa0be027fde240938f4985d75973d6d7" expanded="1" name="OSM Matched Edges" legend_exp="" patch_size="-1,-1" legend_split_behavior="0">
+        <customproperties><Option/></customproperties>
+      </layer-tree-layer>
+    </layer-tree-group>
+    <layer-tree-group expanded="1" checked="Qt::Checked" name="QA Results">
+      <customproperties><Option/></customproperties>
+      <layer-tree-layer source="./data/access_candidates_qa_svy21.geojson" providerKey="ogr" checked="Qt::Checked" id="qa_baf1fc85ec2b4ceab27a6a9243effa68" expanded="1" name="Access Candidates QA" legend_exp="" patch_size="-1,-1" legend_split_behavior="0">
+        <customproperties><Option/></customproperties>
+      </layer-tree-layer>
+    </layer-tree-group>
+    <custom-order enabled="0">
+      <item>access_41fddb16200240c2b996e9891dbd26c3</item>
+      <item>sla_d65d85d0ab424cd29e2fd5ee2d9f3873</item>
+      <item>nearest_c6034bf4414e41be92f76a9e53810265</item>
+      <item>buffer_1f27eda752324924a96d369c209af927</item>
+      <item>osm_fa0be027fde240938f4985d75973d6d7</item>
+      <item>qa_baf1fc85ec2b4ceab27a6a9243effa68</item>
+    </custom-order>
+  </layer-tree-group>
+  <snapping-settings self-snapping="0" minScale="0" mode="2" enabled="0" unit="1" intersection-snapping="0" type="1" maxScale="0" tolerance="12" scaleDependencyMode="0"><individual-layer-settings/></snapping-settings>
+  <relations/>
+  <polymorphicRelations/>
+  <mapcanvas annotationsVisible="1" name="theMapCanvas">
+    <units>meters</units>
+    <extent><xmin>11599.29006470321</xmin><ymin>33415.74980419045</ymin><xmax>25280.866628726242</xmax><ymax>49460.40215862467</ymax></extent>
+    <rotation>0</rotation>
+    <destinationsrs>      <spatialrefsys nativeFormat="Wkt">
+        <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+        <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+        <srsid>1372</srsid>
+        <srid>3414</srid>
+        <authid>EPSG:3414</authid>
+        <description>SVY21 / Singapore TM</description>
+        <projectionacronym>tmerc</projectionacronym>
+        <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+        <geographicflag>false</geographicflag>
+      </spatialrefsys></destinationsrs>
+    <rendermaptile>0</rendermaptile>
+  </mapcanvas>
+  <mapViewDocks3D/>
+  <projectlayers>
+    <maplayer type="vector" geometry="Point" wkbType="Point" readOnly="0" hasScaleBasedVisibilityFlag="0" minScale="100000000" maxScale="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyAlgorithm="0" simplifyMaxScale="1" autoRefreshEnabled="0" autoRefreshTime="0" labelsEnabled="0" styleCategories="AllStyleCategories" symbologyReferenceScale="-1">
+      <extent><xmin>12226.737106183751</xmin><ymin>34145.05218393746</ymin><xmax>24654.94803556767</xmax><ymax>48707.150939361905</ymax></extent>
+      <id>access_41fddb16200240c2b996e9891dbd26c3</id>
+      <datasource>./data/access_candidates_svy21.geojson</datasource>
+      <keywordList><value></value></keywordList>
+      <layername>Access Candidates</layername>
+      <srs>        <spatialrefsys nativeFormat="Wkt">
+          <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+          <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+          <srsid>1372</srsid>
+          <srid>3414</srid>
+          <authid>EPSG:3414</authid>
+          <description>SVY21 / Singapore TM</description>
+          <projectionacronym>tmerc</projectionacronym>
+          <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys></srs>
+      <resourceMetadata>
+        <identifier></identifier><parentidentifier></parentidentifier><language></language><type>dataset</type><title></title><abstract></abstract><links/><fees></fees><encoding></encoding>
+        <crs>          <spatialrefsys nativeFormat="Wkt">
+            <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+            <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+            <srsid>1372</srsid>
+            <srid>3414</srid>
+            <authid>EPSG:3414</authid>
+            <description>SVY21 / Singapore TM</description>
+            <projectionacronym>tmerc</projectionacronym>
+            <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+            <geographicflag>false</geographicflag>
+          </spatialrefsys></crs>
+        <extent/>
+      </resourceMetadata>
+      <provider encoding="UTF-8">ogr</provider>
+      <vectorjoins/>
+      <layerDependencies/>
+      <dataDependencies/>
+      <expressionfields/>
+      <map-layer-style-manager current="Standard"><map-layer-style name="Standard"/></map-layer-style-manager>
+      <auxiliaryLayer/>
+      <flags><Identifiable>1</Identifiable><Removable>1</Removable><Searchable>1</Searchable><Private>0</Private></flags>
+      <renderer-v2 type="categorizedSymbol" attr="topology_status" symbollevels="0" referencescale="-1" forceraster="0" enableorderby="0">
+<categories>
+<category value="ACCEPTED" label="ACCEPTED" symbol="0" render="true" type="string"/>
+<category value="REJECTED" label="REJECTED" symbol="1" render="true" type="string"/>
+</categories>
+<symbols><symbol type="marker" name="0" alpha="1" clip_to_extent="1" force_rhr="0">
+  <layer class="SimpleMarker" enabled="1" locked="0" pass="0">
+    <Option type="Map">
+      <Option name="angle" type="QString" value="0"/>
+      <Option name="color" type="QString" value="0,200,83,255"/>
+      <Option name="horizontal_anchor_point" type="QString" value="1"/>
+      <Option name="name" type="QString" value="circle"/>
+      <Option name="outline_color" type="QString" value="60,60,60,255"/>
+      <Option name="outline_style" type="QString" value="solid"/>
+      <Option name="outline_width" type="QString" value="0.2"/>
+      <Option name="outline_width_unit" type="QString" value="MM"/>
+      <Option name="scale_method" type="QString" value="diameter"/>
+      <Option name="size" type="QString" value="3"/>
+      <Option name="size_unit" type="QString" value="MM"/>
+      <Option name="vertical_anchor_point" type="QString" value="1"/>
+    </Option>
+  </layer>
+</symbol><symbol type="marker" name="1" alpha="1" clip_to_extent="1" force_rhr="0">
+  <layer class="SimpleMarker" enabled="1" locked="0" pass="0">
+    <Option type="Map">
+      <Option name="angle" type="QString" value="0"/>
+      <Option name="color" type="QString" value="230,0,80,255"/>
+      <Option name="horizontal_anchor_point" type="QString" value="1"/>
+      <Option name="name" type="QString" value="star"/>
+      <Option name="outline_color" type="QString" value="60,60,60,255"/>
+      <Option name="outline_style" type="QString" value="solid"/>
+      <Option name="outline_width" type="QString" value="0.2"/>
+      <Option name="outline_width_unit" type="QString" value="MM"/>
+      <Option name="scale_method" type="QString" value="diameter"/>
+      <Option name="size" type="QString" value="2"/>
+      <Option name="size_unit" type="QString" value="MM"/>
+      <Option name="vertical_anchor_point" type="QString" value="1"/>
+    </Option>
+  </layer>
+</symbol></symbols>
+<rotation/>
+<sizescale/>
+</renderer-v2>
+      <customproperties/>
+      <blendMode>0</blendMode><featureBlendMode>0</featureBlendMode><layerOpacity>1</layerOpacity>
+      <geometryOptions removeDuplicateNodes="0" geometryPrecision="0"><activeChecks type="StringList"/></geometryOptions>
+      <legend type="default-vector" showLabelLegend="0"/>
+      <referencedLayers/>
+      <fieldConfiguration/>
+      <aliases/>
+      <splitPolicies/>
+      <duplicatePolicies/>
+      <defaults/>
+      <constraints/>
+      <constraintExpressions/>
+      <expressionfields/>
+      <attributeactions><defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/></attributeactions>
+      <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0"><columns/></attributetableconfig>
+      <conditionalstyles><rowstyles/><fieldstyles/></conditionalstyles>
+      <storedexpressions/>
+      <editform tolerant="1"></editform><editforminit/><editforminitcodesource>0</editforminitcodesource><editforminitfilepath></editforminitfilepath><editforminitcode></editforminitcode>
+      <featformsuppress>0</featformsuppress><editorlayout>generatedlayout</editorlayout><editable/><labelOnTop/><reuseLastValue/><dataDefinedFieldProperties/><widgets/>
+      <previewExpression>"road_name"</previewExpression><mapTip></mapTip>
+    </maplayer>
+    <maplayer type="vector" geometry="Line" wkbType="LineString" readOnly="0" hasScaleBasedVisibilityFlag="0" minScale="100000000" maxScale="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyAlgorithm="0" simplifyMaxScale="1" autoRefreshEnabled="0" autoRefreshTime="0" labelsEnabled="0" styleCategories="AllStyleCategories" symbologyReferenceScale="-1">
+      <extent><xmin>12349.300800036246</xmin><ymin>34237.11509992202</ymin><xmax>24615.57010003389</xmax><ymax>48696.1313001255</ymax></extent>
+      <id>sla_d65d85d0ab424cd29e2fd5ee2d9f3873</id>
+      <datasource>./data/sla_major_roads_svy21.geojson</datasource>
+      <keywordList><value></value></keywordList>
+      <layername>SLA Major Roads</layername>
+      <srs>        <spatialrefsys nativeFormat="Wkt">
+          <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+          <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+          <srsid>1372</srsid>
+          <srid>3414</srid>
+          <authid>EPSG:3414</authid>
+          <description>SVY21 / Singapore TM</description>
+          <projectionacronym>tmerc</projectionacronym>
+          <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys></srs>
+      <resourceMetadata>
+        <identifier></identifier><parentidentifier></parentidentifier><language></language><type>dataset</type><title></title><abstract></abstract><links/><fees></fees><encoding></encoding>
+        <crs>          <spatialrefsys nativeFormat="Wkt">
+            <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+            <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+            <srsid>1372</srsid>
+            <srid>3414</srid>
+            <authid>EPSG:3414</authid>
+            <description>SVY21 / Singapore TM</description>
+            <projectionacronym>tmerc</projectionacronym>
+            <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+            <geographicflag>false</geographicflag>
+          </spatialrefsys></crs>
+        <extent/>
+      </resourceMetadata>
+      <provider encoding="UTF-8">ogr</provider>
+      <vectorjoins/>
+      <layerDependencies/>
+      <dataDependencies/>
+      <expressionfields/>
+      <map-layer-style-manager current="Standard"><map-layer-style name="Standard"/></map-layer-style-manager>
+      <auxiliaryLayer/>
+      <flags><Identifiable>1</Identifiable><Removable>1</Removable><Searchable>1</Searchable><Private>0</Private></flags>
+      <renderer-v2 type="singleSymbol" symbollevels="0" referencescale="-1" forceraster="0" enableorderby="0"><symbols><symbol type="line" name="0" alpha="1" clip_to_extent="1" force_rhr="0">
+  <layer class="SimpleLine" enabled="1" locked="0" pass="0">
+    <Option type="Map">
+      <Option name="line_color" type="QString" value="95,165,75,255"/>
+      <Option name="line_style" type="QString" value="solid"/>
+      <Option name="line_width" type="QString" value="1.4"/>
+      <Option name="line_width_unit" type="QString" value="MM"/>
+      <Option name="capstyle" type="QString" value="round"/>
+      <Option name="joinstyle" type="QString" value="round"/>
+    </Option>
+  </layer>
+</symbol></symbols><rotation/><sizescale/></renderer-v2>
+      <customproperties/>
+      <blendMode>0</blendMode><featureBlendMode>0</featureBlendMode><layerOpacity>1</layerOpacity>
+      <geometryOptions removeDuplicateNodes="0" geometryPrecision="0"><activeChecks type="StringList"/></geometryOptions>
+      <legend type="default-vector" showLabelLegend="0"/>
+      <referencedLayers/>
+      <fieldConfiguration/>
+      <aliases/>
+      <splitPolicies/>
+      <duplicatePolicies/>
+      <defaults/>
+      <constraints/>
+      <constraintExpressions/>
+      <expressionfields/>
+      <attributeactions><defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/></attributeactions>
+      <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0"><columns/></attributetableconfig>
+      <conditionalstyles><rowstyles/><fieldstyles/></conditionalstyles>
+      <storedexpressions/>
+      <editform tolerant="1"></editform><editforminit/><editforminitcodesource>0</editforminitcodesource><editforminitfilepath></editforminitfilepath><editforminitcode></editforminitcode>
+      <featformsuppress>0</featformsuppress><editorlayout>generatedlayout</editorlayout><editable/><labelOnTop/><reuseLastValue/><dataDefinedFieldProperties/><widgets/>
+      <previewExpression>"road_name"</previewExpression><mapTip></mapTip>
+    </maplayer>
+    <maplayer type="vector" geometry="Point" wkbType="Point" readOnly="0" hasScaleBasedVisibilityFlag="0" minScale="100000000" maxScale="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyAlgorithm="0" simplifyMaxScale="1" autoRefreshEnabled="0" autoRefreshTime="0" labelsEnabled="0" styleCategories="AllStyleCategories" symbologyReferenceScale="-1">
+      <extent><xmin>12226.737106183751</xmin><ymin>34145.052183937456</ymin><xmax>24654.94803556767</xmax><ymax>48707.150939361905</ymax></extent>
+      <id>nearest_c6034bf4414e41be92f76a9e53810265</id>
+      <datasource>./data/access_candidates_nearest_sla_svy21.geojson</datasource>
+      <keywordList><value></value></keywordList>
+      <layername>Candidates Nearest SLA</layername>
+      <srs>        <spatialrefsys nativeFormat="Wkt">
+          <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+          <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+          <srsid>1372</srsid>
+          <srid>3414</srid>
+          <authid>EPSG:3414</authid>
+          <description>SVY21 / Singapore TM</description>
+          <projectionacronym>tmerc</projectionacronym>
+          <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys></srs>
+      <resourceMetadata>
+        <identifier></identifier><parentidentifier></parentidentifier><language></language><type>dataset</type><title></title><abstract></abstract><links/><fees></fees><encoding></encoding>
+        <crs>          <spatialrefsys nativeFormat="Wkt">
+            <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+            <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+            <srsid>1372</srsid>
+            <srid>3414</srid>
+            <authid>EPSG:3414</authid>
+            <description>SVY21 / Singapore TM</description>
+            <projectionacronym>tmerc</projectionacronym>
+            <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+            <geographicflag>false</geographicflag>
+          </spatialrefsys></crs>
+        <extent/>
+      </resourceMetadata>
+      <provider encoding="UTF-8">ogr</provider>
+      <vectorjoins/>
+      <layerDependencies/>
+      <dataDependencies/>
+      <expressionfields/>
+      <map-layer-style-manager current="Standard"><map-layer-style name="Standard"/></map-layer-style-manager>
+      <auxiliaryLayer/>
+      <flags><Identifiable>1</Identifiable><Removable>1</Removable><Searchable>1</Searchable><Private>0</Private></flags>
+      <renderer-v2 type="singleSymbol" symbollevels="0" referencescale="-1" forceraster="0" enableorderby="0"><symbols><symbol type="marker" name="0" alpha="1" clip_to_extent="1" force_rhr="0">
+  <layer class="SimpleMarker" enabled="1" locked="0" pass="0">
+    <Option type="Map">
+      <Option name="angle" type="QString" value="0"/>
+      <Option name="color" type="QString" value="70,125,70,180"/>
+      <Option name="horizontal_anchor_point" type="QString" value="1"/>
+      <Option name="name" type="QString" value="circle"/>
+      <Option name="outline_color" type="QString" value="60,60,60,255"/>
+      <Option name="outline_style" type="QString" value="solid"/>
+      <Option name="outline_width" type="QString" value="0.2"/>
+      <Option name="outline_width_unit" type="QString" value="MM"/>
+      <Option name="scale_method" type="QString" value="diameter"/>
+      <Option name="size" type="QString" value="2"/>
+      <Option name="size_unit" type="QString" value="MM"/>
+      <Option name="vertical_anchor_point" type="QString" value="1"/>
+    </Option>
+  </layer>
+</symbol></symbols><rotation/><sizescale/></renderer-v2>
+      <customproperties/>
+      <blendMode>0</blendMode><featureBlendMode>0</featureBlendMode><layerOpacity>1</layerOpacity>
+      <geometryOptions removeDuplicateNodes="0" geometryPrecision="0"><activeChecks type="StringList"/></geometryOptions>
+      <legend type="default-vector" showLabelLegend="0"/>
+      <referencedLayers/>
+      <fieldConfiguration/>
+      <aliases/>
+      <splitPolicies/>
+      <duplicatePolicies/>
+      <defaults/>
+      <constraints/>
+      <constraintExpressions/>
+      <expressionfields/>
+      <attributeactions><defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/></attributeactions>
+      <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0"><columns/></attributetableconfig>
+      <conditionalstyles><rowstyles/><fieldstyles/></conditionalstyles>
+      <storedexpressions/>
+      <editform tolerant="1"></editform><editforminit/><editforminitcodesource>0</editforminitcodesource><editforminitfilepath></editforminitfilepath><editforminitcode></editforminitcode>
+      <featformsuppress>0</featformsuppress><editorlayout>generatedlayout</editorlayout><editable/><labelOnTop/><reuseLastValue/><dataDefinedFieldProperties/><widgets/>
+      <previewExpression>"road_name"</previewExpression><mapTip></mapTip>
+    </maplayer>
+    <maplayer type="vector" geometry="Polygon" wkbType="MultiPolygon" readOnly="0" hasScaleBasedVisibilityFlag="0" minScale="100000000" maxScale="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyAlgorithm="0" simplifyMaxScale="1" autoRefreshEnabled="0" autoRefreshTime="0" labelsEnabled="0" styleCategories="AllStyleCategories" symbologyReferenceScale="-1">
+      <extent><xmin>12314.306315517271</xmin><ymin>34202.263416588095</ymin><xmax>24650.549929154975</xmax><ymax>48731.09977887766</ymax></extent>
+      <id>buffer_1f27eda752324924a96d369c209af927</id>
+      <datasource>./data/sla_major_roads_buffer_35m.geojson</datasource>
+      <keywordList><value></value></keywordList>
+      <layername>SLA Major Roads — 35 m Buffer</layername>
+      <srs>        <spatialrefsys nativeFormat="Wkt">
+          <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+          <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+          <srsid>1372</srsid>
+          <srid>3414</srid>
+          <authid>EPSG:3414</authid>
+          <description>SVY21 / Singapore TM</description>
+          <projectionacronym>tmerc</projectionacronym>
+          <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys></srs>
+      <resourceMetadata>
+        <identifier></identifier><parentidentifier></parentidentifier><language></language><type>dataset</type><title></title><abstract></abstract><links/><fees></fees><encoding></encoding>
+        <crs>          <spatialrefsys nativeFormat="Wkt">
+            <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+            <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+            <srsid>1372</srsid>
+            <srid>3414</srid>
+            <authid>EPSG:3414</authid>
+            <description>SVY21 / Singapore TM</description>
+            <projectionacronym>tmerc</projectionacronym>
+            <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+            <geographicflag>false</geographicflag>
+          </spatialrefsys></crs>
+        <extent/>
+      </resourceMetadata>
+      <provider encoding="UTF-8">ogr</provider>
+      <vectorjoins/>
+      <layerDependencies/>
+      <dataDependencies/>
+      <expressionfields/>
+      <map-layer-style-manager current="Standard"><map-layer-style name="Standard"/></map-layer-style-manager>
+      <auxiliaryLayer/>
+      <flags><Identifiable>1</Identifiable><Removable>1</Removable><Searchable>1</Searchable><Private>0</Private></flags>
+      <renderer-v2 type="singleSymbol" symbollevels="0" referencescale="-1" forceraster="0" enableorderby="0"><symbols><symbol type="fill" name="0" alpha="1" clip_to_extent="1" force_rhr="0">
+  <layer class="SimpleFill" enabled="1" locked="0" pass="0">
+    <Option type="Map">
+      <Option name="color" type="QString" value="255,105,140,55"/>
+      <Option name="outline_color" type="QString" value="255,105,140,210"/>
+      <Option name="outline_style" type="QString" value="solid"/>
+      <Option name="outline_width" type="QString" value="0.5"/>
+      <Option name="outline_width_unit" type="QString" value="MM"/>
+      <Option name="style" type="QString" value="solid"/>
+    </Option>
+  </layer>
+</symbol></symbols><rotation/><sizescale/></renderer-v2>
+      <customproperties/>
+      <blendMode>0</blendMode><featureBlendMode>0</featureBlendMode><layerOpacity>1</layerOpacity>
+      <geometryOptions removeDuplicateNodes="0" geometryPrecision="0"><activeChecks type="StringList"/></geometryOptions>
+      <legend type="default-vector" showLabelLegend="0"/>
+      <referencedLayers/>
+      <fieldConfiguration/>
+      <aliases/>
+      <splitPolicies/>
+      <duplicatePolicies/>
+      <defaults/>
+      <constraints/>
+      <constraintExpressions/>
+      <expressionfields/>
+      <attributeactions><defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/></attributeactions>
+      <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0"><columns/></attributetableconfig>
+      <conditionalstyles><rowstyles/><fieldstyles/></conditionalstyles>
+      <storedexpressions/>
+      <editform tolerant="1"></editform><editforminit/><editforminitcodesource>0</editforminitcodesource><editforminitfilepath></editforminitfilepath><editforminitcode></editforminitcode>
+      <featformsuppress>0</featformsuppress><editorlayout>generatedlayout</editorlayout><editable/><labelOnTop/><reuseLastValue/><dataDefinedFieldProperties/><widgets/>
+      <previewExpression>"road_name"</previewExpression><mapTip></mapTip>
+    </maplayer>
+    <maplayer type="vector" geometry="Line" wkbType="LineString" readOnly="0" hasScaleBasedVisibilityFlag="0" minScale="100000000" maxScale="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyAlgorithm="0" simplifyMaxScale="1" autoRefreshEnabled="0" autoRefreshTime="0" labelsEnabled="0" styleCategories="AllStyleCategories" symbologyReferenceScale="-1">
+      <extent><xmin>12221.179908522437</xmin><ymin>34145.05218393746</ymin><xmax>24658.976784907012</xmax><ymax>48707.150939361905</ymax></extent>
+      <id>osm_fa0be027fde240938f4985d75973d6d7</id>
+      <datasource>./data/osm_matched_edges_svy21.geojson</datasource>
+      <keywordList><value></value></keywordList>
+      <layername>OSM Matched Edges</layername>
+      <srs>        <spatialrefsys nativeFormat="Wkt">
+          <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+          <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+          <srsid>1372</srsid>
+          <srid>3414</srid>
+          <authid>EPSG:3414</authid>
+          <description>SVY21 / Singapore TM</description>
+          <projectionacronym>tmerc</projectionacronym>
+          <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys></srs>
+      <resourceMetadata>
+        <identifier></identifier><parentidentifier></parentidentifier><language></language><type>dataset</type><title></title><abstract></abstract><links/><fees></fees><encoding></encoding>
+        <crs>          <spatialrefsys nativeFormat="Wkt">
+            <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+            <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+            <srsid>1372</srsid>
+            <srid>3414</srid>
+            <authid>EPSG:3414</authid>
+            <description>SVY21 / Singapore TM</description>
+            <projectionacronym>tmerc</projectionacronym>
+            <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+            <geographicflag>false</geographicflag>
+          </spatialrefsys></crs>
+        <extent/>
+      </resourceMetadata>
+      <provider encoding="UTF-8">ogr</provider>
+      <vectorjoins/>
+      <layerDependencies/>
+      <dataDependencies/>
+      <expressionfields/>
+      <map-layer-style-manager current="Standard"><map-layer-style name="Standard"/></map-layer-style-manager>
+      <auxiliaryLayer/>
+      <flags><Identifiable>1</Identifiable><Removable>1</Removable><Searchable>1</Searchable><Private>0</Private></flags>
+      <renderer-v2 type="singleSymbol" symbollevels="0" referencescale="-1" forceraster="0" enableorderby="0"><symbols><symbol type="line" name="0" alpha="1" clip_to_extent="1" force_rhr="0">
+  <layer class="SimpleLine" enabled="1" locked="0" pass="0">
+    <Option type="Map">
+      <Option name="line_color" type="QString" value="255,105,140,255"/>
+      <Option name="line_style" type="QString" value="solid"/>
+      <Option name="line_width" type="QString" value="0.8"/>
+      <Option name="line_width_unit" type="QString" value="MM"/>
+      <Option name="capstyle" type="QString" value="round"/>
+      <Option name="joinstyle" type="QString" value="round"/>
+    </Option>
+  </layer>
+</symbol></symbols><rotation/><sizescale/></renderer-v2>
+      <customproperties/>
+      <blendMode>0</blendMode><featureBlendMode>0</featureBlendMode><layerOpacity>1</layerOpacity>
+      <geometryOptions removeDuplicateNodes="0" geometryPrecision="0"><activeChecks type="StringList"/></geometryOptions>
+      <legend type="default-vector" showLabelLegend="0"/>
+      <referencedLayers/>
+      <fieldConfiguration/>
+      <aliases/>
+      <splitPolicies/>
+      <duplicatePolicies/>
+      <defaults/>
+      <constraints/>
+      <constraintExpressions/>
+      <expressionfields/>
+      <attributeactions><defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/></attributeactions>
+      <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0"><columns/></attributetableconfig>
+      <conditionalstyles><rowstyles/><fieldstyles/></conditionalstyles>
+      <storedexpressions/>
+      <editform tolerant="1"></editform><editforminit/><editforminitcodesource>0</editforminitcodesource><editforminitfilepath></editforminitfilepath><editforminitcode></editforminitcode>
+      <featformsuppress>0</featformsuppress><editorlayout>generatedlayout</editorlayout><editable/><labelOnTop/><reuseLastValue/><dataDefinedFieldProperties/><widgets/>
+      <previewExpression>"road_name"</previewExpression><mapTip></mapTip>
+    </maplayer>
+    <maplayer type="vector" geometry="Point" wkbType="Point" readOnly="0" hasScaleBasedVisibilityFlag="0" minScale="100000000" maxScale="0" simplifyDrawingHints="1" simplifyDrawingTol="1" simplifyLocal="1" simplifyAlgorithm="0" simplifyMaxScale="1" autoRefreshEnabled="0" autoRefreshTime="0" labelsEnabled="0" styleCategories="AllStyleCategories" symbologyReferenceScale="-1">
+      <extent><xmin>12226.737106183751</xmin><ymin>34145.052183937456</ymin><xmax>24654.94803556767</xmax><ymax>48707.150939361905</ymax></extent>
+      <id>qa_baf1fc85ec2b4ceab27a6a9243effa68</id>
+      <datasource>./data/access_candidates_qa_svy21.geojson</datasource>
+      <keywordList><value></value></keywordList>
+      <layername>Access Candidates QA</layername>
+      <srs>        <spatialrefsys nativeFormat="Wkt">
+          <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+          <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+          <srsid>1372</srsid>
+          <srid>3414</srid>
+          <authid>EPSG:3414</authid>
+          <description>SVY21 / Singapore TM</description>
+          <projectionacronym>tmerc</projectionacronym>
+          <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys></srs>
+      <resourceMetadata>
+        <identifier></identifier><parentidentifier></parentidentifier><language></language><type>dataset</type><title></title><abstract></abstract><links/><fees></fees><encoding></encoding>
+        <crs>          <spatialrefsys nativeFormat="Wkt">
+            <wkt>PROJCRS["SVY21 / Singapore TM",BASEGEOGCRS["SVY21",DATUM["SVY21",ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4757]],CONVERSION["Singapore Transverse Mercator",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",1.36666666666667,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",103.833333333333,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",1,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",28001.642,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",38744.572,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["northing (N)",north,ORDER[1],LENGTHUNIT["metre",1]],AXIS["easting (E)",east,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Cadastre, engineering survey, topographic mapping."],AREA["Singapore - onshore and offshore."],BBOX[1.13,103.59,1.47,104.07]],ID["EPSG",3414]]</wkt>
+            <proj4>+proj=tmerc +lat_0=1.36666666666667 +lon_0=103.833333333333 +k=1 +x_0=28001.642 +y_0=38744.572 +ellps=WGS84 +units=m +no_defs</proj4>
+            <srsid>1372</srsid>
+            <srid>3414</srid>
+            <authid>EPSG:3414</authid>
+            <description>SVY21 / Singapore TM</description>
+            <projectionacronym>tmerc</projectionacronym>
+            <ellipsoidacronym>EPSG:7030</ellipsoidacronym>
+            <geographicflag>false</geographicflag>
+          </spatialrefsys></crs>
+        <extent/>
+      </resourceMetadata>
+      <provider encoding="UTF-8">ogr</provider>
+      <vectorjoins/>
+      <layerDependencies/>
+      <dataDependencies/>
+      <expressionfields/>
+      <map-layer-style-manager current="Standard"><map-layer-style name="Standard"/></map-layer-style-manager>
+      <auxiliaryLayer/>
+      <flags><Identifiable>1</Identifiable><Removable>1</Removable><Searchable>1</Searchable><Private>0</Private></flags>
+      <renderer-v2 type="categorizedSymbol" attr="qa_flag" symbollevels="0" referencescale="-1" forceraster="0" enableorderby="0">
+<categories>
+<category value="CHECK" label="CHECK" symbol="0" render="true" type="string"/>
+<category value="FAIL" label="FAIL" symbol="1" render="true" type="string"/>
+<category value="PASS" label="PASS" symbol="2" render="true" type="string"/>
+</categories>
+<symbols><symbol type="marker" name="0" alpha="1" clip_to_extent="1" force_rhr="0">
+  <layer class="SimpleMarker" enabled="1" locked="0" pass="0">
+    <Option type="Map">
+      <Option name="angle" type="QString" value="0"/>
+      <Option name="color" type="QString" value="245,195,0,255"/>
+      <Option name="horizontal_anchor_point" type="QString" value="1"/>
+      <Option name="name" type="QString" value="triangle"/>
+      <Option name="outline_color" type="QString" value="60,60,60,255"/>
+      <Option name="outline_style" type="QString" value="solid"/>
+      <Option name="outline_width" type="QString" value="0.2"/>
+      <Option name="outline_width_unit" type="QString" value="MM"/>
+      <Option name="scale_method" type="QString" value="diameter"/>
+      <Option name="size" type="QString" value="2"/>
+      <Option name="size_unit" type="QString" value="MM"/>
+      <Option name="vertical_anchor_point" type="QString" value="1"/>
+    </Option>
+  </layer>
+</symbol><symbol type="marker" name="1" alpha="1" clip_to_extent="1" force_rhr="0">
+  <layer class="SimpleMarker" enabled="1" locked="0" pass="0">
+    <Option type="Map">
+      <Option name="angle" type="QString" value="0"/>
+      <Option name="color" type="QString" value="230,0,80,255"/>
+      <Option name="horizontal_anchor_point" type="QString" value="1"/>
+      <Option name="name" type="QString" value="star"/>
+      <Option name="outline_color" type="QString" value="60,60,60,255"/>
+      <Option name="outline_style" type="QString" value="solid"/>
+      <Option name="outline_width" type="QString" value="0.2"/>
+      <Option name="outline_width_unit" type="QString" value="MM"/>
+      <Option name="scale_method" type="QString" value="diameter"/>
+      <Option name="size" type="QString" value="2"/>
+      <Option name="size_unit" type="QString" value="MM"/>
+      <Option name="vertical_anchor_point" type="QString" value="1"/>
+    </Option>
+  </layer>
+</symbol><symbol type="marker" name="2" alpha="1" clip_to_extent="1" force_rhr="0">
+  <layer class="SimpleMarker" enabled="1" locked="0" pass="0">
+    <Option type="Map">
+      <Option name="angle" type="QString" value="0"/>
+      <Option name="color" type="QString" value="0,200,83,255"/>
+      <Option name="horizontal_anchor_point" type="QString" value="1"/>
+      <Option name="name" type="QString" value="circle"/>
+      <Option name="outline_color" type="QString" value="60,60,60,255"/>
+      <Option name="outline_style" type="QString" value="solid"/>
+      <Option name="outline_width" type="QString" value="0.2"/>
+      <Option name="outline_width_unit" type="QString" value="MM"/>
+      <Option name="scale_method" type="QString" value="diameter"/>
+      <Option name="size" type="QString" value="2"/>
+      <Option name="size_unit" type="QString" value="MM"/>
+      <Option name="vertical_anchor_point" type="QString" value="1"/>
+    </Option>
+  </layer>
+</symbol></symbols>
+<rotation/>
+<sizescale/>
+</renderer-v2>
+      <customproperties/>
+      <blendMode>0</blendMode><featureBlendMode>0</featureBlendMode><layerOpacity>1</layerOpacity>
+      <geometryOptions removeDuplicateNodes="0" geometryPrecision="0"><activeChecks type="StringList"/></geometryOptions>
+      <legend type="default-vector" showLabelLegend="0"/>
+      <referencedLayers/>
+      <fieldConfiguration/>
+      <aliases/>
+      <splitPolicies/>
+      <duplicatePolicies/>
+      <defaults/>
+      <constraints/>
+      <constraintExpressions/>
+      <expressionfields/>
+      <attributeactions><defaultAction key="Canvas" value="{00000000-0000-0000-0000-000000000000}"/></attributeactions>
+      <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0"><columns/></attributetableconfig>
+      <conditionalstyles><rowstyles/><fieldstyles/></conditionalstyles>
+      <storedexpressions/>
+      <editform tolerant="1"></editform><editforminit/><editforminitcodesource>0</editforminitcodesource><editforminitfilepath></editforminitfilepath><editforminitcode></editforminitcode>
+      <featformsuppress>0</featformsuppress><editorlayout>generatedlayout</editorlayout><editable/><labelOnTop/><reuseLastValue/><dataDefinedFieldProperties/><widgets/>
+      <previewExpression>"road_name"</previewExpression><mapTip></mapTip>
+    </maplayer>
+  </projectlayers>
+  <layerorder>
+    <layer id="access_41fddb16200240c2b996e9891dbd26c3"/>
+    <layer id="sla_d65d85d0ab424cd29e2fd5ee2d9f3873"/>
+    <layer id="nearest_c6034bf4414e41be92f76a9e53810265"/>
+    <layer id="buffer_1f27eda752324924a96d369c209af927"/>
+    <layer id="osm_fa0be027fde240938f4985d75973d6d7"/>
+    <layer id="qa_baf1fc85ec2b4ceab27a6a9243effa68"/>
+  </layerorder>
+  <properties>
+    <Paths><Absolute type="bool">false</Absolute></Paths>
+    <DefaultStyles><ColorRamp type="QString"></ColorRamp><Fill type="QString"></Fill><Line type="QString"></Line><Marker type="QString"></Marker><Opacity type="double">1</Opacity><RandomColors type="bool">true</RandomColors></DefaultStyles>
+    <Gui><CanvasColorBluePart type="int">255</CanvasColorBluePart><CanvasColorGreenPart type="int">255</CanvasColorGreenPart><CanvasColorRedPart type="int">255</CanvasColorRedPart></Gui>
+  </properties>
+  <visibility-presets/>
+  <transformContext/>
+  <projectMetadata><identifier></identifier><parentidentifier></parentidentifier><language></language><type></type><title>NearHome QGIS Validation</title><abstract></abstract><contact><name></name><organization></organization><position></position><voice></voice><fax></fax><email></email><role></role></contact><links/><author></author><creation></creation></projectMetadata>
+  <Annotations/>
+  <Layouts/>
+  <Bookmarks/>
+  <ProjectViewSettings UseProjectScales="0"><DefaultViewExtent xmin="11599.29006470321" ymin="33415.74980419045" xmax="25280.866628726242" ymax="49460.40215862467" crs="EPSG:3414"/></ProjectViewSettings>
+  <ProjectTimeSettings timeStep="1" timeStepUnit="h" frameRate="1" cumulativeTemporalRange="0"/>
+</qgis>

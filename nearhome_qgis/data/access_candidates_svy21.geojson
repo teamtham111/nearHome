@@ -1,0 +1,2487 @@
+{
+  "type": "FeatureCollection",
+  "name": "access_candidates_svy21",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:EPSG::3414"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12273.752494958213,
+          38193.21256710948
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:10790144109:1989535713:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "10790144109",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"10790144109\", \"1989535713\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"10790144119\", \"10790144109\", \"0\"], [\"10790144123\", \"10790144109\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12226.737106183751,
+          38262.04841629834
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:10790144137:4738344310:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "10790144137",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"10790144137\", \"4738344310\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"10790144125\", \"10790144137\", \"0\"], [\"10790144129\", \"10790144137\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12919.129226384057,
+          37453.79224983987
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:1301909257:4738356422:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "1301909257",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"1301909257\", \"4738356422\", \"0\"], [\"1301909257\", \"4738356423\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"567938820\", \"1301909257\", \"0\"]]",
+        "incoming_edge_count": 3,
+        "outgoing_edge_count": 3,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12927.06462517648,
+          37462.75945545451
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:1301909323:4738344319:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "1301909323",
+        "topology_status": "REJECTED",
+        "reason": "within_entry_node_dedup_distance",
+        "matched_osm_edge_ids": "[[\"1301909323\", \"4738344319\", \"0\"], [\"1301909323\", \"4738356424\", \"0\"], [\"1301909323\", \"567938819\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"567938807\", \"1301909323\", \"0\"]]",
+        "incoming_edge_count": 3,
+        "outgoing_edge_count": 3,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12624.293385787287,
+          37680.65396888695
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:1304329326:1304329329:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "1304329326",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1304329326\", \"1304329329\", \"0\"], [\"1304329326\", \"244137927\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12579.75910455354,
+          37741.71615500312
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:1304329856:10790144118:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "1304329856",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1304329856\", \"10790144118\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13495.92775787994,
+          37028.87546361961
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:1304344446:2577846563:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "1304344446",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1304344446\", \"2577846563\", \"0\"], [\"1304344446\", \"2618497861\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12567.080852392703,
+          37698.813694482174
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:1989535710:1304329856:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "1989535710",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"1989535710\", \"1304329856\", \"0\"], [\"1989535710\", \"1989535712\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"1989607720\", \"1989535710\", \"0\"]]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12597.552800784646,
+          37717.60973717982
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:1989535712:1304329856:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "1989535712",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1989535712\", \"1304329856\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12609.58357979756,
+          37725.66998273908
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:1989535713:244138037:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "1989535713",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"1989535713\", \"244138037\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"1989535712\", \"1989535713\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13732.593058629203,
+          36569.32352291852
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:244137878:244137918:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "244137878",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"244137878\", \"244137918\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"244137911\", \"244137878\", \"0\"], [\"2577843843\", \"244137878\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13719.094878561249,
+          36592.146948146976
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:244137918:244138022:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "244137918",
+        "topology_status": "REJECTED",
+        "reason": "within_entry_node_dedup_distance",
+        "matched_osm_edge_ids": "[[\"244137918\", \"244138022\", \"0\"], [\"244137918\", \"2577843871\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"2577843852\", \"244137918\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12604.496646912145,
+          37707.569109610944
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:244137927:1304329329:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "244137927",
+        "topology_status": "REJECTED",
+        "reason": "within_entry_node_dedup_distance",
+        "matched_osm_edge_ids": "[[\"244137927\", \"1304329329\", \"0\"], [\"244137927\", \"1989535712\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"244138037\", \"244137927\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12614.607174692814,
+          39544.90867783374
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:244137998:244138014:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "244137998",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"244137998\", \"244138014\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"2523841754\", \"244137998\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12626.158724949162,
+          39542.364779245996
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:244138014:2523841748:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "244138014",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"244138014\", \"2523841748\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13204.397174126561,
+          37272.101398117185
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:244138023:6635332952:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "244138023",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"244138023\", \"6635332952\", \"0\"], [\"244138023\", \"6635332952\", \"1\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12617.22854989788,
+          37715.70671808293
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:244138037:567938816:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "244138037",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"244138037\", \"567938816\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12620.058835748163,
+          39519.79672592343
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2523841748:2523841750:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2523841748",
+        "topology_status": "REJECTED",
+        "reason": "within_entry_node_dedup_distance",
+        "matched_osm_edge_ids": "[[\"2523841748\", \"2523841750\", \"0\"], [\"2523841748\", \"2523843191\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"2523841746\", \"2523841748\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12608.462771865412,
+          39522.38485734985
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2523841750:244137998:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2523841750",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"2523841750\", \"244137998\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12593.035761446808,
+          39479.42727034779
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2523843190:2523841750:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2523843190",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"2523843190\", \"2523841750\", \"0\"], [\"2523843190\", \"2523841752\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12609.874007054574,
+          39485.69591167001
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2523843191:4738344308:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2523843191",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"2523843191\", \"4738344308\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"2523841746\", \"2523843191\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13695.214331162826,
+          36632.26487845518
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2577843871:6305267812:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2577843871",
+        "topology_status": "REJECTED",
+        "reason": "entry_node_limit",
+        "matched_osm_edge_ids": "[[\"2577843871\", \"6305267812\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"2577843852\", \"2577843871\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13699.17729384799,
+          36652.49992549482
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2577843872:244138022:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2577843872",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"2577843872\", \"244138022\", \"0\"], [\"2577843872\", \"2577843868\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13510.526645765207,
+          36987.187837858466
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2577843939:2577846563:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2577843939",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"2577843939\", \"2577846563\", \"0\"], [\"2577843939\", \"2618497983\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13519.352055298052,
+          36990.692598402966
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2577846563:2618497861:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2577846563",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"2577846563\", \"2618497861\", \"0\"], [\"2577846563\", \"889499176\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13533.772425609244,
+          36940.38012015643
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2618496604:2618496849:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2618496604",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"2618496604\", \"2618496849\", \"0\"], [\"2618496604\", \"889499177\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13537.334801417734,
+          36961.43344376943
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2618496616:6305267813:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2618496616",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"2618496616\", \"6305267813\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13461.603440497456,
+          36977.194466778754
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2618496852:2577843939:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2618496852",
+        "topology_status": "REJECTED",
+        "reason": "entry_node_limit",
+        "matched_osm_edge_ids": "[[\"2618496852\", \"2577843939\", \"0\"], [\"2618496852\", \"2618497983\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"1162883843\", \"2618496852\", \"0\"]]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13552.093698498786,
+          36998.26524708277
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2618497809:2618496616:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2618497809",
+        "topology_status": "REJECTED",
+        "reason": "entry_node_limit",
+        "matched_osm_edge_ids": "[[\"2618497809\", \"2618496616\", \"0\"], [\"2618497809\", \"889499176\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"889499170\", \"2618497809\", \"0\"]]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13483.60799388479,
+          37027.61556768606
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:2618497983:6151629170:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "2618497983",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"2618497983\", \"6151629170\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12495.695171853855,
+          38958.457679820625
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:4738344307:2523843190:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "4738344307",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4738344307\", \"2523843190\", \"0\"], [\"4738344307\", \"4738344308\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12510.129631724454,
+          38964.837033052914
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:4738344308:4738344309:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "4738344308",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4738344308\", \"4738344309\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12493.114845586639,
+          38793.678610337294
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:4738344309:10790144123:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "4738344309",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4738344309\", \"10790144123\", \"0\"], [\"4738344309\", \"4738344310\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12477.66761193859,
+          38786.60269194267
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:4738344310:4738344307:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "4738344310",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4738344310\", \"4738344307\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12939.86238500205,
+          37454.49877228064
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:4738344319:567938811:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "4738344319",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4738344319\", \"567938811\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12914.411549685125,
+          37471.16387899469
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:4738344320:1301909323:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "4738344320",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4738344320\", \"1301909323\", \"0\"], [\"4738344320\", \"4738356424\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12931.303745823627,
+          37445.1224728747
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:4738356421:1301909257:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "4738356421",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4738356421\", \"1301909257\", \"0\"], [\"4738356421\", \"4738356422\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12928.499725093896,
+          37453.3383675241
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:4738356422:1301909323:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "4738356422",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4738356422\", \"1301909323\", \"0\"], [\"4738356422\", \"4738344319\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12907.344174835513,
+          37461.67692165464
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:4738356423:567938823:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "4738356423",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4738356423\", \"567938823\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12916.058097348388,
+          37461.73172159096
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:4738356424:1301909257:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "4738356424",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4738356424\", \"1301909257\", \"0\"], [\"4738356424\", \"4738356423\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12982.372352431114,
+          37411.65956660158
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:5159426232:4738356421:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "5159426232",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"5159426232\", \"4738356421\", \"0\"], [\"5159426232\", \"567938815\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12992.325230839384,
+          37477.25222419141
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:567938807:567938811:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "567938807",
+        "topology_status": "REJECTED",
+        "reason": "entry_node_limit",
+        "matched_osm_edge_ids": "[[\"567938807\", \"567938811\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"1301909172\", \"567938807\", \"0\"]]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13009.393143365747,
+          37408.893683241426
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:567938811:5995145537:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "567938811",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"567938811\", \"5995145537\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12865.858407253607,
+          37510.26599476491
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:567938816:4738344320:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "567938816",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"567938816\", \"4738344320\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          12849.042308133789,
+          37504.00838258613
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:567938823:1304329326:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "567938823",
+        "topology_status": "REJECTED",
+        "reason": "entry_node_limit",
+        "matched_osm_edge_ids": "[[\"567938823\", \"1304329326\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"567938820\", \"567938823\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13123.24851300543,
+          37330.898691040056
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:5995145537:244138023:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "5995145537",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"5995145537\", \"244138023\", \"0\"], [\"5995145537\", \"6151629170\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13118.640490432443,
+          37318.912593570014
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:6151629170:5159426232:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "6151629170",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"6151629170\", \"5159426232\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13573.342711457155,
+          36863.32922379651
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:6305267812:2618496604:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "6305267812",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"6305267812\", \"2618496604\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13580.031708930986,
+          36873.13688554035
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:6305267813:2577843872:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "6305267813",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"6305267813\", \"2577843872\", \"0\"], [\"6305267813\", \"6305267812\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13210.373163432832,
+          37267.95450084341
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:6635332952:1304344446:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "6635332952",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"6635332952\", \"1304344446\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13524.660090285786,
+          36982.2333130035
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:889499176:2618496616:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "889499176",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"889499176\", \"2618496616\", \"0\"], [\"889499176\", \"889499177\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          13514.933143290036,
+          36976.937282630235
+        ]
+      },
+      "properties": {
+        "candidate_id": "JALAN BAHAR:889499177:2577843939:0",
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "node_id": "889499177",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"889499177\", \"2577843939\", \"0\"], [\"889499177\", \"2618496849\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"disconnected_matched_edge_groups\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24387.95209123141,
+          48561.368296974455
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:1531262464:1531262559:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "1531262464",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1531262464\", \"1531262559\", \"0\"], [\"1531262464\", \"5186662658\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24337.798548686675,
+          48703.95550085708
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:1531262478:1531262669:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "1531262478",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"1531262478\", \"1531262669\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"6164004599\", \"1531262478\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24343.729647040564,
+          48681.55291692734
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:1531262506:1531262478:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "1531262506",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1531262506\", \"1531262478\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24627.783384098137,
+          47992.965202313484
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:1531262535:1531262600:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "1531262535",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1531262535\", \"1531262600\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24371.537656963,
+          48556.62486586684
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:1531262559:1531262464:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "1531262559",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1531262559\", \"1531262464\", \"0\"], [\"1531262559\", \"244487179\", \"0\"], [\"1531262559\", \"4606975348\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 3,
+        "outgoing_edge_count": 3,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24611.25757526037,
+          47983.876158947736
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:1531262600:1863993240:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "1531262600",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"1531262600\", \"1863993240\", \"0\"], [\"1531262600\", \"4606972686\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"4606975290\", \"1531262600\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24350.095452038375,
+          48707.150939361905
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:1531262669:244383192:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "1531262669",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1531262669\", \"244383192\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24604.347032288857,
+          47998.62695742488
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:1863993240:1863993241:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "1863993240",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1863993240\", \"1863993241\", \"0\"], [\"1863993240\", \"4606975296\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24620.171740199825,
+          48006.930927223104
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:1863993241:1531262535:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "1863993241",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1863993241\", \"1531262535\", \"0\"], [\"1863993241\", \"4606975301\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24452.304319759227,
+          48333.95881660378
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:1863993251:4607015740:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "1863993251",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1863993251\", \"4607015740\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24356.30476278283,
+          48684.88104171077
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:244383192:1531262506:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "244383192",
+        "topology_status": "REJECTED",
+        "reason": "within_entry_node_dedup_distance",
+        "matched_osm_edge_ids": "[[\"244383192\", \"1531262506\", \"0\"], [\"244383192\", \"4606975349\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"1436128879\", \"244383192\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24211.621755375094,
+          48488.63465468629
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:244487179:1531262559:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "244487179",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"244487179\", \"1531262559\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"4740231363\", \"244487179\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 3,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24429.481292148117,
+          48425.946489038615
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:244487913:4606975305:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "244487913",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"244487913\", \"4606975305\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"1863993256\", \"244487913\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24654.94803556767,
+          48008.51168532722
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:4606975295:1531262535:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "4606975295",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"4606975295\", \"1531262535\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"4606972677\", \"4606975295\", \"0\"]]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24588.400502220313,
+          48033.96694402531
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:4606975296:4607015749:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "4606975296",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"4606975296\", \"4607015749\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"4606975300\", \"4606975296\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24572.619734744832,
+          47983.51178436277
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:4606975300:1863993240:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "4606975300",
+        "topology_status": "REJECTED",
+        "reason": "within_entry_node_dedup_distance",
+        "matched_osm_edge_ids": "[[\"4606975300\", \"1863993240\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"1863993235\", \"4606975300\", \"0\"]]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24605.861029933534,
+          48038.245960626795
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:4606975305:1863993241:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "4606975305",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4606975305\", \"1863993241\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24351.43002059444,
+          48649.65191398992
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:4606975348:1531262506:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "4606975348",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4606975348\", \"1531262506\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24364.99551037504,
+          48649.308934460234
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:4606975349:1531262464:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "4606975349",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"4606975349\", \"1531262464\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"1436128879\", \"4606975349\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24442.823250978447,
+          48356.73740220499
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:4607015740:1531262559:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "4607015740",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4607015740\", \"1531262559\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24466.425791036716,
+          48301.23947302045
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:4607015749:4740130401:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "4607015749",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4607015749\", \"4740130401\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24455.965443476885,
+          48325.61035188762
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:4740130401:1863993251:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "4740130401",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"4740130401\", \"1863993251\", \"0\"], [\"4740130401\", \"4740130402\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24432.417752436835,
+          48324.936177555275
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:4740130404:1863993251:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "4740130404",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"4740130404\", \"1863993251\", \"0\"], [\"4740130404\", \"4607015740\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"244487203\", \"4740130404\", \"0\"]]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24413.5015928096,
+          48472.708887958106
+        ]
+      },
+      "properties": {
+        "candidate_id": "WOODLANDS AVENUE 8:5186662658:244487913:0",
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "node_id": "5186662658",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"5186662658\", \"244487913\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19761.416140331876,
+          35177.39883710648
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:1221460152:568265844:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "1221460152",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1221460152\", \"568265844\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19715.19613346792,
+          34761.59411373054
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:1492179228:244135877:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "1492179228",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1492179228\", \"244135877\", \"0\"], [\"1492179228\", \"247186664\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19812.457719836584,
+          35316.777055918275
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:1492179336:568265833:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "1492179336",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"1492179336\", \"568265833\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"568265825\", \"1492179336\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19511.53449615671,
+          34357.139204176696
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:1856693533:244135879:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "1856693533",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"1856693533\", \"244135879\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"4747684461\", \"1856693533\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19529.452170257682,
+          34356.961732321404
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:1856693534:237528684:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "1856693534",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"1856693534\", \"237528684\", \"0\"], [\"1856693534\", \"5684428023\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19650.028390404725,
+          34145.05218393746
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:237528530:244135887:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "237528530",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"237528530\", \"244135887\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"4749181524\", \"237528530\", \"0\"]]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19508.303587810842,
+          34243.62304003542
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:237528684:244135887:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "237528684",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"237528684\", \"244135887\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19504.352833713405,
+          34244.927946473224
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:237529149:237528684:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "237529149",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"237529149\", \"237528684\", \"0\"], [\"237529149\", \"5684425511\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"237568648\", \"237529149\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19805.32333949413,
+          35292.71615590323
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:244134692:1492179336:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "244134692",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"244134692\", \"1492179336\", \"0\"], [\"244134692\", \"568265833\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19701.87501106927,
+          34770.285708617
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:244135877:1221460152:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "244135877",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"244135877\", \"1221460152\", \"0\"], [\"244135877\", \"1492179228\", \"0\"], [\"244135877\", \"311774805\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 3,
+        "outgoing_edge_count": 3,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19551.64862405031,
+          34527.633516032714
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:244135879:247186664:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "244135879",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"244135879\", \"247186664\", \"0\"], [\"244135879\", \"5137668214\", \"0\"], [\"244135879\", \"5286664173\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 3,
+        "outgoing_edge_count": 3,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19505.966435817165,
+          34241.5995901465
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:244135887:237529149:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "244135887",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"244135887\", \"237529149\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19775.616615161693,
+          35174.81095580531
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:247186651:1492179228:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "247186651",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"247186651\", \"1492179228\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19565.470636390142,
+          34521.47406586847
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:247186664:1856693534:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "247186664",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"247186664\", \"1856693534\", \"0\"], [\"247186664\", \"244135879\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19619.511152554784,
+          34825.84107616047
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:311774805:244135877:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "311774805",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"311774805\", \"244135877\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"311774822\", \"311774805\", \"0\"], [\"313936792\", \"311774805\", \"0\"]]",
+        "incoming_edge_count": 3,
+        "outgoing_edge_count": 3,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19563.980356392847,
+          34554.20430277252
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:5137668214:244135877:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "5137668214",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"5137668214\", \"244135877\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19533.11956049421,
+          34550.33512749439
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:5286664173:244135879:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "5286664173",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"5286664173\", \"244135879\", \"0\"], [\"5286664173\", \"5137668214\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"313936792\", \"5286664173\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 3,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19815.26132749204,
+          35287.07653486261
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:568256148:568265843:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "568256148",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"568256148\", \"568265843\", \"0\"], [\"568256148\", \"568265844\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19820.74841849296,
+          35304.33712364796
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:568265833:1492179329:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "568265833",
+        "topology_status": "REJECTED",
+        "reason": "within_entry_node_dedup_distance",
+        "matched_osm_edge_ids": "[[\"568265833\", \"1492179329\", \"0\"], [\"568265833\", \"568256148\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"1492179353\", \"568265833\", \"0\"]]",
+        "incoming_edge_count": 3,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19868.566383678477,
+          35198.28324500196
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:568265839:247186651:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "568265839",
+        "topology_status": "ACCEPTED",
+        "reason": "",
+        "matched_osm_edge_ids": "[[\"568265839\", \"247186651\", \"0\"], [\"568265839\", \"568265843\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"1492179285\", \"568265839\", \"0\"]]",
+        "incoming_edge_count": 1,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19808.460915437747,
+          35266.354988910316
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:568265843:247186651:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "568265843",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"568265843\", \"247186651\", \"0\"], [\"568265843\", \"568265844\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19800.67099222455,
+          35277.899249211594
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:568265844:244134692:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "568265844",
+        "topology_status": "REJECTED",
+        "reason": "no_non_major_incoming_approach",
+        "matched_osm_edge_ids": "[[\"568265844\", \"244134692\", \"0\"]]",
+        "approach_osm_edge_ids": "[]",
+        "incoming_edge_count": 3,
+        "outgoing_edge_count": 2,
+        "has_non_major_approach": false,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19508.40629711902,
+          34326.27782654529
+        ]
+      },
+      "properties": {
+        "candidate_id": "TOH TUCK AVENUE:5684425511:1856693533:0",
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "node_id": "5684425511",
+        "topology_status": "REJECTED",
+        "reason": "within_entry_node_dedup_distance",
+        "matched_osm_edge_ids": "[[\"5684425511\", \"1856693533\", \"0\"]]",
+        "approach_osm_edge_ids": "[[\"4747684461\", \"5684425511\", \"0\"]]",
+        "incoming_edge_count": 2,
+        "outgoing_edge_count": 1,
+        "has_non_major_approach": true,
+        "road_needs_review": true,
+        "road_review_reasons": "[\"geometry_only_matches\", \"matched_osm_length_far_exceeds_sla_length\", \"abrupt_heading_difference\"]"
+      }
+    }
+  ]
+}

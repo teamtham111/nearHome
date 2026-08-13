@@ -1,0 +1,6192 @@
+{
+  "type": "FeatureCollection",
+  "name": "osm_matched_edges_svy21",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:EPSG::3414"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12273.752494958213,
+            38193.21256710948
+          ],
+          [
+            12301.28445613706,
+            38178.858288552154
+          ],
+          [
+            12326.757563222434,
+            38164.20558023944
+          ],
+          [
+            12351.58509189576,
+            38147.71736334527
+          ],
+          [
+            12379.828881897285,
+            38126.031914141386
+          ],
+          [
+            12402.597347987989,
+            38105.596286639906
+          ],
+          [
+            12431.77544585679,
+            38074.85467793766
+          ],
+          [
+            12461.47602305501,
+            38034.01752424234
+          ],
+          [
+            12482.863706714348,
+            37999.4394129733
+          ],
+          [
+            12503.772398856103,
+            37956.95520276389
+          ],
+          [
+            12536.330814546347,
+            37876.02331783992
+          ],
+          [
+            12551.853250251437,
+            37835.26439691685
+          ],
+          [
+            12568.644491517667,
+            37796.39624106973
+          ],
+          [
+            12581.352211287298,
+            37770.98532570446
+          ],
+          [
+            12590.299036582157,
+            37757.162910081555
+          ],
+          [
+            12598.222028861175,
+            37743.738624267186
+          ],
+          [
+            12607.157696779075,
+            37729.385448981026
+          ],
+          [
+            12609.58357979756,
+            37725.66998273908
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "10790144109:1989535713:0",
+        "osm_source_node": "10790144109",
+        "osm_target_node": "1989535713",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 594.2433228731153,
+        "distance_metres": 2.57,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12226.737106183751,
+            38262.04841629834
+          ],
+          [
+            12256.745768512132,
+            38351.64577248223
+          ],
+          [
+            12265.683617237035,
+            38375.13142928493
+          ],
+          [
+            12275.923505875584,
+            38398.03096105928
+          ],
+          [
+            12370.561937390432,
+            38566.000270423996
+          ],
+          [
+            12380.400824790178,
+            38582.93982280819
+          ],
+          [
+            12436.718668431955,
+            38684.245574764565
+          ],
+          [
+            12462.217893716534,
+            38736.80050249382
+          ],
+          [
+            12477.66761193859,
+            38786.60269194267
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "10790144137:4738344310:0",
+        "osm_source_node": "10790144137",
+        "osm_target_node": "4738344310",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 586.0774453743603,
+        "distance_metres": 0.254,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12919.129226384057,
+            37453.79224983987
+          ],
+          [
+            12928.499725093896,
+            37453.3383675241
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1301909257:4738356422:0",
+        "osm_source_node": "1301909257",
+        "osm_target_node": "4738356422",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 9.37110425732274,
+        "distance_metres": 5.956,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12919.129226384057,
+            37453.79224983987
+          ],
+          [
+            12907.344174835513,
+            37461.67692165464
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1301909257:4738356423:0",
+        "osm_source_node": "1301909257",
+        "osm_target_node": "4738356423",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 14.193053327492837,
+        "distance_metres": 11.101,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12927.06462517648,
+            37462.75945545451
+          ],
+          [
+            12939.86238500205,
+            37454.49877228064
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1301909323:4738344319:0",
+        "osm_source_node": "1301909323",
+        "osm_target_node": "4738344319",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 15.245366855534895,
+        "distance_metres": 0.409,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12927.06462517648,
+            37462.75945545451
+          ],
+          [
+            12916.058097348388,
+            37461.73172159096
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1301909323:4738356424:0",
+        "osm_source_node": "1301909323",
+        "osm_target_node": "4738356424",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 11.042645988321189,
+        "distance_metres": 0.417,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12927.06462517648,
+            37462.75945545451
+          ],
+          [
+            12924.071720429594,
+            37476.45989107346
+          ],
+          [
+            12924.2277103692,
+            37479.777138593
+          ],
+          [
+            12924.706849888496,
+            37490.45867690424
+          ],
+          [
+            12928.925445505563,
+            37503.8269836603
+          ],
+          [
+            12944.384650864531,
+            37524.99021441498
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1301909323:567938819:0",
+        "osm_source_node": "1301909323",
+        "osm_target_node": "567938819",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 68.57152993174412,
+        "distance_metres": 0.417,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12624.293385787287,
+            37680.65396888695
+          ],
+          [
+            12611.484367507926,
+            37686.305094647265
+          ],
+          [
+            12605.430403413835,
+            37688.870785956315
+          ],
+          [
+            12600.934456682531,
+            37690.98302986818
+          ],
+          [
+            12592.354144631843,
+            37691.934467758765
+          ],
+          [
+            12583.183909517753,
+            37691.27154144182
+          ],
+          [
+            12573.368083317986,
+            37688.58512581988
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1304329326:1304329329:0",
+        "osm_source_node": "1304329326",
+        "osm_target_node": "1304329329",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 53.52061015594117,
+        "distance_metres": 5.007,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12624.293385787287,
+            37680.65396888695
+          ],
+          [
+            12604.496646912145,
+            37707.569109610944
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1304329326:244137927:0",
+        "osm_source_node": "1304329326",
+        "osm_target_node": "244137927",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 33.52014784004264,
+        "distance_metres": 2.494,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12579.75910455354,
+            37741.71615500312
+          ],
+          [
+            12562.755517472388,
+            37765.04850246158
+          ],
+          [
+            12520.724990803366,
+            37821.400053200974
+          ],
+          [
+            12509.129945068771,
+            37842.96289031091
+          ],
+          [
+            12500.628610161899,
+            37862.479908060566
+          ],
+          [
+            12483.559437334821,
+            37906.12493576789
+          ],
+          [
+            12469.773541606082,
+            37954.17066970802
+          ],
+          [
+            12461.695323101352,
+            37977.35876274433
+          ],
+          [
+            12446.461730732559,
+            38008.95098805985
+          ],
+          [
+            12425.363372082178,
+            38042.99832491404
+          ],
+          [
+            12404.131162469552,
+            38071.70488799597
+          ],
+          [
+            12370.590780952245,
+            38106.372174818694
+          ],
+          [
+            12340.054776476918,
+            38133.76344083553
+          ],
+          [
+            12319.033251986852,
+            38149.12356886844
+          ],
+          [
+            12305.634593940938,
+            38157.53912782231
+          ],
+          [
+            12270.268211261271,
+            38177.002440951
+          ],
+          [
+            12234.990570577853,
+            38191.46775310024
+          ],
+          [
+            12230.016085471938,
+            38193.43628477309
+          ],
+          [
+            12221.179908522437,
+            38195.792056984654
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1304329856:10790144118:0",
+        "osm_source_node": "1304329856",
+        "osm_target_node": "10790144118",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 603.0545610080809,
+        "distance_metres": 5.839,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13495.92775787994,
+            37028.87546361961
+          ],
+          [
+            13514.277715220529,
+            36998.91966354805
+          ],
+          [
+            13519.352055298052,
+            36990.692598402966
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1304344446:2577846563:0",
+        "osm_source_node": "1304344446",
+        "osm_target_node": "2577846563",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 44.96435066344395,
+        "distance_metres": 5.59,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13495.92775787994,
+            37028.87546361961
+          ],
+          [
+            13510.238816834984,
+            37015.60567465071
+          ],
+          [
+            13517.917519628121,
+            37011.104853465935
+          ],
+          [
+            13525.240181767333,
+            37008.174219137014
+          ],
+          [
+            13530.871382508154,
+            37007.709502024096
+          ],
+          [
+            13542.345421190634,
+            37010.29634754015
+          ],
+          [
+            13551.604821293675,
+            37013.13763475379
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1304344446:2618497861:0",
+        "osm_source_node": "1304344446",
+        "osm_target_node": "2618497861",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 63.424372956858726,
+        "distance_metres": 6.865,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12567.080852392703,
+            37698.813694482174
+          ],
+          [
+            12576.852712120215,
+            37711.08698432854
+          ],
+          [
+            12579.256782538998,
+            37715.144957320364
+          ],
+          [
+            12580.89300142257,
+            37719.92171327501
+          ],
+          [
+            12581.99496756718,
+            37723.537459984254
+          ],
+          [
+            12582.050967965686,
+            37729.75178439031
+          ],
+          [
+            12579.75910455354,
+            37741.71615500312
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1989535710:1304329856:0",
+        "osm_source_node": "1989535710",
+        "osm_target_node": "1304329856",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 47.83990138096422,
+        "distance_metres": 5.839,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12567.080852392703,
+            37698.813694482174
+          ],
+          [
+            12591.387144226532,
+            37713.109678476656
+          ],
+          [
+            12597.552800784646,
+            37717.60973717982
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1989535710:1989535712:0",
+        "osm_source_node": "1989535710",
+        "osm_target_node": "1989535712",
+        "osm_edge_key": "0",
+        "osm_name": "Nanyang Avenue",
+        "osm_length_metres": 35.858552167306854,
+        "distance_metres": 2.229,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12597.552800784646,
+            37717.60973717982
+          ],
+          [
+            12594.514843430463,
+            37721.568504064344
+          ],
+          [
+            12579.75910455354,
+            37741.71615500312
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1989535712:1304329856:0",
+        "osm_source_node": "1989535712",
+        "osm_target_node": "1304329856",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 30.060277766448465,
+        "distance_metres": 2.229,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12609.58357979756,
+            37725.66998273908
+          ],
+          [
+            12617.22854989788,
+            37715.70671808293
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "1989535713:244138037:0",
+        "osm_source_node": "1989535713",
+        "osm_target_node": "244138037",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 12.597500767828496,
+        "distance_metres": 12.271,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13732.593058629203,
+            36569.32352291852
+          ],
+          [
+            13719.094878561249,
+            36592.146948146976
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "244137878:244137918:0",
+        "osm_source_node": "244137878",
+        "osm_target_node": "244137918",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 26.61874630240275,
+        "distance_metres": 6.025,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13719.094878561249,
+            36592.146948146976
+          ],
+          [
+            13729.378476661916,
+            36601.18039804751
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "244137918:244138022:0",
+        "osm_source_node": "244137918",
+        "osm_target_node": "244138022",
+        "osm_edge_key": "0",
+        "osm_name": "Jurong West Avenue 4",
+        "osm_length_metres": 13.712626404010408,
+        "distance_metres": 0.675,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13719.094878561249,
+            36592.146948146976
+          ],
+          [
+            13714.33213332807,
+            36600.36293406668
+          ],
+          [
+            13695.214331162826,
+            36632.26487845518
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "244137918:2577843871:0",
+        "osm_source_node": "244137918",
+        "osm_target_node": "2577843871",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 46.86811078720945,
+        "distance_metres": 6.659,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12604.496646912145,
+            37707.569109610944
+          ],
+          [
+            12597.752326502909,
+            37703.73253519293
+          ],
+          [
+            12573.368083317986,
+            37688.58512581988
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "244137927:1304329329:0",
+        "osm_source_node": "244137927",
+        "osm_target_node": "1304329329",
+        "osm_edge_key": "0",
+        "osm_name": "Nanyang Avenue",
+        "osm_length_metres": 36.49100235349688,
+        "distance_metres": 2.494,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12604.496646912145,
+            37707.569109610944
+          ],
+          [
+            12597.552800784646,
+            37717.60973717982
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "244137927:1989535712:0",
+        "osm_source_node": "244137927",
+        "osm_target_node": "1989535712",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 12.249749857331446,
+        "distance_metres": 1.948,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12614.607174692814,
+            39544.90867783374
+          ],
+          [
+            12626.158724949162,
+            39542.364779245996
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "244137998:244138014:0",
+        "osm_source_node": "244137998",
+        "osm_target_node": "244138014",
+        "osm_edge_key": "0",
+        "osm_name": "Old Choa Chu Kang Road",
+        "osm_length_metres": 11.818759069800315,
+        "distance_metres": 0.357,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12626.158724949162,
+            39542.364779245996
+          ],
+          [
+            12620.058835748163,
+            39519.79672592343
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "244138014:2523841748:0",
+        "osm_source_node": "244138014",
+        "osm_target_node": "2523841748",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 23.49826641403835,
+        "distance_metres": 7.345,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13204.397174126561,
+            37272.101398117185
+          ],
+          [
+            13210.373163432832,
+            37267.95450084341
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "244138023:6635332952:0",
+        "osm_source_node": "244138023",
+        "osm_target_node": "6635332952",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 7.281649322507956,
+        "distance_metres": 8.955,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13204.397174126561,
+            37272.101398117185
+          ],
+          [
+            13211.787186094858,
+            37279.87442936276
+          ],
+          [
+            13299.066159302138,
+            37393.386153665495
+          ],
+          [
+            13305.577036091086,
+            37402.1322965623
+          ],
+          [
+            13336.194718137423,
+            37440.90934962864
+          ],
+          [
+            13340.724558191709,
+            37447.95274298164
+          ],
+          [
+            13342.260621707528,
+            37453.050175771634
+          ],
+          [
+            13342.082834246861,
+            37458.103471661365
+          ],
+          [
+            13339.478927334378,
+            37462.74777126402
+          ],
+          [
+            13272.67563582174,
+            37525.237454314985
+          ],
+          [
+            13246.791146948855,
+            37548.90196193001
+          ],
+          [
+            13204.514646655603,
+            37587.63877167064
+          ],
+          [
+            13203.324116877764,
+            37592.38251304019
+          ],
+          [
+            13205.260859291611,
+            37598.154431974515
+          ],
+          [
+            13208.92246100669,
+            37601.79215488099
+          ],
+          [
+            13213.541048654537,
+            37603.649564613756
+          ],
+          [
+            13217.803397347625,
+            37603.41712274435
+          ],
+          [
+            13224.146648441214,
+            37599.568757844885
+          ],
+          [
+            13228.241702566544,
+            37592.74604360427
+          ],
+          [
+            13230.29943558856,
+            37572.4996122973
+          ],
+          [
+            13233.125905611676,
+            37567.645206240944
+          ],
+          [
+            13235.763273205679,
+            37564.405208451484
+          ],
+          [
+            13275.613852728147,
+            37528.742527416674
+          ],
+          [
+            13344.731816984948,
+            37463.76477742896
+          ],
+          [
+            13346.823729088304,
+            37457.9041786126
+          ],
+          [
+            13347.19058812819,
+            37450.650426165106
+          ],
+          [
+            13345.765803953114,
+            37445.37606700273
+          ],
+          [
+            13340.612684393527,
+            37437.193782993614
+          ],
+          [
+            13310.762900829812,
+            37398.505147789016
+          ],
+          [
+            13251.87568157733,
+            37320.464389544846
+          ],
+          [
+            13246.299741865056,
+            37313.79701015827
+          ],
+          [
+            13217.663052198608,
+            37276.402046413365
+          ],
+          [
+            13210.373163432832,
+            37267.95450084341
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "244138023:6635332952:1",
+        "osm_source_node": "244138023",
+        "osm_target_node": "6635332952",
+        "osm_edge_key": "1",
+        "osm_name": "Bulim Drive",
+        "osm_length_metres": 886.105807430636,
+        "distance_metres": 8.955,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12617.22854989788,
+            37715.70671808293
+          ],
+          [
+            12654.340783224887,
+            37670.49039164328
+          ],
+          [
+            12667.739124892494,
+            37655.9047567377
+          ],
+          [
+            12691.909677368745,
+            37631.67635097102
+          ],
+          [
+            12743.03354427661,
+            37592.54088054427
+          ],
+          [
+            12789.873266878603,
+            37561.58822911488
+          ],
+          [
+            12822.95819035685,
+            37539.393918152084
+          ],
+          [
+            12865.858407253607,
+            37510.26599476491
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "244138037:567938816:0",
+        "osm_source_node": "244138037",
+        "osm_target_node": "567938816",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 325.27356740269784,
+        "distance_metres": 7.85,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12620.058835748163,
+            39519.79672592343
+          ],
+          [
+            12608.462771865412,
+            39522.38485734985
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2523841748:2523841750:0",
+        "osm_source_node": "2523841748",
+        "osm_target_node": "2523841750",
+        "osm_edge_key": "0",
+        "osm_name": "Old Choa Chu Kang Road",
+        "osm_length_metres": 11.871844565725858,
+        "distance_metres": 2.349,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12620.058835748163,
+            39519.79672592343
+          ],
+          [
+            12618.533849405325,
+            39513.91421146276
+          ],
+          [
+            12609.874007054574,
+            39485.69591167001
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2523841748:2523843191:0",
+        "osm_source_node": "2523841748",
+        "osm_target_node": "2523843191",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 35.77410128065821,
+        "distance_metres": 6.299,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12608.462771865412,
+            39522.38485734985
+          ],
+          [
+            12614.607174692814,
+            39544.90867783374
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2523841750:244137998:0",
+        "osm_source_node": "2523841750",
+        "osm_target_node": "244137998",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 23.466899455788052,
+        "distance_metres": 4.356,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12593.035761446808,
+            39479.42727034779
+          ],
+          [
+            12606.937796148151,
+            39516.69032083464
+          ],
+          [
+            12608.462771865412,
+            39522.38485734985
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2523843190:2523841750:0",
+        "osm_source_node": "2523843190",
+        "osm_target_node": "2523841750",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 45.88782152723786,
+        "distance_metres": 4.533,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12593.035761446808,
+            39479.42727034779
+          ],
+          [
+            12594.984498002006,
+            39500.07155454452
+          ],
+          [
+            12594.873583966759,
+            39506.5291549113
+          ],
+          [
+            12592.803971580015,
+            39512.48928016603
+          ],
+          [
+            12588.0746251179,
+            39519.312046431245
+          ],
+          [
+            12583.589960031573,
+            39523.50310792676
+          ],
+          [
+            12569.946659831707,
+            39534.07489210011
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2523843190:2523841752:0",
+        "osm_source_node": "2523843190",
+        "osm_target_node": "2523841752",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 65.45061593832386,
+        "distance_metres": 7.646,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12609.874007054574,
+            39485.69591167001
+          ],
+          [
+            12591.151991212446,
+            39427.58970765129
+          ],
+          [
+            12577.5278680326,
+            39385.09643266023
+          ],
+          [
+            12541.597938584695,
+            39279.47704796616
+          ],
+          [
+            12535.553878745559,
+            39260.29259476969
+          ],
+          [
+            12529.465033245498,
+            39236.46398419951
+          ],
+          [
+            12525.08989884227,
+            39210.46799949188
+          ],
+          [
+            12521.682792518419,
+            39181.39796695558
+          ],
+          [
+            12518.409076856815,
+            39149.66306344419
+          ],
+          [
+            12513.776345617964,
+            39095.558868071545
+          ],
+          [
+            12511.501173333738,
+            39011.289610930406
+          ],
+          [
+            12510.129631724454,
+            38964.837033052914
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2523843191:4738344308:0",
+        "osm_source_node": "2523843191",
+        "osm_target_node": "4738344308",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 537.3695938887197,
+        "distance_metres": 5.172,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13695.214331162826,
+            36632.26487845518
+          ],
+          [
+            13691.208369087746,
+            36640.76832045303
+          ],
+          [
+            13671.990625316344,
+            36676.69520862388
+          ],
+          [
+            13667.706383321316,
+            36684.09291412676
+          ],
+          [
+            13636.559698316452,
+            36743.59506372193
+          ],
+          [
+            13585.282863800692,
+            36841.390472724815
+          ],
+          [
+            13578.50600851254,
+            36853.620448158006
+          ],
+          [
+            13573.342711457155,
+            36863.32922379651
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2577843871:6305267812:0",
+        "osm_source_node": "2577843871",
+        "osm_target_node": "6305267812",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 262.33792137828743,
+        "distance_metres": 6.05,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13699.17729384799,
+            36652.49992549482
+          ],
+          [
+            13724.871625456568,
+            36608.04735324667
+          ],
+          [
+            13729.378476661916,
+            36601.18039804751
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2577843872:244138022:0",
+        "osm_source_node": "2577843872",
+        "osm_target_node": "244138022",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 59.7890307952688,
+        "distance_metres": 3.701,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13699.17729384799,
+            36652.49992549482
+          ],
+          [
+            13721.544979794155,
+            36625.16456455552
+          ],
+          [
+            13733.063037111637,
+            36618.053974865514
+          ],
+          [
+            13743.546351979105,
+            36615.63182725535
+          ],
+          [
+            13751.870789642002,
+            36615.741964848086
+          ],
+          [
+            13767.406933712771,
+            36619.02523133627
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2577843872:2577843868:0",
+        "osm_source_node": "2577843872",
+        "osm_target_node": "2577843868",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 83.90245080711315,
+        "distance_metres": 3.701,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13510.526645765207,
+            36987.187837858466
+          ],
+          [
+            13519.352055298052,
+            36990.692598402966
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2577843939:2577846563:0",
+        "osm_source_node": "2577843939",
+        "osm_target_node": "2577846563",
+        "osm_edge_key": "0",
+        "osm_name": "Jurong West Avenue 3",
+        "osm_length_metres": 9.493928084047562,
+        "distance_metres": 2.993,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13510.526645765207,
+            36987.187837858466
+          ],
+          [
+            13506.064338744509,
+            36994.353348652214
+          ],
+          [
+            13483.60799388479,
+            37027.61556768606
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2577843939:2618497983:0",
+        "osm_source_node": "2577843939",
+        "osm_target_node": "2618497983",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 48.74655163096192,
+        "distance_metres": 2.993,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13519.352055298052,
+            36990.692598402966
+          ],
+          [
+            13524.115371673362,
+            36993.40143531404
+          ],
+          [
+            13537.181220520071,
+            37003.020776881625
+          ],
+          [
+            13551.604821293675,
+            37013.13763475379
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2577846563:2618497861:0",
+        "osm_source_node": "2577846563",
+        "osm_target_node": "2618497861",
+        "osm_edge_key": "0",
+        "osm_name": "Jurong West Avenue 3",
+        "osm_length_metres": 39.365086036324094,
+        "distance_metres": 6.419,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13519.352055298052,
+            36990.692598402966
+          ],
+          [
+            13524.660090285786,
+            36982.2333130035
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2577846563:889499176:0",
+        "osm_source_node": "2577846563",
+        "osm_target_node": "889499176",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 10.023776183279882,
+        "distance_metres": 6.419,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13533.772425609244,
+            36940.38012015643
+          ],
+          [
+            13517.38066125562,
+            36961.22441850712
+          ],
+          [
+            13515.077072979493,
+            36963.00480224421
+          ],
+          [
+            13510.15828654926,
+            36966.55452896061
+          ],
+          [
+            13502.412742120474,
+            36969.80585428343
+          ],
+          [
+            13492.074150328452,
+            36972.82511103583
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2618496604:2618496849:0",
+        "osm_source_node": "2618496604",
+        "osm_target_node": "2618496849",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 54.75003144560836,
+        "distance_metres": 4.92,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13533.772425609244,
+            36940.38012015643
+          ],
+          [
+            13517.26997073497,
+            36972.403575118435
+          ],
+          [
+            13514.933143290036,
+            36976.937282630235
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2618496604:889499177:0",
+        "osm_source_node": "2618496604",
+        "osm_target_node": "889499177",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 41.29859787029825,
+        "distance_metres": 4.171,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13537.334801417734,
+            36961.43344376943
+          ],
+          [
+            13580.031708930986,
+            36873.13688554035
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2618496616:6305267813:0",
+        "osm_source_node": "2618496616",
+        "osm_target_node": "6305267813",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 98.50316793010164,
+        "distance_metres": 4.268,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13461.603440497456,
+            36977.194466778754
+          ],
+          [
+            13503.114730248872,
+            36985.982965570816
+          ],
+          [
+            13510.526645765207,
+            36987.187837858466
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2618496852:2577843939:0",
+        "osm_source_node": "2618496852",
+        "osm_target_node": "2577843939",
+        "osm_edge_key": "0",
+        "osm_name": "Jurong West Avenue 5",
+        "osm_length_metres": 49.898186185947964,
+        "distance_metres": 2.993,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13461.603440497456,
+            36977.194466778754
+          ],
+          [
+            13469.405100520147,
+            36982.72280664323
+          ],
+          [
+            13476.394459973742,
+            36990.29683118412
+          ],
+          [
+            13482.326640736095,
+            36999.13146968973
+          ],
+          [
+            13483.050128768526,
+            37001.16601419239
+          ],
+          [
+            13485.966339205721,
+            37009.31524853836
+          ],
+          [
+            13485.96679204183,
+            37017.752134862574
+          ],
+          [
+            13483.60799388479,
+            37027.61556768606
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2618496852:2618497983:0",
+        "osm_source_node": "2618496852",
+        "osm_target_node": "2618497983",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 60.12971884238496,
+        "distance_metres": 3.808,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13552.093698498786,
+            36998.26524708277
+          ],
+          [
+            13544.41419163298,
+            36987.73890041508
+          ],
+          [
+            13541.987874569815,
+            36983.70303607251
+          ],
+          [
+            13538.71561991782,
+            36977.03552771067
+          ],
+          [
+            13537.903052547144,
+            36974.094271391215
+          ],
+          [
+            13537.49096968898,
+            36968.23380893183
+          ],
+          [
+            13537.334801417734,
+            36961.43344376943
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2618497809:2618496616:0",
+        "osm_source_node": "2618497809",
+        "osm_target_node": "2618496616",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 41.07385584508271,
+        "distance_metres": 8.219,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13552.093698498786,
+            36998.26524708277
+          ],
+          [
+            13529.056141624038,
+            36984.73207682425
+          ],
+          [
+            13524.660090285786,
+            36982.2333130035
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2618497809:889499176:0",
+        "osm_source_node": "2618497809",
+        "osm_target_node": "889499176",
+        "osm_edge_key": "0",
+        "osm_name": "Jurong West Avenue 3",
+        "osm_length_metres": 31.79396344068052,
+        "distance_metres": 6.921,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13483.60799388479,
+            37027.61556768606
+          ],
+          [
+            13460.294665644415,
+            37059.69468083901
+          ],
+          [
+            13434.210128705297,
+            37089.584557305054
+          ],
+          [
+            13405.565820367274,
+            37117.06403611051
+          ],
+          [
+            13374.584307114148,
+            37141.923013154046
+          ],
+          [
+            13341.499283410436,
+            37163.94032614373
+          ],
+          [
+            13303.551138652223,
+            37189.67323470362
+          ],
+          [
+            13267.250014833808,
+            37214.256077499456
+          ],
+          [
+            13260.9513011957,
+            37218.69048640815
+          ],
+          [
+            13118.640490432443,
+            37318.912593570014
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "2618497983:6151629170:0",
+        "osm_source_node": "2618497983",
+        "osm_target_node": "6151629170",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 470.65027595488914,
+        "distance_metres": 1.609,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12495.695171853855,
+            38958.457679820625
+          ],
+          [
+            12497.545678739762,
+            39012.1971382689
+          ],
+          [
+            12499.998917904019,
+            39096.48850044606
+          ],
+          [
+            12503.80810066505,
+            39150.27207554007
+          ],
+          [
+            12507.09296168222,
+            39182.26130145423
+          ],
+          [
+            12511.034331890016,
+            39212.691378365
+          ],
+          [
+            12516.11074244772,
+            39241.429588177365
+          ],
+          [
+            12522.121627008508,
+            39264.21879583694
+          ],
+          [
+            12561.725358459304,
+            39391.99724362264
+          ],
+          [
+            12569.271904146462,
+            39412.91764124458
+          ],
+          [
+            12583.47472694604,
+            39455.432997407726
+          ],
+          [
+            12593.035761446808,
+            39479.42727034779
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738344307:2523843190:0",
+        "osm_source_node": "4738344307",
+        "osm_target_node": "2523843190",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 537.0998325752164,
+        "distance_metres": 2.943,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12495.695171853855,
+            38958.457679820625
+          ],
+          [
+            12502.094789040784,
+            38967.77880077202
+          ],
+          [
+            12504.242669418454,
+            38968.06617169088
+          ],
+          [
+            12510.129631724454,
+            38964.837033052914
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738344307:4738344308:0",
+        "osm_source_node": "4738344307",
+        "osm_target_node": "4738344308",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 20.2278516217901,
+        "distance_metres": 2.947,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12510.129631724454,
+            38964.837033052914
+          ],
+          [
+            12506.085466087594,
+            38888.99371224751
+          ],
+          [
+            12500.284434144307,
+            38838.82606365974
+          ],
+          [
+            12495.931385788093,
+            38809.96617933201
+          ],
+          [
+            12493.114845586639,
+            38793.678610337294
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738344308:4738344309:0",
+        "osm_source_node": "4738344308",
+        "osm_target_node": "4738344309",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 173.1202760905032,
+        "distance_metres": 9.327,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12493.114845586639,
+            38793.678610337294
+          ],
+          [
+            12486.01310146182,
+            38767.01933281994
+          ],
+          [
+            12474.659714689324,
+            38733.02916404634
+          ],
+          [
+            12464.31964209736,
+            38709.23397357571
+          ],
+          [
+            12458.164660523133,
+            38696.606639111036
+          ],
+          [
+            12396.370659060824,
+            38581.96582904449
+          ],
+          [
+            12380.989125379847,
+            38556.75557163496
+          ],
+          [
+            12317.55896854203,
+            38439.49423639748
+          ],
+          [
+            12301.153563917456,
+            38414.250869589756
+          ],
+          [
+            12288.999528383281,
+            38391.5725998274
+          ],
+          [
+            12279.316123607266,
+            38369.35860151473
+          ],
+          [
+            12269.54357751873,
+            38345.286944572086
+          ],
+          [
+            12261.885513026016,
+            38321.22622122262
+          ],
+          [
+            12248.17195677881,
+            38273.45852151595
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738344309:10790144123:0",
+        "osm_source_node": "4738344309",
+        "osm_target_node": "10790144123",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 580.0093979338793,
+        "distance_metres": 0.827,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12493.114845586639,
+            38793.678610337294
+          ],
+          [
+            12486.52623458999,
+            38787.807447639265
+          ],
+          [
+            12481.50700288157,
+            38785.61834935205
+          ],
+          [
+            12477.66761193859,
+            38786.60269194267
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738344309:4738344310:0",
+        "osm_source_node": "4738344309",
+        "osm_target_node": "4738344310",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 18.277778614562042,
+        "distance_metres": 0.254,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12477.66761193859,
+            38786.60269194267
+          ],
+          [
+            12486.40615166422,
+            38828.01261096957
+          ],
+          [
+            12492.45161672602,
+            38871.22506285511
+          ],
+          [
+            12494.199883256935,
+            38889.13814987712
+          ],
+          [
+            12495.695171853855,
+            38958.457679820625
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738344310:4738344307:0",
+        "osm_source_node": "4738344310",
+        "osm_target_node": "4738344307",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 174.24138088465807,
+        "distance_metres": 0.254,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12939.86238500205,
+            37454.49877228064
+          ],
+          [
+            12954.162490622983,
+            37445.25388662275
+          ],
+          [
+            13009.393143365747,
+            37408.893683241426
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738344319:567938811:0",
+        "osm_source_node": "4738344319",
+        "osm_target_node": "567938811",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 83.22838050544641,
+        "distance_metres": 2.357,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12914.411549685125,
+            37471.16387899469
+          ],
+          [
+            12927.06462517648,
+            37462.75945545451
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738344320:1301909323:0",
+        "osm_source_node": "4738344320",
+        "osm_target_node": "1301909323",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 15.204259650398479,
+        "distance_metres": 0.417,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12914.411549685125,
+            37471.16387899469
+          ],
+          [
+            12916.058097348388,
+            37461.73172159096
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738344320:4738356424:0",
+        "osm_source_node": "4738344320",
+        "osm_target_node": "4738356424",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 9.626571082720915,
+        "distance_metres": 0.751,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12931.303745823627,
+            37445.1224728747
+          ],
+          [
+            12919.129226384057,
+            37453.79224983987
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738356421:1301909257:0",
+        "osm_source_node": "4738356421",
+        "osm_target_node": "1301909257",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 14.963168389898657,
+        "distance_metres": 10.381,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12931.303745823627,
+            37445.1224728747
+          ],
+          [
+            12928.499725093896,
+            37453.3383675241
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738356421:4738356422:0",
+        "osm_source_node": "4738356421",
+        "osm_target_node": "4738356422",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 8.723801718932206,
+        "distance_metres": 5.956,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12928.499725093896,
+            37453.3383675241
+          ],
+          [
+            12927.06462517648,
+            37462.75945545451
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738356422:1301909323:0",
+        "osm_source_node": "4738356422",
+        "osm_target_node": "1301909323",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 9.581737170313813,
+        "distance_metres": 0.406,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12928.499725093896,
+            37453.3383675241
+          ],
+          [
+            12939.86238500205,
+            37454.49877228064
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738356422:4738344319:0",
+        "osm_source_node": "4738356422",
+        "osm_target_node": "4738344319",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 11.409737754736287,
+        "distance_metres": 0.915,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12907.344174835513,
+            37461.67692165464
+          ],
+          [
+            12891.041004304583,
+            37473.28823179068
+          ],
+          [
+            12849.042308133789,
+            37504.00838258613
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738356423:567938823:0",
+        "osm_source_node": "4738356423",
+        "osm_target_node": "567938823",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 72.13699830374156,
+        "distance_metres": 6.5,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12916.058097348388,
+            37461.73172159096
+          ],
+          [
+            12919.129226384057,
+            37453.79224983987
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738356424:1301909257:0",
+        "osm_source_node": "4738356424",
+        "osm_target_node": "1301909257",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 8.553044613650453,
+        "distance_metres": 6.371,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12916.058097348388,
+            37461.73172159096
+          ],
+          [
+            12907.344174835513,
+            37461.67692165464
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "4738356424:4738356423:0",
+        "osm_source_node": "4738356424",
+        "osm_target_node": "4738356423",
+        "osm_edge_key": "0",
+        "osm_name": "Pan Island Expressway",
+        "osm_length_metres": 8.70431778239305,
+        "distance_metres": 6.371,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12982.372352431114,
+            37411.65956660158
+          ],
+          [
+            12951.390604990267,
+            37431.05618477584
+          ],
+          [
+            12931.303745823627,
+            37445.1224728747
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "5159426232:4738356421:0",
+        "osm_source_node": "5159426232",
+        "osm_target_node": "4738356421",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 61.13021700530527,
+        "distance_metres": 6.205,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12982.372352431114,
+            37411.65956660158
+          ],
+          [
+            12974.927234100925,
+            37413.61716241154
+          ],
+          [
+            12966.035348472346,
+            37415.364746193954
+          ],
+          [
+            12960.559950701041,
+            37415.65254701399
+          ],
+          [
+            12951.990747462014,
+            37416.40493642302
+          ],
+          [
+            12945.157560322989,
+            37415.531773654104
+          ],
+          [
+            12942.341915982499,
+            37414.90165216738
+          ],
+          [
+            12941.329174030097,
+            37414.66950077941
+          ],
+          [
+            12934.929981994877,
+            37413.23238047308
+          ],
+          [
+            12926.983751167101,
+            37409.59490014191
+          ],
+          [
+            12917.112079840586,
+            37403.41429791525
+          ],
+          [
+            12909.811116242448,
+            37396.061454966155
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "5159426232:567938815:0",
+        "osm_source_node": "5159426232",
+        "osm_target_node": "567938815",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 78.95411090007104,
+        "distance_metres": 6.205,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12992.325230839384,
+            37477.25222419141
+          ],
+          [
+            12980.90542487284,
+            37449.1114703488
+          ],
+          [
+            12983.241842978034,
+            37437.46777108688
+          ],
+          [
+            12987.715189674089,
+            37429.08592145593
+          ],
+          [
+            13009.393143365747,
+            37408.893683241426
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "567938807:567938811:0",
+        "osm_source_node": "567938807",
+        "osm_target_node": "567938811",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 81.67517721766214,
+        "distance_metres": 7.114,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13009.393143365747,
+            37408.893683241426
+          ],
+          [
+            13095.193628079354,
+            37349.97446119588
+          ],
+          [
+            13123.24851300543,
+            37330.898691040056
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "567938811:5995145537:0",
+        "osm_source_node": "567938811",
+        "osm_target_node": "5995145537",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 138.15080318626661,
+        "distance_metres": 7.114,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12865.858407253607,
+            37510.26599476491
+          ],
+          [
+            12914.411549685125,
+            37471.16387899469
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "567938816:4738344320:0",
+        "osm_source_node": "567938816",
+        "osm_target_node": "4738344320",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 62.436228115672165,
+        "distance_metres": 0.751,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12849.042308133789,
+            37504.00838258613
+          ],
+          [
+            12792.19802731786,
+            37540.74467001016
+          ],
+          [
+            12734.830911760917,
+            37581.152097921775
+          ],
+          [
+            12684.920135141243,
+            37621.05046980011
+          ],
+          [
+            12669.729985311875,
+            37634.66314360179
+          ],
+          [
+            12652.314240946786,
+            37651.4383965909
+          ],
+          [
+            12624.293385787287,
+            37680.65396888695
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "567938823:1304329326:0",
+        "osm_source_node": "567938823",
+        "osm_target_node": "1304329326",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 287.22762516544134,
+        "distance_metres": 4.07,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13123.24851300543,
+            37330.898691040056
+          ],
+          [
+            13133.831634867322,
+            37322.63814047468
+          ],
+          [
+            13195.883885561825,
+            37277.86283253376
+          ],
+          [
+            13204.397174126561,
+            37272.101398117185
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "5995145537:244138023:0",
+        "osm_source_node": "5995145537",
+        "osm_target_node": "244138023",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 100.34512695380626,
+        "distance_metres": 7.912,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13123.24851300543,
+            37330.898691040056
+          ],
+          [
+            13124.339031107816,
+            37328.84193222512
+          ],
+          [
+            13126.219683553469,
+            37326.475519308085
+          ],
+          [
+            13127.08762749582,
+            37324.48511789606
+          ],
+          [
+            13127.221074874564,
+            37322.6827348056
+          ],
+          [
+            13126.65342576056,
+            37321.31163362994
+          ],
+          [
+            13125.584977061657,
+            37319.95161757785
+          ],
+          [
+            13124.46092411442,
+            37319.32140090478
+          ],
+          [
+            13122.268498025236,
+            37318.70230065366
+          ],
+          [
+            13120.387718736487,
+            37318.76874946793
+          ],
+          [
+            13118.640490432443,
+            37318.912593570014
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "5995145537:6151629170:0",
+        "osm_source_node": "5995145537",
+        "osm_target_node": "6151629170",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 19.790791216109692,
+        "distance_metres": 0.172,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13118.640490432443,
+            37318.912593570014
+          ],
+          [
+            13070.37628140953,
+            37351.468598522755
+          ],
+          [
+            13046.527941466242,
+            37367.271115603166
+          ],
+          [
+            13010.928017634184,
+            37392.473180155896
+          ],
+          [
+            12994.468992493154,
+            37403.33258038109
+          ],
+          [
+            12986.612285903804,
+            37408.54110976035
+          ],
+          [
+            12982.372352431114,
+            37411.65956660158
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "6151629170:5159426232:0",
+        "osm_source_node": "6151629170",
+        "osm_target_node": "5159426232",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 165.01964020157249,
+        "distance_metres": 3.866,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13573.342711457155,
+            36863.32922379651
+          ],
+          [
+            13558.453779610563,
+            36892.37811686666
+          ],
+          [
+            13549.117598061082,
+            36910.60140457122
+          ],
+          [
+            13533.772425609244,
+            36940.38012015643
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "6305267812:2618496604:0",
+        "osm_source_node": "6305267812",
+        "osm_target_node": "2618496604",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 86.98214686744697,
+        "distance_metres": 4.92,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13580.031708930986,
+            36873.13688554035
+          ],
+          [
+            13587.342610101046,
+            36858.25307742246
+          ],
+          [
+            13594.163920078407,
+            36844.87311803937
+          ],
+          [
+            13604.813152975374,
+            36823.531542733865
+          ],
+          [
+            13633.022083969334,
+            36769.62464716825
+          ],
+          [
+            13645.129116194132,
+            36746.49167903484
+          ],
+          [
+            13665.315060009376,
+            36710.44310404254
+          ],
+          [
+            13688.3720757721,
+            36670.71222636171
+          ],
+          [
+            13699.17729384799,
+            36652.49992549482
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "6305267813:2577843872:0",
+        "osm_source_node": "6305267813",
+        "osm_target_node": "2577843872",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 251.85711370063225,
+        "distance_metres": 2.032,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13580.031708930986,
+            36873.13688554035
+          ],
+          [
+            13577.761059620221,
+            36866.53566847203
+          ],
+          [
+            13573.342711457155,
+            36863.32922379651
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "6305267813:6305267812:0",
+        "osm_source_node": "6305267813",
+        "osm_target_node": "6305267812",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 12.480804030663872,
+        "distance_metres": 0.849,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13210.373163432832,
+            37267.95450084341
+          ],
+          [
+            13255.843965347003,
+            37233.85062410496
+          ],
+          [
+            13267.295147564528,
+            37225.5679171751
+          ],
+          [
+            13274.762345818837,
+            37220.226728114845
+          ],
+          [
+            13286.08001492677,
+            37212.54113541623
+          ],
+          [
+            13346.107024746687,
+            37170.89525550482
+          ],
+          [
+            13381.684762721716,
+            37145.94756568479
+          ],
+          [
+            13408.437505366435,
+            37125.00317934898
+          ],
+          [
+            13433.253752999242,
+            37102.75411329599
+          ],
+          [
+            13459.193707876511,
+            37074.63344728071
+          ],
+          [
+            13481.116304664458,
+            37049.68650777667
+          ],
+          [
+            13495.92775787994,
+            37028.87546361961
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "6635332952:1304344446:0",
+        "osm_source_node": "6635332952",
+        "osm_target_node": "1304344446",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 375.2867551343506,
+        "distance_metres": 4.704,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13524.660090285786,
+            36982.2333130035
+          ],
+          [
+            13527.43091615711,
+            36977.157763983094
+          ],
+          [
+            13537.334801417734,
+            36961.43344376943
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "889499176:2618496616:0",
+        "osm_source_node": "889499176",
+        "osm_target_node": "2618496616",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 24.458230950829755,
+        "distance_metres": 6.921,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13524.660090285786,
+            36982.2333130035
+          ],
+          [
+            13514.933143290036,
+            36976.937282630235
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "889499176:889499177:0",
+        "osm_source_node": "889499176",
+        "osm_target_node": "889499177",
+        "osm_edge_key": "0",
+        "osm_name": "Jurong West Avenue 3",
+        "osm_length_metres": 11.079922291013077,
+        "distance_metres": 4.171,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13514.933143290036,
+            36976.937282630235
+          ],
+          [
+            13510.526645765207,
+            36987.187837858466
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "889499177:2577843939:0",
+        "osm_source_node": "889499177",
+        "osm_target_node": "2577843939",
+        "osm_edge_key": "0",
+        "osm_name": "Jalan Bahar",
+        "osm_length_metres": 11.208430595468629,
+        "distance_metres": 2.993,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            13514.933143290036,
+            36976.937282630235
+          ],
+          [
+            13508.867816830529,
+            36975.57753279798
+          ],
+          [
+            13492.074150328452,
+            36972.82511103583
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "JALAN BAHAR",
+        "road_name": "JALAN BAHAR",
+        "osm_id": "889499177:2618496849:0",
+        "osm_source_node": "889499177",
+        "osm_target_node": "2618496849",
+        "osm_edge_key": "0",
+        "osm_name": "Jurong West Avenue 5",
+        "osm_length_metres": 23.21255006859692,
+        "distance_metres": 4.171,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24387.95209123141,
+            48561.368296974455
+          ],
+          [
+            24371.537656963,
+            48556.62486586684
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1531262464:1531262559:0",
+        "osm_source_node": "1531262464",
+        "osm_target_node": "1531262559",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Industrial Park E3",
+        "osm_length_metres": 17.075823416392208,
+        "distance_metres": 2.988,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24387.95209123141,
+            48561.368296974455
+          ],
+          [
+            24392.58122375862,
+            48542.23875366691
+          ],
+          [
+            24398.434406402528,
+            48518.022742481844
+          ],
+          [
+            24413.5015928096,
+            48472.708887958106
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1531262464:5186662658:0",
+        "osm_source_node": "1531262464",
+        "osm_target_node": "5186662658",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 92.81764341806718,
+        "distance_metres": 7.425,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24337.798548686675,
+            48703.95550085708
+          ],
+          [
+            24350.095452038375,
+            48707.150939361905
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1531262478:1531262669:0",
+        "osm_source_node": "1531262478",
+        "osm_target_node": "1531262669",
+        "osm_edge_key": "0",
+        "osm_name": "Admiralty Road West",
+        "osm_length_metres": 12.696496255734061,
+        "distance_metres": 9.884,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24343.729647040564,
+            48681.55291692734
+          ],
+          [
+            24337.798548686675,
+            48703.95550085708
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1531262506:1531262478:0",
+        "osm_source_node": "1531262506",
+        "osm_target_node": "1531262478",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 23.294192838559017,
+        "distance_metres": 6.379,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24627.783384098137,
+            47992.965202313484
+          ],
+          [
+            24611.25757526037,
+            47983.876158947736
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1531262535:1531262600:0",
+        "osm_source_node": "1531262535",
+        "osm_target_node": "1531262600",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 9",
+        "osm_length_metres": 18.86878163765419,
+        "distance_metres": 8.322,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24371.537656963,
+            48556.62486586684
+          ],
+          [
+            24387.95209123141,
+            48561.368296974455
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1531262559:1531262464:0",
+        "osm_source_node": "1531262559",
+        "osm_target_node": "1531262464",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Industrial Park E3",
+        "osm_length_metres": 17.075823416392208,
+        "distance_metres": 2.988,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24371.537656963,
+            48556.62486586684
+          ],
+          [
+            24362.234272700192,
+            48552.79910521553
+          ],
+          [
+            24330.96332731512,
+            48540.039204292276
+          ],
+          [
+            24326.133578331745,
+            48537.98257975759
+          ],
+          [
+            24272.70587695538,
+            48515.97894043229
+          ],
+          [
+            24218.076263253828,
+            48491.5205651545
+          ],
+          [
+            24211.621755375094,
+            48488.63465468629
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1531262559:244487179:0",
+        "osm_source_node": "1531262559",
+        "osm_target_node": "244487179",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Industrial Park E3",
+        "osm_length_metres": 173.77431390690379,
+        "distance_metres": 7.733,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24371.537656963,
+            48556.62486586684
+          ],
+          [
+            24369.824007610063,
+            48565.03964892903
+          ],
+          [
+            24366.975344973172,
+            48579.093773972476
+          ],
+          [
+            24358.596214960584,
+            48616.4461340419
+          ],
+          [
+            24351.43002059444,
+            48649.65191398992
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1531262559:4606975348:0",
+        "osm_source_node": "1531262559",
+        "osm_target_node": "4606975348",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 95.68353435065083,
+        "distance_metres": 6.443,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24611.25757526037,
+            47983.876158947736
+          ],
+          [
+            24604.347032288857,
+            47998.62695742488
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1531262600:1863993240:0",
+        "osm_source_node": "1531262600",
+        "osm_target_node": "1863993240",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 16.360987702510528,
+        "distance_metres": 8.931,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24611.25757526037,
+            47983.876158947736
+          ],
+          [
+            24605.35948175576,
+            47981.14503582023
+          ],
+          [
+            24576.247380165158,
+            47967.63316458216
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1531262600:4606972686:0",
+        "osm_source_node": "1531262600",
+        "osm_target_node": "4606972686",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 9",
+        "osm_length_metres": 38.59757318409536,
+        "distance_metres": 12.658,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24350.095452038375,
+            48707.150939361905
+          ],
+          [
+            24356.30476278283,
+            48684.88104171077
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1531262669:244383192:0",
+        "osm_source_node": "1531262669",
+        "osm_target_node": "244383192",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 23.23780067250006,
+        "distance_metres": 6.191,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24604.347032288857,
+            47998.62695742488
+          ],
+          [
+            24620.171740199825,
+            48006.930927223104
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1863993240:1863993241:0",
+        "osm_source_node": "1863993240",
+        "osm_target_node": "1863993241",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 9",
+        "osm_length_metres": 17.87714561380147,
+        "distance_metres": 7.85,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24604.347032288857,
+            47998.62695742488
+          ],
+          [
+            24602.588796163214,
+            48002.50816374738
+          ],
+          [
+            24588.400502220313,
+            48033.96694402531
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1863993240:4606975296:0",
+        "osm_source_node": "1863993240",
+        "osm_target_node": "4606975296",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 38.94462751424445,
+        "distance_metres": 8.907,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24620.171740199825,
+            48006.930927223104
+          ],
+          [
+            24627.783384098137,
+            47992.965202313484
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1863993241:1531262535:0",
+        "osm_source_node": "1863993241",
+        "osm_target_node": "1531262535",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 15.97005017665195,
+        "distance_metres": 8.848,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24620.171740199825,
+            48006.930927223104
+          ],
+          [
+            24624.60087956679,
+            48009.39669036922
+          ],
+          [
+            24658.976784907012,
+            48028.53676480865
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1863993241:4606975301:0",
+        "osm_source_node": "1863993241",
+        "osm_target_node": "4606975301",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 9",
+        "osm_length_metres": 44.4356111565342,
+        "distance_metres": 8.848,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24452.304319759227,
+            48333.95881660378
+          ],
+          [
+            24450.53496517216,
+            48338.20492187614
+          ],
+          [
+            24442.823250978447,
+            48356.73740220499
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "1863993251:4607015740:0",
+        "osm_source_node": "1863993251",
+        "osm_target_node": "4607015740",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 24.786871034187495,
+        "distance_metres": 8.095,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24356.30476278283,
+            48684.88104171077
+          ],
+          [
+            24343.729647040564,
+            48681.55291692734
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "244383192:1531262506:0",
+        "osm_source_node": "244383192",
+        "osm_target_node": "1531262506",
+        "osm_edge_key": "0",
+        "osm_name": "Admiralty Road West",
+        "osm_length_metres": 12.99925209137663,
+        "distance_metres": 6.379,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24356.30476278283,
+            48684.88104171077
+          ],
+          [
+            24357.78474888088,
+            48678.81045208126
+          ],
+          [
+            24364.99551037504,
+            48649.308934460234
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "244383192:4606975349:0",
+        "osm_source_node": "244383192",
+        "osm_target_node": "4606975349",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 36.80986658192898,
+        "distance_metres": 6.631,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24211.621755375094,
+            48488.63465468629
+          ],
+          [
+            24218.076263253828,
+            48491.5205651545
+          ],
+          [
+            24272.70587695538,
+            48515.97894043229
+          ],
+          [
+            24326.133578331745,
+            48537.98257975759
+          ],
+          [
+            24330.96332731512,
+            48540.039204292276
+          ],
+          [
+            24362.234272700192,
+            48552.79910521553
+          ],
+          [
+            24371.537656963,
+            48556.62486586684
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "244487179:1531262559:0",
+        "osm_source_node": "244487179",
+        "osm_target_node": "1531262559",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Industrial Park E3",
+        "osm_length_metres": 173.77431390690379,
+        "distance_metres": 7.733,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24429.481292148117,
+            48425.946489038615
+          ],
+          [
+            24442.779276829504,
+            48394.83049302796
+          ],
+          [
+            24464.712622271152,
+            48344.175772391165
+          ],
+          [
+            24466.86033231484,
+            48339.21092435297
+          ],
+          [
+            24470.36566249164,
+            48331.11678455914
+          ],
+          [
+            24470.788528558183,
+            48330.19900606005
+          ],
+          [
+            24472.780450490016,
+            48325.886552813245
+          ],
+          [
+            24571.208190006855,
+            48112.95090291065
+          ],
+          [
+            24590.459772249793,
+            48071.97154485022
+          ],
+          [
+            24599.940892752722,
+            48051.2054309181
+          ],
+          [
+            24605.861029933534,
+            48038.245960626795
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "244487913:4606975305:0",
+        "osm_source_node": "244487913",
+        "osm_target_node": "4606975305",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 427.86290232896346,
+        "distance_metres": 6.416,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24654.94803556767,
+            48008.51168532722
+          ],
+          [
+            24632.46847983008,
+            47995.641054676096
+          ],
+          [
+            24627.783384098137,
+            47992.965202313484
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "4606975295:1531262535:0",
+        "osm_source_node": "4606975295",
+        "osm_target_node": "1531262535",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 9",
+        "osm_length_metres": 31.31578312458982,
+        "distance_metres": 12.519,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24588.400502220313,
+            48033.96694402531
+          ],
+          [
+            24542.586247603496,
+            48135.55282552626
+          ],
+          [
+            24523.980089929737,
+            48173.966838685796
+          ],
+          [
+            24516.12370169524,
+            48192.9195033142
+          ],
+          [
+            24489.204929737123,
+            48252.14385088794
+          ],
+          [
+            24466.425791036716,
+            48301.23947302045
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "4606975296:4607015749:0",
+        "osm_source_node": "4606975296",
+        "osm_target_node": "4607015749",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 295.12354681163725,
+        "distance_metres": 8.647,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24572.619734744832,
+            47983.51178436277
+          ],
+          [
+            24597.792357578335,
+            47995.49777332175
+          ],
+          [
+            24604.347032288857,
+            47998.62695742488
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "4606975300:1863993240:0",
+        "osm_source_node": "4606975300",
+        "osm_target_node": "1863993240",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 9",
+        "osm_length_metres": 35.14835081960174,
+        "distance_metres": 9.015,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24605.861029933534,
+            48038.245960626795
+          ],
+          [
+            24618.613808994996,
+            48010.347715731215
+          ],
+          [
+            24620.171740199825,
+            48006.930927223104
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "4606975305:1863993241:0",
+        "osm_source_node": "4606975305",
+        "osm_target_node": "1863993241",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 34.58321030671213,
+        "distance_metres": 8.779,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24351.43002059444,
+            48649.65191398992
+          ],
+          [
+            24345.031580896684,
+            48675.62607732903
+          ],
+          [
+            24343.729647040564,
+            48681.55291692734
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "4606975348:1531262506:0",
+        "osm_source_node": "4606975348",
+        "osm_target_node": "1531262506",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 32.9906995661503,
+        "distance_metres": 6.379,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24364.99551037504,
+            48649.308934460234
+          ],
+          [
+            24373.18562472232,
+            48623.511665850834
+          ],
+          [
+            24380.040294771294,
+            48594.92792660489
+          ],
+          [
+            24382.900134146603,
+            48584.191051851136
+          ],
+          [
+            24386.12715482892,
+            48569.595104001826
+          ],
+          [
+            24387.95209123141,
+            48561.368296974455
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "4606975349:1531262464:0",
+        "osm_source_node": "4606975349",
+        "osm_target_node": "1531262464",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 91.41714721757933,
+        "distance_metres": 6.662,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24442.823250978447,
+            48356.73740220499
+          ],
+          [
+            24428.3234086179,
+            48388.60532521473
+          ],
+          [
+            24406.534840731765,
+            48446.04935292518
+          ],
+          [
+            24401.849987048183,
+            48459.860238629
+          ],
+          [
+            24383.255239777114,
+            48514.628307960935
+          ],
+          [
+            24376.545170341124,
+            48538.66741187944
+          ],
+          [
+            24371.537656963,
+            48556.62486586684
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "4607015740:1531262559:0",
+        "osm_source_node": "4607015740",
+        "osm_target_node": "1531262559",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 213.50010607829878,
+        "distance_metres": 6.551,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24466.425791036716,
+            48301.23947302045
+          ],
+          [
+            24458.42473764102,
+            48319.87147433996
+          ],
+          [
+            24455.965443476885,
+            48325.61035188762
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "4607015749:4740130401:0",
+        "osm_source_node": "4607015749",
+        "osm_target_node": "4740130401",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 26.64195290277531,
+        "distance_metres": 8.991,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24455.965443476885,
+            48325.61035188762
+          ],
+          [
+            24452.304319759227,
+            48333.95881660378
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "4740130401:1863993251:0",
+        "osm_source_node": "4740130401",
+        "osm_target_node": "1863993251",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 9.157213012321899,
+        "distance_metres": 8.875,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24455.965443476885,
+            48325.61035188762
+          ],
+          [
+            24448.309063163702,
+            48322.403784775466
+          ],
+          [
+            24433.741908598946,
+            48316.289193177756
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "4740130401:4740130402:0",
+        "osm_source_node": "4740130401",
+        "osm_target_node": "4740130402",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Industrial Park E7",
+        "osm_length_metres": 24.096499427839102,
+        "distance_metres": 8.991,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24432.417752436835,
+            48324.936177555275
+          ],
+          [
+            24445.705140645056,
+            48331.006557166205
+          ],
+          [
+            24452.304319759227,
+            48333.95881660378
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "4740130404:1863993251:0",
+        "osm_source_node": "4740130404",
+        "osm_target_node": "1863993251",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Industrial Park E7",
+        "osm_length_metres": 21.838511221569885,
+        "distance_metres": 8.875,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24432.417752436835,
+            48324.936177555275
+          ],
+          [
+            24436.079082018965,
+            48331.13938352037
+          ],
+          [
+            24439.36204839944,
+            48337.50845741059
+          ],
+          [
+            24440.775432048173,
+            48342.99295775978
+          ],
+          [
+            24442.122053889736,
+            48349.08562160529
+          ],
+          [
+            24442.823250978447,
+            48356.73740220499
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "4740130404:4607015740:0",
+        "osm_source_node": "4740130404",
+        "osm_target_node": "4607015740",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 34.118863624066044,
+        "distance_metres": 8.095,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            24413.5015928096,
+            48472.708887958106
+          ],
+          [
+            24429.481292148117,
+            48425.946489038615
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "WOODLANDS AVENUE 8",
+        "road_name": "WOODLANDS AVENUE 8",
+        "osm_id": "5186662658:244487913:0",
+        "osm_source_node": "5186662658",
+        "osm_target_node": "244487913",
+        "osm_edge_key": "0",
+        "osm_name": "Woodlands Avenue 8",
+        "osm_length_metres": 49.65978976351509,
+        "distance_metres": 7.404,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19761.416140331876,
+            35177.39883710648
+          ],
+          [
+            19769.373929336616,
+            35196.78239012247
+          ],
+          [
+            19778.967798011214,
+            35220.29034059808
+          ],
+          [
+            19792.045380250747,
+            35255.51913374662
+          ],
+          [
+            19800.67099222455,
+            35277.899249211594
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "1221460152:568265844:0",
+        "osm_source_node": "1221460152",
+        "osm_target_node": "568265844",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 108.41558477830834,
+        "distance_metres": 5.966,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19715.19613346792,
+            34761.59411373054
+          ],
+          [
+            19701.87501106927,
+            34770.285708617
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "1492179228:244135877:0",
+        "osm_source_node": "1492179228",
+        "osm_target_node": "244135877",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Link",
+        "osm_length_metres": 15.920061881336668,
+        "distance_metres": 1.253,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19715.19613346792,
+            34761.59411373054
+          ],
+          [
+            19704.64535639473,
+            34744.80915207757
+          ],
+          [
+            19699.436750279376,
+            34736.71522178038
+          ],
+          [
+            19657.445172992404,
+            34672.71570209844
+          ],
+          [
+            19617.946585195477,
+            34612.530948426866
+          ],
+          [
+            19595.76542831456,
+            34576.76062309387
+          ],
+          [
+            19568.29755736678,
+            34526.63783027224
+          ],
+          [
+            19565.470636390142,
+            34521.47406586847
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "1492179228:247186664:0",
+        "osm_source_node": "1492179228",
+        "osm_target_node": "247186664",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 284.17174647443437,
+        "distance_metres": 6.89,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19812.457719836584,
+            35316.777055918275
+          ],
+          [
+            19820.74841849296,
+            35304.33712364796
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "1492179336:568265833:0",
+        "osm_source_node": "1492179336",
+        "osm_target_node": "568265833",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 15.002472912083032,
+        "distance_metres": 0.79,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19511.53449615671,
+            34357.139204176696
+          ],
+          [
+            19513.58290219367,
+            34378.91135261907
+          ],
+          [
+            19514.974551240142,
+            34395.93985511771
+          ],
+          [
+            19517.74631847503,
+            34416.971129015554
+          ],
+          [
+            19521.096674969205,
+            34434.1764911426
+          ],
+          [
+            19526.194432684526,
+            34456.258155675816
+          ],
+          [
+            19532.616511068434,
+            34477.422007266694
+          ],
+          [
+            19540.752593469195,
+            34503.163610035575
+          ],
+          [
+            19551.64862405031,
+            34527.633516032714
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "1856693533:244135879:0",
+        "osm_source_node": "1856693533",
+        "osm_target_node": "244135879",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 177.17076044019845,
+        "distance_metres": 8.252,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19529.452170257682,
+            34356.961732321404
+          ],
+          [
+            19524.921639580243,
+            34323.49082848455
+          ],
+          [
+            19523.3514846656,
+            34292.08758553469
+          ],
+          [
+            19520.36811848174,
+            34266.25736458205
+          ],
+          [
+            19518.531624907264,
+            34259.46811802231
+          ],
+          [
+            19514.09089434941,
+            34251.00926964738
+          ],
+          [
+            19508.303587810842,
+            34243.62304003542
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "1856693534:237528684:0",
+        "osm_source_node": "1856693534",
+        "osm_target_node": "237528684",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 117.80019280436262,
+        "distance_metres": 1.342,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19529.452170257682,
+            34356.961732321404
+          ],
+          [
+            19531.788250483434,
+            34324.17618203156
+          ],
+          [
+            19531.2867686584,
+            34302.160721094326
+          ],
+          [
+            19532.087678622003,
+            34289.875817409804
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "1856693534:5684428023:0",
+        "osm_source_node": "1856693534",
+        "osm_target_node": "5684428023",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 67.57615483683459,
+        "distance_metres": 5.675,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19650.028390404725,
+            34145.05218393746
+          ],
+          [
+            19619.03485693979,
+            34169.28009943149
+          ],
+          [
+            19594.13976214578,
+            34185.026732744176
+          ],
+          [
+            19575.254188660823,
+            34196.15115107598
+          ],
+          [
+            19530.03778040406,
+            34219.528085345206
+          ],
+          [
+            19520.188765969186,
+            34224.39368688889
+          ],
+          [
+            19513.24443517217,
+            34229.73467168829
+          ],
+          [
+            19508.95993799964,
+            34235.164034670874
+          ],
+          [
+            19505.966435817165,
+            34241.5995901465
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "237528530:244135887:0",
+        "osm_source_node": "237528530",
+        "osm_target_node": "244135887",
+        "osm_edge_key": "0",
+        "osm_name": "Boon Lay Way / Commonwealth Avenue West",
+        "osm_length_metres": 175.55278261768242,
+        "distance_metres": 2.937,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19508.303587810842,
+            34243.62304003542
+          ],
+          [
+            19505.966435817165,
+            34241.5995901465
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "237528684:244135887:0",
+        "osm_source_node": "237528684",
+        "osm_target_node": "244135887",
+        "osm_edge_key": "0",
+        "osm_name": "Boon Lay Way",
+        "osm_length_metres": 3.0968456847508286,
+        "distance_metres": 3.646,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19504.352833713405,
+            34244.927946473224
+          ],
+          [
+            19508.303587810842,
+            34243.62304003542
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "237529149:237528684:0",
+        "osm_source_node": "237529149",
+        "osm_target_node": "237528684",
+        "osm_edge_key": "0",
+        "osm_name": "Commonwealth Avenue West",
+        "osm_length_metres": 4.158778132443874,
+        "distance_metres": 3.646,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19504.352833713405,
+            34244.927946473224
+          ],
+          [
+            19503.050879059017,
+            34249.40627288098
+          ],
+          [
+            19502.483510266873,
+            34256.21770849233
+          ],
+          [
+            19503.65257512898,
+            34273.08035526866
+          ],
+          [
+            19506.558170152755,
+            34303.134542378335
+          ],
+          [
+            19508.40629711902,
+            34326.27782654529
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "237529149:5684425511:0",
+        "osm_source_node": "237529149",
+        "osm_target_node": "5684425511",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 82.26582331263414,
+        "distance_metres": 7.711,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19805.32333949413,
+            35292.71615590323
+          ],
+          [
+            19812.457719836584,
+            35316.777055918275
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "244134692:1492179336:0",
+        "osm_source_node": "244134692",
+        "osm_target_node": "1492179336",
+        "osm_edge_key": "0",
+        "osm_name": "Bukit Batok East Avenue 3",
+        "osm_length_metres": 25.223481096964036,
+        "distance_metres": 6.754,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19805.32333949413,
+            35292.71615590323
+          ],
+          [
+            19817.59885327689,
+            35301.9598559795
+          ],
+          [
+            19820.74841849296,
+            35304.33712364796
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "244134692:568265833:0",
+        "osm_source_node": "244134692",
+        "osm_target_node": "568265833",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 19.33820978379705,
+        "distance_metres": 1.549,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19701.87501106927,
+            34770.285708617
+          ],
+          [
+            19708.54156182031,
+            34780.01610443779
+          ],
+          [
+            19741.707802008197,
+            34842.8880316475
+          ],
+          [
+            19755.375292120763,
+            34879.852832588476
+          ],
+          [
+            19758.659142158926,
+            34906.58976133508
+          ],
+          [
+            19757.10196736333,
+            34935.903232397664
+          ],
+          [
+            19754.765883686217,
+            34969.153195885534
+          ],
+          [
+            19753.152524595214,
+            34980.4982362814
+          ],
+          [
+            19748.735142264817,
+            35007.666639272786
+          ],
+          [
+            19744.306656646877,
+            35035.65329755254
+          ],
+          [
+            19741.947933822838,
+            35056.15396811985
+          ],
+          [
+            19742.004104927466,
+            35073.61375426117
+          ],
+          [
+            19743.17327107449,
+            35094.34652600402
+          ],
+          [
+            19744.520466863243,
+            35113.96248520211
+          ],
+          [
+            19746.279157165198,
+            35124.3896519413
+          ],
+          [
+            19749.30672420888,
+            35140.63302392626
+          ],
+          [
+            19761.416140331876,
+            35177.39883710648
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "244135877:1221460152:0",
+        "osm_source_node": "244135877",
+        "osm_target_node": "1221460152",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 425.7282374604219,
+        "distance_metres": 4.022,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19701.87501106927,
+            34770.285708617
+          ],
+          [
+            19715.19613346792,
+            34761.59411373054
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "244135877:1492179228:0",
+        "osm_source_node": "244135877",
+        "osm_target_node": "1492179228",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Link",
+        "osm_length_metres": 15.920061881336668,
+        "distance_metres": 1.253,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19701.87501106927,
+            34770.285708617
+          ],
+          [
+            19692.905218400905,
+            34775.64886591131
+          ],
+          [
+            19646.487195141286,
+            34806.42328880428
+          ],
+          [
+            19629.026216781756,
+            34818.99619502863
+          ],
+          [
+            19619.511152554784,
+            34825.84107616047
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "244135877:311774805:0",
+        "osm_source_node": "244135877",
+        "osm_target_node": "311774805",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Link",
+        "osm_length_metres": 99.48004110978377,
+        "distance_metres": 8.475,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19551.64862405031,
+            34527.633516032714
+          ],
+          [
+            19565.470636390142,
+            34521.47406586847
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "244135879:247186664:0",
+        "osm_source_node": "244135879",
+        "osm_target_node": "247186664",
+        "osm_edge_key": "0",
+        "osm_name": "Old Toh Tuck Road",
+        "osm_length_metres": 15.132273472845059,
+        "distance_metres": 6.719,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19551.64862405031,
+            34527.633516032714
+          ],
+          [
+            19554.73155743233,
+            34534.27897704811
+          ],
+          [
+            19563.980356392847,
+            34554.20430277252
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "244135879:5137668214:0",
+        "osm_source_node": "244135879",
+        "osm_target_node": "5137668214",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 29.42242298522026,
+        "distance_metres": 7.089,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19551.64862405031,
+            34527.633516032714
+          ],
+          [
+            19546.0509546007,
+            34534.48933625321
+          ],
+          [
+            19544.893583891062,
+            34535.91578896217
+          ],
+          [
+            19533.11956049421,
+            34550.33512749439
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "244135879:5286664173:0",
+        "osm_source_node": "244135879",
+        "osm_target_node": "5286664173",
+        "osm_edge_key": "0",
+        "osm_name": "Old Toh Tuck Road",
+        "osm_length_metres": 29.38906784657758,
+        "distance_metres": 8.252,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19505.966435817165,
+            34241.5995901465
+          ],
+          [
+            19504.352833713405,
+            34244.927946473224
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "244135887:237529149:0",
+        "osm_source_node": "244135887",
+        "osm_target_node": "237529149",
+        "osm_edge_key": "0",
+        "osm_name": "Boon Lay Way",
+        "osm_length_metres": 3.7148934796588913,
+        "distance_metres": 5.76,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19775.616615161693,
+            35174.81095580531
+          ],
+          [
+            19761.381199679825,
+            35125.760326831
+          ],
+          [
+            19757.952736375042,
+            35101.06903908507
+          ],
+          [
+            19757.095145069223,
+            35079.097818290815
+          ],
+          [
+            19757.43953312943,
+            35058.82941590226
+          ],
+          [
+            19758.807812077473,
+            35039.423467516
+          ],
+          [
+            19767.20866154353,
+            34988.84622394606
+          ],
+          [
+            19771.19232466201,
+            34971.95024904663
+          ],
+          [
+            19773.716925406246,
+            34916.1208715548
+          ],
+          [
+            19770.29928939326,
+            34881.3893764999
+          ],
+          [
+            19760.00398422873,
+            34847.8854701415
+          ],
+          [
+            19751.879229252998,
+            34827.77212752033
+          ],
+          [
+            19741.517411812238,
+            34803.09210621765
+          ],
+          [
+            19729.274957925678,
+            34783.797142866344
+          ],
+          [
+            19722.140941005775,
+            34772.40813615439
+          ],
+          [
+            19715.19613346792,
+            34761.59411373054
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "247186651:1492179228:0",
+        "osm_source_node": "247186651",
+        "osm_target_node": "1492179228",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 431.9815722924669,
+        "distance_metres": 5.789,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19565.470636390142,
+            34521.47406586847
+          ],
+          [
+            19546.65000019914,
+            34472.03657458124
+          ],
+          [
+            19539.982957870678,
+            34446.73722637866
+          ],
+          [
+            19535.519635932356,
+            34427.331456415544
+          ],
+          [
+            19532.759115471345,
+            34410.081846031695
+          ],
+          [
+            19531.456467506,
+            34392.01393603846
+          ],
+          [
+            19529.452170257682,
+            34356.961732321404
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "247186664:1856693534:0",
+        "osm_source_node": "247186664",
+        "osm_target_node": "1856693534",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 170.5518478976606,
+        "distance_metres": 3.554,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19565.470636390142,
+            34521.47406586847
+          ],
+          [
+            19551.64862405031,
+            34527.633516032714
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "247186664:244135879:0",
+        "osm_source_node": "247186664",
+        "osm_target_node": "244135879",
+        "osm_edge_key": "0",
+        "osm_name": "Old Toh Tuck Road",
+        "osm_length_metres": 15.132273472845059,
+        "distance_metres": 6.719,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19619.511152554784,
+            34825.84107616047
+          ],
+          [
+            19629.026216781756,
+            34818.99619502863
+          ],
+          [
+            19646.487195141286,
+            34806.42328880428
+          ],
+          [
+            19692.905218400905,
+            34775.64886591131
+          ],
+          [
+            19701.87501106927,
+            34770.285708617
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "311774805:244135877:0",
+        "osm_source_node": "311774805",
+        "osm_target_node": "244135877",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Link",
+        "osm_length_metres": 99.48004110978377,
+        "distance_metres": 8.475,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19563.980356392847,
+            34554.20430277252
+          ],
+          [
+            19571.93805353941,
+            34569.618209554006
+          ],
+          [
+            19644.33547554174,
+            34680.65538336403
+          ],
+          [
+            19645.61538493522,
+            34683.176453738124
+          ],
+          [
+            19666.716943232303,
+            34716.53628094384
+          ],
+          [
+            19670.623391815832,
+            34722.374520806094
+          ],
+          [
+            19685.75948875872,
+            34745.04193076172
+          ],
+          [
+            19690.72328241643,
+            34753.95412299875
+          ],
+          [
+            19701.87501106927,
+            34770.285708617
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "5137668214:244135877:0",
+        "osm_source_node": "5137668214",
+        "osm_target_node": "244135877",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 257.39945074239324,
+        "distance_metres": 6.498,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19533.11956049421,
+            34550.33512749439
+          ],
+          [
+            19544.893583891062,
+            34535.91578896217
+          ],
+          [
+            19546.0509546007,
+            34534.48933625321
+          ],
+          [
+            19551.64862405031,
+            34527.633516032714
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "5286664173:244135879:0",
+        "osm_source_node": "5286664173",
+        "osm_target_node": "244135879",
+        "osm_edge_key": "0",
+        "osm_name": "Old Toh Tuck Road",
+        "osm_length_metres": 29.389067846577582,
+        "distance_metres": 8.252,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19533.11956049421,
+            34550.33512749439
+          ],
+          [
+            19544.192871969288,
+            34549.38384194528
+          ],
+          [
+            19547.1420572509,
+            34549.516441219654
+          ],
+          [
+            19550.825756602848,
+            34549.68219044235
+          ],
+          [
+            19557.937225282923,
+            34551.2079065748
+          ],
+          [
+            19563.980356392847,
+            34554.20430277252
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "5286664173:5137668214:0",
+        "osm_source_node": "5286664173",
+        "osm_target_node": "5137668214",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 31.748379141618607,
+        "distance_metres": 7.109,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19815.26132749204,
+            35287.07653486261
+          ],
+          [
+            19808.460915437747,
+            35266.354988910316
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "568256148:568265843:0",
+        "osm_source_node": "568256148",
+        "osm_target_node": "568265843",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 21.916983337757742,
+        "distance_metres": 4.534,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19815.26132749204,
+            35287.07653486261
+          ],
+          [
+            19800.67099222455,
+            35277.899249211594
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "568256148:568265844:0",
+        "osm_source_node": "568256148",
+        "osm_target_node": "568265844",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 17.25025204076644,
+        "distance_metres": 4.186,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19820.74841849296,
+            35304.33712364796
+          ],
+          [
+            19825.36700430199,
+            35306.67011745301
+          ],
+          [
+            19833.82513765947,
+            35310.960173644606
+          ],
+          [
+            19844.13061543146,
+            35313.18242304707
+          ],
+          [
+            19854.06877891381,
+            35313.43644930329
+          ],
+          [
+            19865.95447312377,
+            35312.47409332592
+          ],
+          [
+            19875.34722257085,
+            35309.52146246195
+          ],
+          [
+            19887.19941860001,
+            35304.7995594646
+          ],
+          [
+            19903.62547551821,
+            35295.35597041635
+          ],
+          [
+            19931.680893889614,
+            35272.43295058014
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "568265833:1492179329:0",
+        "osm_source_node": "568265833",
+        "osm_target_node": "1492179329",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 124.8787081299134,
+        "distance_metres": 3.678,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19820.74841849296,
+            35304.33712364796
+          ],
+          [
+            19815.26132749204,
+            35287.07653486261
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "568265833:568256148:0",
+        "osm_source_node": "568265833",
+        "osm_target_node": "568256148",
+        "osm_edge_key": "0",
+        "osm_name": "Bukit Batok East Avenue 3",
+        "osm_length_metres": 18.202190214017033,
+        "distance_metres": 3.678,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19868.566383678477,
+            35198.28324500196
+          ],
+          [
+            19862.378680712583,
+            35198.2170839115
+          ],
+          [
+            19855.289555445925,
+            35198.93603206175
+          ],
+          [
+            19838.70754192758,
+            35203.459042227776
+          ],
+          [
+            19827.222475262497,
+            35204.07860475559
+          ],
+          [
+            19818.141205807173,
+            35202.76303392823
+          ],
+          [
+            19804.474734442534,
+            35199.08129628887
+          ],
+          [
+            19793.10081826512,
+            35195.06776565506
+          ],
+          [
+            19788.471054921945,
+            35191.186723043036
+          ],
+          [
+            19784.07495180096,
+            35185.71339391482
+          ],
+          [
+            19775.616615161693,
+            35174.81095580531
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "568265839:247186651:0",
+        "osm_source_node": "568265839",
+        "osm_target_node": "247186651",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 104.26675936359123,
+        "distance_metres": 6.215,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19868.566383678477,
+            35198.28324500196
+          ],
+          [
+            19859.362878281685,
+            35203.1045872145
+          ],
+          [
+            19851.02745334025,
+            35208.644641208586
+          ],
+          [
+            19835.024417792374,
+            35222.26795439782
+          ],
+          [
+            19827.757435909556,
+            35229.88678672527
+          ],
+          [
+            19822.894373270254,
+            35239.65070184627
+          ],
+          [
+            19813.112510002993,
+            35256.027147437075
+          ],
+          [
+            19811.632457417,
+            35259.322325846406
+          ],
+          [
+            19808.460915437747,
+            35266.354988910316
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "568265839:568265843:0",
+        "osm_source_node": "568265839",
+        "osm_target_node": "568265843",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 93.49906197038956,
+        "distance_metres": 5.347,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19808.460915437747,
+            35266.354988910316
+          ],
+          [
+            19802.884866231056,
+            35251.59339733493
+          ],
+          [
+            19781.44862961245,
+            35189.45090675765
+          ],
+          [
+            19775.616615161693,
+            35174.81095580531
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "568265843:247186651:0",
+        "osm_source_node": "568265843",
+        "osm_target_node": "247186651",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 97.7452501614077,
+        "distance_metres": 5.224,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19808.460915437747,
+            35266.354988910316
+          ],
+          [
+            19800.67099222455,
+            35277.899249211594
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "568265843:568265844:0",
+        "osm_source_node": "568265843",
+        "osm_target_node": "568265844",
+        "osm_edge_key": "0",
+        "osm_name": null,
+        "osm_length_metres": 13.975545258642477,
+        "distance_metres": 4.234,
+        "name_supported": false,
+        "required_tolerance_metres": 12.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19800.67099222455,
+            35277.899249211594
+          ],
+          [
+            19805.32333949413,
+            35292.71615590323
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "568265844:244134692:0",
+        "osm_source_node": "568265844",
+        "osm_target_node": "244134692",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 15.607881225077548,
+        "distance_metres": 5.966,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            19508.40629711902,
+            34326.27782654529
+          ],
+          [
+            19511.53449615671,
+            34357.139204176696
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "TOH TUCK AVENUE",
+        "road_name": "TOH TUCK AVENUE",
+        "osm_id": "5684425511:1856693533:0",
+        "osm_source_node": "5684425511",
+        "osm_target_node": "1856693533",
+        "osm_edge_key": "0",
+        "osm_name": "Toh Tuck Avenue",
+        "osm_length_metres": 31.191359993596215,
+        "distance_metres": 12.146,
+        "name_supported": true,
+        "required_tolerance_metres": 35.0,
+        "aligned": true
+      }
+    }
+  ]
+}
