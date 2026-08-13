@@ -288,6 +288,7 @@ class EnrichmentStatusResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     demo_mode: bool
+    git_sha: str = "unknown"
     checks: dict[str, str] | None = None
 
 

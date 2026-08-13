@@ -20,6 +20,7 @@ from app.adapters.transport_data.major_road_network import (
     build_major_road_mapping,
     build_osm_edge_strtree,
     evaluate_sla_osm_edge_match,
+    find_major_road_entry_nodes,
     strtree_candidate_edges,
     write_major_road_mapping,
 )
@@ -241,3 +242,24 @@ def test_catalogue_entry_retains_directed_approach_and_downstream_target() -> No
         )
         < 90
     )
+
+
+def test_entry_node_diagnostics_reuse_the_catalogue_topology_decisions() -> None:
+    diagnostics = []
+    entries = find_major_road_entry_nodes(
+        ROAD,
+        [next(edge for edge in GRAPH.edges if edge.key == "major")],
+        GRAPH,
+        dedup_metres=40,
+        limit=8,
+        diagnostics=diagnostics,
+    )
+
+    assert [entry.node_id for entry in entries] == ["entry"]
+    assert len(diagnostics) == 1
+    decision = diagnostics[0]
+    assert decision.status == "ACCEPTED"
+    assert decision.reason is None
+    assert decision.approach_edge_ids == (("local", "entry", "local"),)
+    assert decision.incoming_edge_count == 1
+    assert decision.outgoing_edge_count == 1

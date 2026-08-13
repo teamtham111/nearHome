@@ -15,6 +15,7 @@ PROJECT_ID="${1:-${GOOGLE_CLOUD_PROJECT:-}}"
 REGION="${CLOUD_RUN_REGION:-asia-southeast1}"
 WORKER_SERVICE_NAME="${ENRICHMENT_WORKER_SERVICE_NAME:-nearhome-enrichment-worker}"
 ARTIFACT_REPOSITORY="${ARTIFACT_REGISTRY_REPOSITORY:-nearhome-api}"
+RELEASE_IMAGE_NAME="${RELEASE_IMAGE_NAME:-nearhome-api}"
 SERVICE_ACCOUNT="${ENRICHMENT_WORKER_SERVICE_ACCOUNT:-}"
 TASK_SERVICE_ACCOUNT="${CLOUD_TASKS_SERVICE_ACCOUNT_EMAIL:-}"
 TASK_QUEUE="${CLOUD_TASKS_QUEUE:-nearhome-enrichment}"
@@ -50,15 +51,23 @@ for secret_name in "$DATABASE_URL_SECRET_NAME" "$SECRET_KEY_SECRET_NAME" "$GOOGL
     --role="roles/secretmanager.secretAccessor" --quiet >/dev/null
 done
 
-IMAGE="${ENRICHMENT_WORKER_IMAGE:-$REGION-docker.pkg.dev/$PROJECT_ID/$ARTIFACT_REPOSITORY/nearhome-api:$(git rev-parse --short HEAD)}"
-if [[ -z "${ENRICHMENT_WORKER_IMAGE:-}" ]]; then
-  gcloud builds submit . --config cloudbuild.yaml --substitutions="_IMAGE=$IMAGE"
+RELEASE_SHA="$(git rev-parse HEAD)"
+# The API deployment builds this immutable release image once.  The worker
+# must deploy that exact image rather than rebuilding from the same source,
+# otherwise Cloud Run can resolve two different image digests for one release.
+IMAGE="${ENRICHMENT_WORKER_IMAGE:-$REGION-docker.pkg.dev/$PROJECT_ID/$ARTIFACT_REPOSITORY/$RELEASE_IMAGE_NAME:${RELEASE_SHA:0:12}}"
+IMAGE_DIGEST="$(gcloud artifacts docker images describe "$IMAGE" --format='value(image_summary.digest)' 2>/dev/null || true)"
+if [[ -z "$IMAGE_DIGEST" ]]; then
+  echo "Release image does not exist: $IMAGE" >&2
+  echo "Run scripts/deploy-cloud-run.sh first, or set ENRICHMENT_WORKER_IMAGE to the already-built immutable image." >&2
+  exit 1
 fi
+DEPLOY_IMAGE="${IMAGE%@*}@${IMAGE_DIGEST}"
 SECRET_MAPPINGS="DATABASE_URL=$DATABASE_URL_SECRET_NAME:latest,SECRET_KEY=$SECRET_KEY_SECRET_NAME:latest,GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY_SECRET_NAME:latest,ONEMAP_EMAIL=$ONEMAP_EMAIL_SECRET_NAME:latest,ONEMAP_PASSWORD=$ONEMAP_PASSWORD_SECRET_NAME:latest,GROQ_API_KEY=$GROQ_API_KEY_SECRET_NAME:latest"
 ENV_VARS="^|^APP_ENV=production|DEMO_MODE=false|LOG_LEVEL=INFO|JOB_EXECUTION_MODE=cloud_tasks|GCP_PROJECT_ID=$PROJECT_ID|CLOUD_TASKS_LOCATION=$TASK_LOCATION|CLOUD_TASKS_QUEUE=$TASK_QUEUE|ENRICHMENT_WORKER_URL=https://placeholder.invalid|CLOUD_TASKS_SERVICE_ACCOUNT_EMAIL=$TASK_SERVICE_ACCOUNT|CLOUD_TASKS_OIDC_AUDIENCE=https://placeholder.invalid|CLOUD_TASKS_DISPATCH_DEADLINE_SECONDS=600|MAX_ENRICHMENT_JOB_ATTEMPTS=3|ENRICHMENT_JOB_STALE_SECONDS=660|MAX_CONCURRENT_ENRICHMENTS=1|ENABLE_PLAYWRIGHT_FALLBACK=true|PLAYWRIGHT_TIMEOUT_SECONDS=25|PLAYWRIGHT_MAX_CONCURRENCY=1|DATABASE_POOL_SIZE=3|DATABASE_MAX_OVERFLOW=2|DATABASE_POOL_RECYCLE_SECONDS=300|WEB_URL=$WEB_URL|CORS_ORIGINS=$CORS_ORIGINS"
 
 gcloud run deploy "$WORKER_SERVICE_NAME" \
-  --image "$IMAGE" \
+  --image "$DEPLOY_IMAGE" \
   --region "$REGION" \
   --service-account "$SERVICE_ACCOUNT" \
   --no-allow-unauthenticated \
@@ -83,4 +92,5 @@ gcloud run services add-iam-policy-binding "$WORKER_SERVICE_NAME" \
 
 WORKER_URL="$(gcloud run services describe "$WORKER_SERVICE_NAME" --region "$REGION" --format='value(status.url)')"
 echo "Private enrichment worker deployed: $WORKER_URL"
+echo "Release image: $DEPLOY_IMAGE"
 echo "Use this URL as ENRICHMENT_WORKER_URL when deploying nearhome-api."

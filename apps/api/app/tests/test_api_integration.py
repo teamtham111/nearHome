@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -21,9 +22,38 @@ def client():
 
 
 def test_health(client: TestClient):
+    from app.core.config import settings
+
     resp = client.get("/api/v1/health")
     assert resp.status_code == 200
     assert resp.json()["status"] == "ok"
+    assert resp.json()["git_sha"] == settings.release_sha
+
+
+def test_ready_exposes_release_sha(client: TestClient):
+    from app.core.config import settings
+
+    resp = client.get("/api/v1/ready")
+    assert resp.status_code == 200
+    assert resp.json()["status"] in {"ready", "degraded"}
+    assert resp.json()["git_sha"] == settings.release_sha
+
+
+def test_health_and_ready_expose_the_same_configured_release_sha(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.api import routes
+
+    release_sha = "b" * 40
+    monkeypatch.setattr(routes.settings, "git_sha", release_sha)
+
+    health = client.get("/api/v1/health")
+    ready = client.get("/api/v1/ready")
+
+    assert health.status_code == 200
+    assert ready.status_code == 200
+    assert health.json()["git_sha"] == release_sha
+    assert ready.json()["git_sha"] == release_sha
 
 
 def test_manual_listing_comparison_flow(client: TestClient):
@@ -228,3 +258,24 @@ def test_local_enrichment_job(client: TestClient):
     comparison = client.get(f"/api/v1/sessions/{session_id}/comparison").json()
     if job_status.json()["status"] == "completed":
         assert comparison["fair_price_status"] in ("AVAILABLE", "INSUFFICIENT_EVIDENCE")
+
+
+def test_polling_expires_a_stale_active_enrichment_job(client: TestClient):
+    from app.core.config import settings
+    from app.db.session import SessionLocal
+    from app.repositories.enrichment_job_repository import EnrichmentJobRepository
+
+    session_id = client.post("/api/v1/sessions").json()["session_id"]
+    with SessionLocal() as db:
+        job, created = EnrichmentJobRepository(db).create_or_get_active(session_id)
+        assert created is True
+        job_id = job.id
+        job.updated_at = datetime.now(UTC) - timedelta(seconds=settings.enrichment_job_stale_seconds + 1)
+        db.commit()
+
+    response = client.get(f"/api/v1/jobs/{job_id}?session_id={session_id}")
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "failed"
+    assert response.json()["progress_stage"] == "failed"
+    assert response.json()["error_code"] == "enrichment_job_timed_out"

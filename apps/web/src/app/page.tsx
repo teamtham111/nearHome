@@ -3,7 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { createSession } from "@/lib/api";
 
 const assessments = [
@@ -51,7 +51,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const existing = localStorage.getItem("nearhome_session_id");
-    if (existing) setSessionId(existing);
+    if (existing) startTransition(() => setSessionId(existing));
   }, []);
 
   return (

@@ -43,9 +43,15 @@ def _normalise_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(normalised.values(), key=_access_entry_sort_key)
 
 
-def _access_entry_sort_key(entry: dict[str, Any]) -> tuple[float, float, str]:
-    """Use the same generalised metric Access records for rail entries."""
+def _access_entry_sort_key(entry: dict[str, Any]) -> tuple[int, float, float, str]:
+    """Keep Access's chosen origin ahead of otherwise-tied rail entries.
+
+    Access resolves its practical-station tie before MRT Reach is invoked.
+    MRT Reach must preserve that decision rather than applying an unrelated
+    alphabetical station-name tie-break.
+    """
     return (
+        0 if entry.get("is_primary_rail_entry") else 1,
         float(entry.get("generalised_access_cost", float("inf"))),
         float(entry.get("total_expected_minutes", float("inf"))),
         str(entry.get("physical_station_id", "")),

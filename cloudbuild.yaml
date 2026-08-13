@@ -4,9 +4,14 @@ steps:
       - build
       - --file
       - apps/api/Dockerfile
+      - --build-arg
+      - GIT_SHA=${_GIT_SHA}
       - --tag
       - ${_IMAGE}
       - .
+
+substitutions:
+  _GIT_SHA: "unknown"
 
 images:
   - ${_IMAGE}

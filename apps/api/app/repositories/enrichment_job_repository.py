@@ -98,6 +98,40 @@ class EnrichmentJobRepository:
         self.db.commit()
         return result.rowcount == 1
 
+    def fail_if_stale(self, job_id: UUID, stale_before: datetime) -> bool:
+        """Terminate abandoned active work so clients cannot poll forever.
+
+        Cloud Tasks normally redelivers an interrupted request, but a task can
+        also be exhausted or removed outside this process. Polling and a new
+        start request use this bounded fallback after the configured worker
+        lease has expired.
+        """
+        now = datetime.now(UTC)
+        result = self.db.execute(
+            update(EnrichmentJobORM)
+            .where(
+                EnrichmentJobORM.id == job_id,
+                EnrichmentJobORM.status.in_(ACTIVE_STATUSES),
+                EnrichmentJobORM.updated_at < stale_before,
+            )
+            .values(
+                status="failed",
+                progress_stage="failed",
+                completed_at=now,
+                updated_at=now,
+                error_code="enrichment_job_timed_out",
+                error_message="Enrichment did not finish in time. Please start it again.",
+                internal_error_detail="Job exceeded the configured stale-job timeout.",
+            )
+        )
+        self.db.commit()
+        return result.rowcount == 1
+
+    def fail_stale_active_for_session(self, session_id: UUID, stale_before: datetime) -> bool:
+        """Expire an abandoned session job before allowing a fresh request."""
+        active = self._active_for_session(session_id)
+        return bool(active and self.fail_if_stale(active.id, stale_before))
+
     def set_stage(self, job_id: UUID, stage: str) -> None:
         self._update(job_id, progress_stage=stage)
 

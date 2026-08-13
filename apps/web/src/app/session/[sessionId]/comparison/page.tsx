@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { ComparisonView } from "@/components/comparison-view";
 import { EnrichmentProgress } from "@/components/enrichment-progress";
 import { WorkflowStepper } from "@/components/workflow-stepper";
@@ -45,10 +45,11 @@ export default function SessionComparisonPage() {
 
   useEffect(() => {
     const savedJobId = window.sessionStorage.getItem(enrichmentStorageKey);
-    if (savedJobId) {
+    if (!savedJobId) return;
+    startTransition(() => {
       setComparisonReady(false);
       setActiveEnrichmentJobId(savedJobId);
-    }
+    });
   }, [enrichmentStorageKey]);
 
   useEffect(() => {

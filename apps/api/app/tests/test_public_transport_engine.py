@@ -384,6 +384,29 @@ class TestBoardingStopSpecificCorridors:
 
 
 class TestMrtReachComponent:
+    def test_access_primary_station_wins_an_equal_cost_tie(self) -> None:
+        result = compute_mrt_reach(
+            [
+                {
+                    "physical_station_id": "Bencoolen",
+                    "station_codes": ["DT21"],
+                    "generalised_access_cost": 6.4,
+                    "total_expected_minutes": 5.5,
+                },
+                {
+                    "physical_station_id": "Dhoby Ghaut",
+                    "station_codes": ["NS24", "NE6", "CC1"],
+                    "generalised_access_cost": 6.4,
+                    "total_expected_minutes": 5.5,
+                    "is_primary_rail_entry": True,
+                },
+            ],
+            rail_graph=RailGraph(),
+        )
+
+        assert result.value["primary_physical_station_id"] == "Dhoby Ghaut"
+        assert result.evidence[0]["direct_lines"] == ["CCL", "NEL", "NSL"]
+
     def test_bishan_deduplicates_physical_stations_and_explains_additional_lines(self) -> None:
         result = compute_mrt_reach(
             [{"station_name": "Bishan", "codes": ["NS17", "CC15"], "walk_minutes": 4.0}],
@@ -612,7 +635,12 @@ class TestGoldenCases:
         rollup = self._run(DHOBY_GHAUT)
         mrt_reach = next(c for c in rollup.components if c.name == "mrt_reach")
         assert mrt_reach.status == ComponentStatus.CALCULATED
-        assert mrt_reach.value["direct_lines"] >= 3  # NSL/NEL/CCL interchange
+        evidence = mrt_reach.evidence[0]
+        # MRT Reach must retain Access's selected physical station. Dhoby
+        # Ghaut is one physical interchange represented by NS24/NE6/CC1.
+        assert mrt_reach.value["primary_physical_station_id"] == "Dhoby Ghaut"
+        assert mrt_reach.value["is_interchange"] is True
+        assert set(evidence["direct_lines"]) == {"NSL", "NEL", "CCL"}
 
     def test_yishun_has_narrower_reach_than_dhoby_ghaut(self) -> None:
         dhoby = self._run(DHOBY_GHAUT)

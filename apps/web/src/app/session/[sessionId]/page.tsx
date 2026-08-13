@@ -18,6 +18,7 @@ import {
   smartPaste,
 } from "@/lib/api";
 import type { GeocodeSuggestion, SessionListing } from "@/lib/api";
+import { canonicalFloorAreaSqm, convertFloorArea, type FloorAreaUnit } from "@/lib/floor-area";
 import { buildSmartPasteRequest } from "@/lib/smart-paste";
 import { SmartPasteProgress } from "@/components/smart-paste-progress";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -47,8 +48,6 @@ const PRIORITY_LABELS: Record<(typeof PRIORITY_VALUES)[number], string> = {
 type PriorityValue = (typeof PRIORITY_VALUES)[number];
 
 const SCHOOL_NAME_PATTERN = /\b(school|college|institution|institute|academy|madrasah|polytechnic)\b/i;
-const SQ_FT_TO_SQ_M = 0.092903;
-
 const priorityValueSchema = z.enum(PRIORITY_VALUES);
 const optionalPrioritySchema = z.union([priorityValueSchema, z.literal("")]);
 const optionalPositiveNumber = z.preprocess(
@@ -80,8 +79,6 @@ const listingSchema = z.object({
 type ProfileForm = z.infer<typeof profileSchema>;
 type ListingForm = z.infer<typeof listingSchema>;
 type SegmentOption<T extends string> = { value: T; label: string };
-type FloorAreaUnit = "sqm" | "sqft";
-
 function SegmentedControl<T extends string>({
   label,
   value,
@@ -324,9 +321,7 @@ export default function SessionPage() {
       addManualListing(sessionId, {
         ...values,
         // The API and all downstream models use square metres as the canonical unit.
-        floor_area_sqm: floorAreaUnit === "sqft"
-          ? Number((values.floor_area_sqm * SQ_FT_TO_SQ_M).toFixed(2))
-          : values.floor_area_sqm,
+        floor_area_sqm: canonicalFloorAreaSqm(values.floor_area_sqm, floorAreaUnit),
       }),
     onSuccess: async () => {
       listingForm.reset({ flat_type: "4 ROOM", storey_range: "" });
@@ -477,10 +472,7 @@ export default function SessionPage() {
     if (nextUnit === floorAreaUnit) return;
     const currentArea = listingForm.getValues("floor_area_sqm");
     if (typeof currentArea === "number" && Number.isFinite(currentArea) && currentArea > 0) {
-      const converted = nextUnit === "sqft"
-        ? currentArea / SQ_FT_TO_SQ_M
-        : currentArea * SQ_FT_TO_SQ_M;
-      listingForm.setValue("floor_area_sqm", Number(converted.toFixed(2)), { shouldValidate: true });
+      listingForm.setValue("floor_area_sqm", convertFloorArea(currentArea, floorAreaUnit, nextUnit), { shouldValidate: true });
     }
     setFloorAreaUnit(nextUnit);
   }

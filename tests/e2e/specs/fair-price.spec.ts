@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+const API_URL = process.env.API_URL ?? "http://127.0.0.1:8000";
+
 test.describe("Production fair-price model", () => {
   test("three real HDB addresses return CatBoost estimates with evidence", async ({ page }) => {
     // This is a live-provider E2E flow that deliberately performs two
@@ -31,7 +33,7 @@ test.describe("Production fair-price model", () => {
     // Model metadata is intentionally hidden from ordinary users. Verify the
     // production response directly instead of asserting a developer diagnostic
     // string in the UI.
-    const comparisonResponse = await page.request.get(`http://127.0.0.1:8000/api/v1/sessions/${sessionId}/comparison`);
+    const comparisonResponse = await page.request.get(`${API_URL}/api/v1/sessions/${sessionId}/comparison`);
     expect(comparisonResponse.ok()).toBeTruthy();
     const comparison = await comparisonResponse.json();
     const fairPrices = Object.values(comparison.fair_price_by_listing as Record<string, { method?: string; model_version?: string }>);
@@ -51,7 +53,7 @@ test.describe("Production fair-price model", () => {
     await expect(page.getByText(/Your shortlist \(4\/5\)/)).toBeVisible();
     await page.getByRole("link", { name: /open comparison and run enrichment/i }).click();
     await expect.poll(async () => {
-      const response = await page.request.get(`http://127.0.0.1:8000/api/v1/sessions/${sessionId}/comparison`);
+      const response = await page.request.get(`${API_URL}/api/v1/sessions/${sessionId}/comparison`);
       if (!response.ok()) return 0;
       const refreshed = await response.json();
       return Object.keys(refreshed.fair_price_by_listing ?? {}).length;

@@ -35,13 +35,14 @@ class TestHDBTransactions:
 
 class TestFairPrice:
     def test_estimate_with_comparables(self, monkeypatch):
+        # This test exercises the explicitly supported comparable fallback;
+        # make that independent of whether a local model artifact is present.
+        monkeypatch.setattr("app.engines.fair_price.predict_catboost", lambda *_args: None)
         listing = _listing("123 Bishan St 12", 680000, 91.0)
         result = FairPriceEngine.estimate(listing, "BISHAN")
         assert result.status == DataStatus.AVAILABLE
         assert result.central_estimate is not None
         assert len(result.comparables) >= 3
-        # Unit tests run without the container-built artifact, so the explicit
-        # comparable fallback is the expected safe local behaviour.
         assert result.method == "WEIGHTED_COMPARABLES_FALLBACK"
         assert result.value_gap_percentage is not None
 

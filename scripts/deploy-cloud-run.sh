@@ -15,6 +15,7 @@ PROJECT_ID="${1:-${GOOGLE_CLOUD_PROJECT:-}}"
 REGION="${CLOUD_RUN_REGION:-asia-southeast1}"
 SERVICE_NAME="${CLOUD_RUN_SERVICE_NAME:-nearhome-api}"
 ARTIFACT_REPOSITORY="${ARTIFACT_REGISTRY_REPOSITORY:-nearhome-api}"
+RELEASE_IMAGE_NAME="${RELEASE_IMAGE_NAME:-nearhome-api}"
 SERVICE_ACCOUNT="${CLOUD_RUN_SERVICE_ACCOUNT:-}"
 TASK_QUEUE="${CLOUD_TASKS_QUEUE:-nearhome-enrichment}"
 TASK_LOCATION="${CLOUD_TASKS_LOCATION:-$REGION}"
@@ -68,11 +69,18 @@ for secret_name in "${required_secrets[@]}"; do
     --quiet >/dev/null
 done
 
-IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/$ARTIFACT_REPOSITORY/$SERVICE_NAME:$(git rev-parse --short HEAD)"
+RELEASE_SHA="$(git rev-parse HEAD)"
+IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/$ARTIFACT_REPOSITORY/$RELEASE_IMAGE_NAME:${RELEASE_SHA:0:12}"
 # The API Dockerfile lives in the monorepo, not at the repository root. Use
 # the explicit Cloud Build definition so Cloud Build receives the entire
 # context (including reference fixtures) while building the correct file.
-gcloud builds submit . --config cloudbuild.yaml --substitutions="_IMAGE=$IMAGE"
+gcloud builds submit . --config cloudbuild.yaml --substitutions="_IMAGE=$IMAGE,_GIT_SHA=$RELEASE_SHA"
+IMAGE_DIGEST="$(gcloud artifacts docker images describe "$IMAGE" --format='value(image_summary.digest)')"
+if [[ -z "$IMAGE_DIGEST" ]]; then
+  echo "Could not resolve immutable digest for release image: $IMAGE" >&2
+  exit 1
+fi
+DEPLOY_IMAGE="${IMAGE%@*}@${IMAGE_DIGEST}"
 
 SECRET_MAPPINGS="DATABASE_URL=$DATABASE_URL_SECRET_NAME:latest,SECRET_KEY=$SECRET_KEY_SECRET_NAME:latest,GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY_SECRET_NAME:latest,ONEMAP_EMAIL=$ONEMAP_EMAIL_SECRET_NAME:latest,ONEMAP_PASSWORD=$ONEMAP_PASSWORD_SECRET_NAME:latest,GROQ_API_KEY=$GROQ_API_KEY_SECRET_NAME:latest"
 if gcloud secrets describe "$EGRESS_DIAGNOSTICS_TOKEN_SECRET_NAME" >/dev/null 2>&1; then
@@ -83,7 +91,7 @@ fi
 ENV_VARS="^|^APP_ENV=production|DEMO_MODE=false|LOG_LEVEL=INFO|JOB_EXECUTION_MODE=cloud_tasks|GCP_PROJECT_ID=$PROJECT_ID|CLOUD_TASKS_LOCATION=$TASK_LOCATION|CLOUD_TASKS_QUEUE=$TASK_QUEUE|ENRICHMENT_WORKER_URL=$WORKER_URL|CLOUD_TASKS_SERVICE_ACCOUNT_EMAIL=$TASK_SERVICE_ACCOUNT|CLOUD_TASKS_OIDC_AUDIENCE=$TASK_AUDIENCE|CLOUD_TASKS_DISPATCH_DEADLINE_SECONDS=600|MAX_ENRICHMENT_JOB_ATTEMPTS=3|ENRICHMENT_JOB_STALE_SECONDS=660|MAX_CONCURRENT_ENRICHMENTS=1|ENABLE_PLAYWRIGHT_FALLBACK=true|PLAYWRIGHT_TIMEOUT_SECONDS=25|PLAYWRIGHT_MAX_CONCURRENCY=1|ENABLE_EGRESS_DIAGNOSTICS=false|DATABASE_POOL_SIZE=3|DATABASE_MAX_OVERFLOW=2|DATABASE_POOL_RECYCLE_SECONDS=300|WEB_URL=$WEB_URL|CORS_ORIGINS=$CORS_ORIGINS"
 
 gcloud run deploy "$SERVICE_NAME" \
-  --image "$IMAGE" \
+  --image "$DEPLOY_IMAGE" \
   --region "$REGION" \
   --service-account "$SERVICE_ACCOUNT" \
   --allow-unauthenticated \
@@ -100,4 +108,5 @@ gcloud run deploy "$SERVICE_NAME" \
 
 SERVICE_URL="$(gcloud run services describe "$SERVICE_NAME" --region "$REGION" --format='value(status.url)')"
 echo "NearHome API deployed: $SERVICE_URL"
+echo "Release image: $DEPLOY_IMAGE"
 echo "Set NEXT_PUBLIC_API_BASE_URL=$SERVICE_URL in Vercel, then set WEB_URL/CORS_ORIGINS to the final Vercel URL and redeploy."

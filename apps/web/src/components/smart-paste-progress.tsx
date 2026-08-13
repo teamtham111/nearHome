@@ -24,14 +24,10 @@ export function SmartPasteProgress({ active, sourceType }: SmartPasteProgressPro
         frameRef.current = null;
       }
       startTimeRef.current = null;
-      setPercent(0);
-      setLabel("");
       return undefined;
     }
 
     startTimeRef.current = performance.now();
-    setPercent(0);
-    setLabel(sourceType === "url" ? "Retrieving listing page…" : "Preparing content…");
 
     const tick = (now: number) => {
       const startedAt = startTimeRef.current ?? now;

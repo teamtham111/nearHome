@@ -34,7 +34,9 @@ async def lifespan(_app: FastAPI):
     settings.validate_production()
     if not settings.demo_mode:
         validate_major_road_mapping_artifacts()
-    get_logger(__name__).info("enrichment_worker_started", app_env=settings.app_env)
+    get_logger(__name__).info(
+        "enrichment_worker_started", app_env=settings.app_env, git_sha=settings.release_sha
+    )
     yield
 
 
@@ -82,6 +84,7 @@ def run_enrichment_task(
         "enrichment_job_running",
         job_id=str(job.id),
         session_id=str(job.session_id),
+        git_sha=settings.release_sha,
         attempt=job.attempts,
         stage=job.progress_stage,
     )
@@ -103,6 +106,7 @@ def run_enrichment_task(
             "enrichment_job_failed_permanently",
             job_id=str(job.id),
             session_id=str(job.session_id),
+            git_sha=settings.release_sha,
             attempt=job.attempts,
             error_category="invalid_input",
             duration_ms=round((time.perf_counter() - started) * 1000, 2),
@@ -124,6 +128,7 @@ def run_enrichment_task(
         "enrichment_job_completed",
         job_id=str(job.id),
         session_id=str(job.session_id),
+        git_sha=settings.release_sha,
         attempt=job.attempts,
         stage="completed",
         duration_ms=round((time.perf_counter() - started) * 1000, 2),
@@ -158,6 +163,7 @@ def _handle_worker_exception(
         "enrichment_job_execution_failed",
         job_id=str(job.id),
         session_id=str(job.session_id),
+        git_sha=settings.release_sha,
         attempt=job.attempts,
         stage=job.progress_stage,
         outcome=outcome,

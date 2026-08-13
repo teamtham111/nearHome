@@ -1,6 +1,6 @@
 """API route handlers."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from hmac import compare_digest
 from uuid import UUID, uuid4
 
@@ -53,7 +53,9 @@ logger = get_logger(__name__)
 
 @router.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
-    return HealthResponse(status="ok", demo_mode=settings.demo_mode, checks={"api": "ok"})
+    return HealthResponse(
+        status="ok", demo_mode=settings.demo_mode, git_sha=settings.release_sha, checks={"api": "ok"}
+    )
 
 
 @router.get("/internal/egress-diagnostics", include_in_schema=False)
@@ -88,6 +90,7 @@ def ready(db: Session = Depends(get_db)) -> JSONResponse:
             content=HealthResponse(
                 status="unavailable",
                 demo_mode=settings.demo_mode,
+                git_sha=settings.release_sha,
                 checks={
                     "database": "unavailable",
                     "redis": "not_required" if settings.job_execution_mode != "arq" else "unknown",
@@ -100,6 +103,7 @@ def ready(db: Session = Depends(get_db)) -> JSONResponse:
             content=HealthResponse(
                 status="ready",
                 demo_mode=settings.demo_mode,
+                git_sha=settings.release_sha,
                 checks={
                     "database": "ok",
                     "redis": "not_required",
@@ -118,6 +122,7 @@ def ready(db: Session = Depends(get_db)) -> JSONResponse:
             content=HealthResponse(
                 status="degraded",
                 demo_mode=settings.demo_mode,
+                git_sha=settings.release_sha,
                 checks={"database": "ok", "redis": "unavailable", "job_execution": "arq"},
             ).model_dump(),
         )
@@ -126,6 +131,7 @@ def ready(db: Session = Depends(get_db)) -> JSONResponse:
         content=HealthResponse(
             status="ready",
             demo_mode=settings.demo_mode,
+            git_sha=settings.release_sha,
             checks={"database": "ok", "redis": "ok", "job_execution": "arq"},
         ).model_dump()
     )
@@ -414,6 +420,10 @@ async def start_enrichment(session_id: UUID, db: Session = Depends(get_db)) -> E
     if not SessionRepository(db).get_session(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
     jobs = EnrichmentJobRepository(db)
+    jobs.fail_stale_active_for_session(
+        session_id,
+        datetime.now(UTC) - timedelta(seconds=settings.enrichment_job_stale_seconds),
+    )
     job, created = jobs.create_or_get_active(session_id)
     if created:
         # The frontend polls these durable run rows for stage-level progress.
@@ -487,7 +497,12 @@ def enrichment_job_status(
     """Read-only job polling endpoint scoped to the owning session."""
     if not SessionRepository(db).get_session(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
-    job = EnrichmentJobRepository(db).get_for_session(job_id, session_id)
+    jobs = EnrichmentJobRepository(db)
+    jobs.fail_if_stale(
+        job_id,
+        datetime.now(UTC) - timedelta(seconds=settings.enrichment_job_stale_seconds),
+    )
+    job = jobs.get_for_session(job_id, session_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Enrichment job not found")
     return EnrichmentJobStatusResponse(

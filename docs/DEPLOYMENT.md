@@ -231,7 +231,39 @@ curl --fail https://<cloud-run-service-url>/api/v1/ready
 `/api/v1/health` only confirms the process is alive. `/api/v1/ready` performs a bounded
 database check; it does not load CatBoost, launch Chromium, or call external
 providers. In Cloud Tasks mode Redis reports `not_required` and `job_execution`
-reports `cloud_tasks`.
+reports `cloud_tasks`. Both responses include a non-secret `git_sha` supplied as
+`GIT_SHA` when Cloud Build creates the image. Record this value and compare it
+with the commit intended for the deployment. A locally built image may report
+`"unknown"`; that does not change readiness semantics.
+
+The worker logs the same `git_sha` at startup and for each enrichment state
+transition. Confirm the worker revision with Cloud Run logs, for example:
+
+```bash
+gcloud run services logs read <worker-service-name> \
+  --region asia-southeast1 --limit 50 | grep enrichment_worker_started
+```
+
+Production startup fails if `GIT_SHA` is missing, `unknown`, or not a full
+40-character commit SHA. This prevents a healthy-looking production revision
+from claiming release provenance it does not have.
+
+Build the API first with `scripts/deploy-cloud-run.sh`; it builds exactly one
+immutable image tagged with the current commit SHA. Then deploy the worker with
+`scripts/deploy-enrichment-worker.sh`. The worker script refuses to rebuild: it
+resolves the already-built API image by SHA tag, so Cloud Run must use the same
+image digest for both services. Set `RELEASE_IMAGE_NAME` only when a project
+uses a non-default Artifact Registry image name, and use the same value for
+both scripts. Both scripts resolve the tag to `image@sha256:...` before
+deploying, so Cloud Run revisions reference immutable content. Verify this
+after deployment:
+
+```bash
+gcloud run services describe nearhome-api --region asia-southeast1 \
+  --format='value(spec.template.spec.containers[0].image)'
+gcloud run services describe nearhome-enrichment-worker --region asia-southeast1 \
+  --format='value(spec.template.spec.containers[0].image)'
+```
 
 After Vercel is configured, use the read-only smoke check:
 
@@ -241,11 +273,28 @@ BACKEND_URL=https://<cloud-run-service-url> \
 ./scripts/production-smoke.sh
 ```
 
-Then test in an incognito window: create/load a session, add manual and Smart
-Paste listings, confirm/edit fields, run enrichment, inspect transport,
-driving, journeys, schools, fair price, and recommendation evidence, and
-remove a listing. Verify browser requests target Cloud Run—not localhost—and
-that browser bundles contain no secrets.
+Then use an incognito window for this controlled-beta checklist:
+
+1. Create a fresh session, save a buyer profile, and reload the page to verify
+   the session persists.
+2. Smart Paste one PropertyGuru listing and one 99.co listing; review and
+   confirm the extracted fields before adding each flat.
+3. Add one manual listing in square metres and one in square feet. Confirm that
+   the latter is shown/saved in the equivalent square metres.
+4. Start enrichment and confirm the progress display advances through stages
+   to a terminal `completed` or useful `failed` state; it must not poll forever.
+5. Load the comparison and inspect fair-price, public-transport, driving,
+   journeys, schools, and recommendation evidence. Reload the session and
+   confirm those results persist.
+6. Repeat the core flow at phone width. Deliberately submit an invalid listing
+   URL and an unresolvable address; verify that the errors are recoverable and
+   useful.
+7. In browser Network tools, investigate unexpected 400, 404, 422, 429, 500,
+   502, or 503 responses. Verify requests target Cloud Run—not localhost—and
+   that browser bundles contain no secrets.
+8. Record `/api/v1/ready`'s `git_sha` and compare it with the API deployment
+   commit. Confirm the same SHA in the worker startup log before treating the
+   release as a matched API/worker pair.
 
 ## Environment reference
 

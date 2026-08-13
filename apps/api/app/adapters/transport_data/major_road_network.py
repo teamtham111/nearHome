@@ -88,6 +88,29 @@ class MajorRoadEntryPoint:
 
 
 @dataclass(frozen=True)
+class MajorRoadEntryCandidateEvaluation:
+    """Topology decision for one source node of a matched directed OSM edge.
+
+    The offline mapping builder ordinarily persists accepted entries only. An
+    optional diagnostics collection records the same decisions for data QA;
+    it never participates in runtime enrichment.
+    """
+
+    name: str
+    major_road_id: str
+    node_id: str
+    latitude: float
+    longitude: float
+    candidate_id: str
+    matched_edge_ids: tuple[tuple[str, str, str], ...]
+    approach_edge_ids: tuple[tuple[str, str, str], ...]
+    incoming_edge_count: int
+    outgoing_edge_count: int
+    status: str
+    reason: str | None
+
+
+@dataclass(frozen=True)
 class PrecomputedMajorRoad:
     """Offline SLA-to-OSM match and entry topology for one official road."""
 
@@ -352,6 +375,9 @@ class LocalDriveGraph:
     def incoming(self, node_id: str) -> tuple[DriveEdge, ...]:
         return tuple(self._incoming.get(node_id, []))
 
+    def outgoing(self, node_id: str) -> tuple[DriveEdge, ...]:
+        return tuple(self._outgoing.get(node_id, []))
+
     def nearby_edges(self, latitude: float, longitude: float, radius_metres: float) -> tuple[DriveEdge, ...]:
         """Return locally indexed edge candidates for route-polyline matching."""
         latitude_delta = radius_metres / _METRES_PER_DEGREE_LATITUDE
@@ -475,23 +501,51 @@ def find_major_road_entry_nodes(
     dedup_metres: float,
     limit: int,
     target_distance_metres: float = 80.0,
+    diagnostics: list[MajorRoadEntryCandidateEvaluation] | None = None,
 ) -> list[MajorRoadEntryPoint]:
-    """Return nodes with a non-major incoming edge and a matched major outgoing edge."""
+    """Return nodes with a non-major incoming edge and a matched major outgoing edge.
+
+    Supplying ``diagnostics`` exposes the actual topology decisions for
+    offline validation. The accepted return value is unchanged; normal
+    runtime/build callers do not retain rejected candidates.
+    """
     matched_ids = {edge.identifier for edge in matched_edges}
     by_node: dict[str, list[DriveEdge]] = {}
     for edge in matched_edges:
         by_node.setdefault(edge.source, []).append(edge)
     entries: list[MajorRoadEntryPoint] = []
     for node_id, outgoing_major_edges in by_node.items():
+        node = graph.nodes[node_id]
+        primary_major_edge = min(outgoing_major_edges, key=lambda edge: edge.identifier)
+        candidate_id = f"{road.identifier}:{node_id}:{primary_major_edge.target}:{primary_major_edge.key}"
         approach_edges = tuple(
             sorted(
                 (edge for edge in graph.incoming(node_id) if edge.identifier not in matched_ids),
                 key=lambda edge: edge.identifier,
             )
         )
+        matched_edge_ids = tuple(sorted(edge.identifier for edge in outgoing_major_edges))
+        incoming_count = len(graph.incoming(node_id))
+        outgoing_count = len(graph.outgoing(node_id))
         if not approach_edges:
+            if diagnostics is not None:
+                diagnostics.append(
+                    MajorRoadEntryCandidateEvaluation(
+                        road.name,
+                        road.identifier,
+                        node_id,
+                        node.latitude,
+                        node.longitude,
+                        candidate_id,
+                        matched_edge_ids,
+                        (),
+                        incoming_count,
+                        outgoing_count,
+                        "REJECTED",
+                        "no_non_major_incoming_approach",
+                    )
+                )
             continue
-        node = graph.nodes[node_id]
         if any(
             _point_segment_distance_metres(
                 (node.longitude, node.latitude),
@@ -501,28 +555,77 @@ def find_major_road_entry_nodes(
             <= dedup_metres
             for existing in entries
         ):
+            if diagnostics is not None:
+                diagnostics.append(
+                    MajorRoadEntryCandidateEvaluation(
+                        road.name,
+                        road.identifier,
+                        node_id,
+                        node.latitude,
+                        node.longitude,
+                        candidate_id,
+                        matched_edge_ids,
+                        tuple(edge.identifier for edge in approach_edges),
+                        incoming_count,
+                        outgoing_count,
+                        "REJECTED",
+                        "within_entry_node_dedup_distance",
+                    )
+                )
+            continue
+        if len(entries) >= limit:
+            if diagnostics is None:
+                break
+            diagnostics.append(
+                MajorRoadEntryCandidateEvaluation(
+                    road.name,
+                    road.identifier,
+                    node_id,
+                    node.latitude,
+                    node.longitude,
+                    candidate_id,
+                    matched_edge_ids,
+                    tuple(edge.identifier for edge in approach_edges),
+                    incoming_count,
+                    outgoing_count,
+                    "REJECTED",
+                    "entry_node_limit",
+                )
+            )
             continue
         # The outgoing matched edge is directed from this junction into the
         # Major Road.  Its downstream point is the online routing hypothesis.
-        primary_major_edge = min(outgoing_major_edges, key=lambda edge: edge.identifier)
         target_longitude, target_latitude = _coordinate_along_edge(primary_major_edge, target_distance_metres)
-        candidate_id = f"{road.identifier}:{node_id}:{primary_major_edge.target}:{primary_major_edge.key}"
-        entries.append(
-            MajorRoadEntryPoint(
-                name=road.name,
-                major_road_id=road.identifier,
-                node_id=node_id,
-                latitude=node.latitude,
-                longitude=node.longitude,
-                matched_edge_ids=tuple(sorted(edge.identifier for edge in outgoing_major_edges)),
-                candidate_id=candidate_id,
-                target_latitude=target_latitude,
-                target_longitude=target_longitude,
-                approach_edge_ids=tuple(edge.identifier for edge in approach_edges),
-            )
+        entry = MajorRoadEntryPoint(
+            name=road.name,
+            major_road_id=road.identifier,
+            node_id=node_id,
+            latitude=node.latitude,
+            longitude=node.longitude,
+            matched_edge_ids=matched_edge_ids,
+            candidate_id=candidate_id,
+            target_latitude=target_latitude,
+            target_longitude=target_longitude,
+            approach_edge_ids=tuple(edge.identifier for edge in approach_edges),
         )
-        if len(entries) >= limit:
-            break
+        entries.append(entry)
+        if diagnostics is not None:
+            diagnostics.append(
+                MajorRoadEntryCandidateEvaluation(
+                    road.name,
+                    road.identifier,
+                    node_id,
+                    node.latitude,
+                    node.longitude,
+                    candidate_id,
+                    matched_edge_ids,
+                    entry.approach_edge_ids,
+                    incoming_count,
+                    outgoing_count,
+                    "ACCEPTED",
+                    None,
+                )
+            )
     return entries
 
 

@@ -922,7 +922,14 @@ class TestFairPriceValuation:
         result = FairPriceEngine.estimate(listing, "BISHAN")
         assert result.status == DataStatus.INSUFFICIENT_EVIDENCE
 
-    def test_equivalent_hdb_flat_type_labels_match_transactions(self):
+    def test_equivalent_hdb_flat_type_labels_match_transactions(self, monkeypatch):
+        """The comparable fallback normalises equivalent HDB flat-type labels.
+
+        Keep this focused on the fallback contract rather than depending on
+        whether an optional CatBoost model happens to be available in the
+        current test environment.
+        """
+        monkeypatch.setattr("app.engines.fair_price.predict_catboost", lambda *_args: None)
         listing = ConfirmedListing(
             listing_id=uuid4(),
             session_id=uuid4(),

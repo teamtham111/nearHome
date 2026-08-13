@@ -160,10 +160,10 @@ class BusNetwork:
     def _group_options(
         self, options: set[BoardingServiceOption], *, kind: str
     ) -> tuple[dict[BoardingServiceOption, str], dict[str, CorridorInfo]]:
-        options = sorted(options)
-        union_find = _UnionFind(options)
+        ordered_options = sorted(options)
+        union_find = _UnionFind(ordered_options)
         by_stop: dict[str, list[BoardingServiceOption]] = {}
-        for option in options:
+        for option in ordered_options:
             for stop_code in set(option.downstream_stop_codes):
                 by_stop.setdefault(stop_code, []).append(option)
 
@@ -179,7 +179,7 @@ class BusNetwork:
                         union_find.union(left, right)
 
         groups: dict[BoardingServiceOption, set[BoardingServiceOption]] = {}
-        for option in options:
+        for option in ordered_options:
             groups.setdefault(union_find.find(option), set()).add(option)
 
         corridor_by_option: dict[BoardingServiceOption, str] = {}

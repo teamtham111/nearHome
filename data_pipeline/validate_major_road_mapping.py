@@ -195,6 +195,12 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--gold-labels", type=Path, default=DEFAULT_GOLD_LABELS)
     parser.add_argument("--search-radius-metres", type=float, default=100.0)
+    parser.add_argument(
+        "--road",
+        action="append",
+        default=[],
+        help="Validate one SLA road by identifier or name. Repeat for a focused QA subset.",
+    )
     args = parser.parse_args()
     if args.search_radius_metres <= 0:
         raise SystemExit("--search-radius-metres must be positive")
@@ -213,6 +219,13 @@ def main() -> int:
     settings.sla_major_roads_path = str(args.sla)
     SlaMajorRoadStore.reset_cache()
     roads = SlaMajorRoadStore.load()
+    if args.road:
+        requested = {value.strip().upper() for value in args.road if value.strip()}
+        available = {road.identifier.upper() for road in roads} | {road.name.upper() for road in roads}
+        unknown = sorted(requested - available)
+        if unknown:
+            raise SystemExit(f"Unknown SLA Major Road name/identifier: {', '.join(unknown)}")
+        roads = tuple(road for road in roads if road.identifier.upper() in requested or road.name.upper() in requested)
     graph = LocalDriveGraph.from_graphml(args.graph)
     index = build_osm_edge_strtree(graph)
     args.output_dir.mkdir(parents=True, exist_ok=True)

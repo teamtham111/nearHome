@@ -1,5 +1,6 @@
 """Application configuration and production safety checks."""
 
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -21,6 +22,9 @@ class Settings(BaseSettings):
     app_env: str = "development"
     demo_mode: bool = True
     log_level: str = "INFO"
+    # Injected when the immutable container image is built. It deliberately
+    # has a safe fallback so health checks never fail for a locally built image.
+    git_sha: str = "unknown"
     api_host: str = "0.0.0.0"
     api_port: int = 8080
     web_url: str = "http://localhost:3000"
@@ -106,6 +110,10 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         return self.app_env.casefold() == "production"
 
+    @property
+    def release_sha(self) -> str:
+        return self.git_sha.strip() or "unknown"
+
     def validate_production(self) -> None:
         """Fail closed when a production process is configured unsafely.
 
@@ -136,6 +144,8 @@ class Settings(BaseSettings):
 
         if self.demo_mode:
             problems.append("DEMO_MODE must be false")
+        if not re.fullmatch(r"[0-9a-f]{40}", self.release_sha, flags=re.IGNORECASE):
+            problems.append("GIT_SHA must be the full 40-character commit SHA when APP_ENV=production")
         if self.secret_key == "dev-secret-change-in-production" or len(self.secret_key) < 32:
             problems.append("SECRET_KEY must be a unique value of at least 32 characters")
         if not self.web_url.startswith("https://"):

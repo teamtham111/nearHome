@@ -10,6 +10,7 @@ def _production_settings(**overrides: object) -> Settings:
     values: dict[str, object] = {
         "app_env": "production",
         "demo_mode": False,
+        "git_sha": "a" * 40,
         "web_url": "https://app.example.test",
         "cors_origins": "https://app.example.test",
         "database_url": "postgresql+psycopg://user:password@database:5432/nearhome",
@@ -42,6 +43,11 @@ def test_inline_execution_allows_an_absent_redis_url_locally() -> None:
     ).validate_production()
 
 
+@pytest.mark.parametrize(("git_sha", "expected"), [("a" * 40, "a" * 40), ("", "unknown")])
+def test_release_sha_is_safe_when_build_metadata_is_set_or_unset(git_sha: str, expected: str) -> None:
+    assert Settings(_env_file=None, git_sha=git_sha).release_sha == expected
+
+
 def test_plain_supabase_postgres_url_uses_installed_psycopg_driver() -> None:
     settings = Settings(
         _env_file=None,
@@ -59,6 +65,7 @@ def test_production_postgres_connections_require_ssl() -> None:
     ("overrides", "expected_message"),
     [
         ({"demo_mode": True}, "DEMO_MODE must be false"),
+        ({"git_sha": "unknown"}, "GIT_SHA must be the full 40-character commit SHA"),
         ({"cors_origins": "http://localhost:3000"}, "CORS_ORIGINS must contain only"),
         ({"cors_origins": "https://other.example.test"}, "CORS_ORIGINS must include WEB_URL"),
         ({"database_url": "postgresql+psycopg://user:password@localhost:5432/nearhome"}, "DATABASE_URL"),
