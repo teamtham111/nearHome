@@ -1,5 +1,14 @@
 import { test, expect } from "@playwright/test";
 
+async function openManualEntry(page: import("@playwright/test").Page) {
+  const tab = page.getByRole("tab", { name: "Enter manually" });
+  if ((await tab.getAttribute("aria-selected")) !== "true") await tab.click();
+}
+
+function floorAreaInput(page: import("@playwright/test").Page) {
+  return page.getByRole("spinbutton", { name: /floor area/i });
+}
+
 test.describe("NearHome manual comparison (no external API)", () => {
   test("starts enrichment only after entering the dedicated comparison route", async ({ page }) => {
     const sessionId = "comparison-route-test";
@@ -32,7 +41,28 @@ test.describe("NearHome manual comparison (no external API)", () => {
       } else if (path.endsWith("/enrichment/status")) {
         await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ runs: [] }) });
       } else if (path.endsWith("/comparison")) {
-        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) });
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            session_id: sessionId,
+            listing_count: 2,
+            can_compare: true,
+            immediate_metrics: [],
+            requirement_results: [],
+            preference_scores: [],
+            recommendation: null,
+            fair_price_status: "AWAITING_ENRICHMENT",
+            fair_price_by_listing: {},
+            transport_by_listing: {},
+            driving_by_listing: {},
+            schools_by_listing: {},
+            observations: [],
+            journey_results: [],
+            enrichment_summary: [],
+            demo_mode: false,
+          }),
+        });
       } else {
         await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(session) });
       }
@@ -163,9 +193,11 @@ test.describe("NearHome manual comparison (no external API)", () => {
     await expect(page.getByRole("list", { name: "Decision priorities" }).getByRole("listitem")).toHaveCount(2);
     const transportDragHandle = page.getByRole("button", { name: "Drag to reorder Public transport" });
     await transportDragHandle.focus();
-    await transportDragHandle.press("Enter");
+    await transportDragHandle.press("Space");
+    await page.waitForTimeout(50);
     await transportDragHandle.press("ArrowUp");
-    await transportDragHandle.press("Enter");
+    await page.waitForTimeout(50);
+    await transportDragHandle.press("Space");
     await expect(page.getByLabel("Priority 1 factor")).toHaveValue("PUBLIC_TRANSPORT");
     await page.getByRole("button", { name: /Remove Public transport/ }).click();
     await expect(page.getByLabel("Priority 1 factor")).toHaveValue("AFFORDABILITY");
@@ -197,11 +229,12 @@ test.describe("NearHome manual comparison (no external API)", () => {
     await page.goto("/");
     await page.getByRole("button", { name: /start new comparison/i }).click();
     await page.getByRole("button", { name: /save profile/i }).click();
+    await openManualEntry(page);
 
     for (const address of ["123 Bishan St 12", "201 Tampines St 21", "217 Bishan St 23"]) {
       await page.getByLabel(/address/i).fill(address);
       await page.getByLabel(/asking price/i).fill("650000");
-      await page.getByLabel(/floor area/i).fill("91");
+      await floorAreaInput(page).fill("91");
       await page.getByRole("button", { name: /add listing/i }).click();
     }
 
@@ -226,9 +259,9 @@ test.describe("NearHome manual comparison (no external API)", () => {
 
     await page.getByRole("button", { name: /remove flat 217 bishan st 23/i }).click();
     await page.getByRole("button", { name: "Remove flat", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Add a flat" })).toBeVisible();
-    await expect(page.getByRole("tab", { name: "Manual entry" })).toBeVisible();
-    await expect(page.getByRole("tab", { name: "Smart Paste" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Add the flats you want to compare", level: 3 })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Enter manually" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Paste listing text" })).toBeVisible();
   });
 
   test("restores the flat when server-side removal fails", async ({ page }) => {
@@ -247,9 +280,10 @@ test.describe("NearHome manual comparison (no external API)", () => {
     await page.goto("/");
     await page.getByRole("button", { name: /start new comparison/i }).click();
     await page.getByRole("button", { name: /save profile/i }).click();
+    await openManualEntry(page);
     await page.getByLabel(/address/i).fill("123 Bishan St 12");
     await page.getByLabel(/asking price/i).fill("650000");
-    await page.getByLabel(/floor area/i).fill("91");
+    await floorAreaInput(page).fill("91");
     await page.getByRole("button", { name: /add listing/i }).click();
 
     await page.getByRole("button", { name: /remove flat 123 bishan st 12/i }).click();
@@ -408,7 +442,7 @@ test.describe("NearHome manual comparison (no external API)", () => {
 
     await page.goto("/session/ui-test/comparison");
     await expect(page.getByRole("navigation", { name: "Comparison progress" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Which flat fits best?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your comparison is ready", level: 2 })).toBeVisible();
     await expect(page.getByText("Overall fit", { exact: true })).toHaveCount(0);
     await expect(page.getByText("Estimated value: S$838,252").first()).toBeVisible();
     await expect(page.getByText("S$11,748 above estimate · 1.4%").first()).toBeVisible();
@@ -509,28 +543,31 @@ test.describe("NearHome manual comparison (no external API)", () => {
 
     // Save profile
     await page.getByRole("button", { name: /save profile/i }).click();
+    await openManualEntry(page);
 
     // Add first listing
     await page.getByLabel(/address/i).fill("123 Bishan St 12");
     await page.getByLabel(/asking price/i).fill("650000");
-    await page.getByLabel(/floor area/i).fill("91");
+    await floorAreaInput(page).fill("91");
     await page.getByRole("button", { name: /add listing|confirm listing/i }).click();
 
-    await expect(page.getByText(/1\/5 flats added/)).toBeVisible();
+    await expect(page.getByText(/Your shortlist \(1\/5\)/)).toBeVisible();
 
     // Add second listing
     await page.getByLabel(/address/i).fill("125 Bishan St 12");
     await page.getByLabel(/asking price/i).fill("680000");
     await page.getByRole("button", { name: /add listing|confirm listing/i }).click();
 
-    await expect(page.getByText(/Price and affordability/)).toBeVisible();
-    await expect(page.getByText(/Fair-price estimate/)).toBeVisible();
+    await page.getByRole("link", { name: /open comparison and run enrichment/i }).click();
+    await expect(page.getByText(/Price and affordability/)).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText(/Fair-price estimate/)).toBeVisible({ timeout: 120000 });
   });
 
   test("shows a recoverable warning instead of failing on a duplicate listing", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: /start new comparison/i }).click();
     await page.getByRole("button", { name: /save profile/i }).click();
+    await openManualEntry(page);
 
     const listing = {
       address: "123 Bishan St 12",
@@ -539,13 +576,13 @@ test.describe("NearHome manual comparison (no external API)", () => {
     };
     await page.getByLabel(/address/i).fill(listing.address);
     await page.getByLabel(/asking price/i).fill(listing.askingPrice);
-    await page.getByLabel(/floor area/i).fill(listing.floorArea);
+    await floorAreaInput(page).fill(listing.floorArea);
     await page.getByRole("button", { name: /add listing/i }).click();
     await expect(page.getByText("Your shortlist (1/5)")).toBeVisible();
 
     await page.getByLabel(/address/i).fill(listing.address);
     await page.getByLabel(/asking price/i).fill(listing.askingPrice);
-    await page.getByLabel(/floor area/i).fill(listing.floorArea);
+    await floorAreaInput(page).fill(listing.floorArea);
     await page.getByRole("button", { name: /add listing/i }).click();
 
     await expect(
@@ -574,7 +611,7 @@ test.describe("NearHome manual comparison (no external API)", () => {
     await page.getByRole("button", { name: /start new comparison/i }).click();
 
     const profile = page.locator("#buyer-profile");
-    const addFlat = page.locator("section").filter({ has: page.getByRole("heading", { name: "Add a flat" }) });
+    const addFlat = page.locator("section").filter({ has: page.getByRole("heading", { name: "Add the flats you want to compare" }) });
     const profileBox = await profile.boundingBox();
     const addFlatBox = await addFlat.boundingBox();
     expect(profileBox).not.toBeNull();
@@ -589,13 +626,13 @@ test.describe("NearHome manual comparison (no external API)", () => {
       await expect(budgetInput).toHaveValue(value);
     }
 
-    const manualTab = page.getByRole("tab", { name: "Manual entry" });
-    const smartPasteTab = page.getByRole("tab", { name: "Smart Paste" });
-    await manualTab.focus();
-    await manualTab.press("ArrowRight");
-    await expect(smartPasteTab).toBeFocused();
-    await expect(smartPasteTab).toHaveAttribute("aria-selected", "true");
-    await smartPasteTab.press("ArrowLeft");
+    const manualTab = page.getByRole("tab", { name: "Enter manually" });
+    const textPasteTab = page.getByRole("tab", { name: "Paste listing text" });
+    await textPasteTab.focus();
+    await textPasteTab.press("ArrowRight");
+    await expect(page.getByRole("tab", { name: "Paste listing URL" })).toBeFocused();
+    await expect(page.getByRole("tab", { name: "Paste listing URL" })).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("tab", { name: "Paste listing URL" }).press("ArrowRight");
     await expect(manualTab).toBeFocused();
 
     for (const width of [1280, 1024, 768, 390]) {
@@ -611,17 +648,18 @@ test.describe("Smart Paste flow", () => {
   test("discards an extracted listing before confirmation", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: /start new comparison/i }).click();
+    await page.getByRole("button", { name: /save profile/i }).click();
 
-    await page.getByRole("tab", { name: /smart paste/i }).click();
+    await page.getByRole("tab", { name: /paste listing text/i }).click();
     await page
-      .getByRole("textbox", { name: /paste any property listing url/i })
+      .getByRole("textbox")
       .fill("123 Bishan Street 12, 4-room HDB flat, 91 sqm, asking S$650,000, remaining lease 65 years");
     await page.getByRole("button", { name: /^add a flat$/i }).click();
 
     await expect(page.getByText(/review extracted fields/i)).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: "Discard listing" }).click();
 
-    await expect(page.getByRole("textbox", { name: /paste any property listing url/i })).toBeVisible();
+    await expect(page.getByRole("textbox")).toBeVisible();
     await expect(page.getByText(/review extracted fields/i)).toHaveCount(0);
     await expect(page.getByText("Your shortlist (1/5)")).toHaveCount(0);
   });
@@ -629,10 +667,11 @@ test.describe("Smart Paste flow", () => {
   test("extract and confirm listing", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: /start new comparison/i }).click();
+    await page.getByRole("button", { name: /save profile/i }).click();
 
-    await page.getByRole("tab", { name: /smart paste/i }).click();
+    await page.getByRole("tab", { name: /paste listing text/i }).click();
     await page
-      .getByRole("textbox", { name: /paste any property listing url/i })
+      .getByRole("textbox")
       .fill("123 Bishan Street 12, 4-room HDB flat, 91 sqm, asking S$650,000, remaining lease 65 years");
     await page.getByRole("button", { name: /^add a flat$/i }).click();
 
@@ -650,6 +689,7 @@ test.describe("Enrichment and fair price", () => {
     await page.goto("/");
     await page.getByRole("button", { name: /start new comparison/i }).click();
     await page.getByRole("button", { name: /save profile/i }).click();
+    await openManualEntry(page);
 
     for (const [addr, price] of [
       ["123 Bishan St 12", "650000"],
@@ -657,13 +697,13 @@ test.describe("Enrichment and fair price", () => {
     ]) {
       await page.getByLabel(/address/i).fill(addr);
       await page.getByLabel(/asking price/i).fill(price);
-      await page.getByLabel(/floor area/i).fill("91");
+      await floorAreaInput(page).fill("91");
       await page.getByRole("button", { name: /add listing/i }).click();
     }
 
-    await page.getByRole("button", { name: /run enrichment/i }).click();
-    await expect(page.getByRole("progressbar", { name: "Enrichment progress" })).toBeVisible();
-    await expect(page.getByText(/Fair-price estimate/)).toBeVisible();
+    await page.getByRole("link", { name: /open comparison and run enrichment/i }).click();
+    await expect(page.getByRole("progressbar", { name: "Listing enrichment progress" })).toBeVisible();
+    await expect(page.getByText(/Fair-price estimate/)).toBeVisible({ timeout: 120000 });
     await expect(page.getByText(/comparable|awaiting|insufficient/i).first()).toBeVisible({ timeout: 20000 });
     await expect(page.getByRole("heading", { name: "Public transport strength" })).toBeVisible();
   });
@@ -745,11 +785,12 @@ test.describe("Mobile comparison", () => {
     await page.goto("/");
     await page.getByRole("button", { name: /start new comparison/i }).click();
     await page.getByRole("button", { name: /save profile/i }).click();
+    await openManualEntry(page);
 
     for (const price of ["640000", "660000"]) {
       await page.getByLabel(/address/i).fill(`Blk ${price} Bishan St 12`);
       await page.getByLabel(/asking price/i).fill(price);
-      await page.getByLabel(/floor area/i).fill("91");
+      await floorAreaInput(page).fill("91");
       await page.getByRole("button", { name: /add listing/i }).click();
     }
 

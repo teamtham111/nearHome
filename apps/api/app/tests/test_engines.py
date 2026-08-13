@@ -39,6 +39,7 @@ from app.engines.immediate_comparison import ImmediateComparisonEngine
 from app.engines.preference_scoring import PreferenceScoringEngine
 from app.engines.recommendation import RecommendationEngine
 from app.engines.requirement_engine import RequirementEngine, RequirementRegistryError
+from app.services.enrichment_service import resolve_flat_model_for_enrichment
 
 
 def _listing(price: float, area: float = 90.0, lease: float | None = None) -> ConfirmedListing:
@@ -831,13 +832,41 @@ class TestFairPriceValuation:
     def test_town_and_unambiguous_flat_model_can_be_derived_from_transactions(self):
         listing = _listing(600_000, area=90.0, lease=65.0)
         listing.address = "123 Bishan Street 12"
-        records = [_record(f"2024-{month:02d}", 550_000, block="123") for month in range(1, 4)]
+        records = [_record(f"2024-{month:02d}", 550_000, block="123") for month in range(1, 6)]
 
         town, town_source = derive_town_from_transactions(records, listing.address)
         model, model_source = infer_flat_model_from_transactions(records, listing)
 
         assert (town, town_source) == ("BISHAN", "historical_transaction_match")
         assert (model, model_source) == ("Model A", "historical_transactions")
+
+    def test_flat_model_transaction_fallback_requires_five_rows_and_ninety_percent_agreement(self):
+        listing = _listing(600_000, area=90.0, lease=65.0)
+        listing.address = "123 Bishan Street 12"
+        four = [_record(f"2024-{month:02d}", 550_000, block="123") for month in range(1, 5)]
+        assert infer_flat_model_from_transactions(four, listing) == (None, None)
+
+        mixed = [_record(f"2024-{month:02d}", 550_000, block="123") for month in range(1, 6)]
+        mixed[-1].flat_model = "Improved"
+        assert infer_flat_model_from_transactions(mixed, listing) == (None, None)
+
+        dominant = [_record(f"2024-{month:02d}", 550_000, block="123") for month in range(1, 11)]
+        dominant[-1].flat_model = "Improved"
+        assert infer_flat_model_from_transactions(dominant, listing) == ("Model A", "historical_transactions")
+
+    def test_recognised_flat_code_beats_conflicting_transaction_inference(self):
+        listing = _listing(600_000, area=90.0, lease=65.0)
+        listing.address = "123 Bishan Street 12"
+        listing.raw_listing_subtype = "4I"
+        records = [_record(f"2024-{month:02d}", 550_000, block="123") for month in range(1, 6)]
+        assert resolve_flat_model_for_enrichment(listing, records) == ("Improved", "derived_from_subtype")
+
+    def test_unknown_flat_code_uses_qualifying_transaction_fallback(self):
+        listing = _listing(600_000, area=90.0, lease=65.0)
+        listing.address = "123 Bishan Street 12"
+        listing.raw_listing_subtype = "4XYZ"
+        records = [_record(f"2024-{month:02d}", 550_000, block="123") for month in range(1, 6)]
+        assert resolve_flat_model_for_enrichment(listing, records) == ("Model A", "historical_transactions")
 
     def test_lease_commencement_can_be_derived_only_from_exact_unambiguous_address(self):
         records = [_record(f"2024-{month:02d}", 550_000, block="123") for month in range(1, 4)]

@@ -59,6 +59,11 @@ class Settings(BaseSettings):
     fair_price_model_artifact_path: str = ""
     onemap_email: str = ""
     onemap_password: str = ""
+    # Offline major-road artifacts. The build pipeline obtains the official
+    # SLA geometry and OSM graph; enrichment must never download either.
+    sla_major_roads_path: str = ""
+    singapore_drive_graph_path: str = ""
+    sla_osm_major_road_mapping_path: str = ""
     lta_account_key: str = ""
     groq_api_key: str = ""
     groq_model: str = "openai/gpt-oss-20b"

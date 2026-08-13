@@ -14,7 +14,7 @@ from typing import Any
 from app.adapters.reference_data import ReferenceDataStore, haversine_m
 from app.adapters.routing.base import RouteResult, RoutingProvider
 from app.adapters.routing.batch import RouteCall, run_bounded_route_calls
-from app.adapters.transport_data.lta_bus import LtaBusDataStore, ServiceDirectionKey
+from app.adapters.transport_data.lta_bus import LtaBusDataStore
 from app.domain.enums import ComponentStatus, Provenance
 from app.domain.transport_models import ComponentResult, provider_error
 from app.engines.transport_config import PT_CONFIG, PublicTransportConfig
@@ -41,11 +41,11 @@ def _frequency_for_corridors(
     """Return usable deduplicated corridors and their scheduled wait proxy."""
     if not LtaBusDataStore.is_usable():
         return []
-    grouped: dict[str, set[ServiceDirectionKey]] = {}
-    for key in LtaBusDataStore.services_by_stop(stop_code):
-        corridor_id = network.corridor_for(key)
-        if corridor_id:
-            grouped.setdefault(corridor_id, set()).add(key)
+    context = network.corridors_for_boarding_stops({stop_code}, include_one_transfer=False)
+    grouped = {
+        corridor_id: context.service_keys_at_boarding_stop(corridor_id, stop_code, direct_only=True)
+        for corridor_id in context.direct_corridor_ids()
+    }
 
     results: list[dict[str, Any]] = []
     period = config.assessed_frequency_period
@@ -244,7 +244,7 @@ def compute_access(
     walkable_stop_evidence: list[dict[str, Any]] = []
     feeder_entries: list[dict[str, Any]] = []
     direct_rail_entries: list[dict[str, Any]] = []
-    network = get_bus_network()
+    network = get_bus_network(config.corridor_overlap_threshold)
 
     walk_routes: dict[str, RouteResult] = {}
     walk_targets: list[tuple[str, Any]] = [("bus", stop) for stop in bus_candidates]
@@ -280,7 +280,7 @@ def compute_access(
             usable_corridors_by_stop[stop.stop_code] = _frequency_for_corridors(stop.stop_code, config, network)
             if (
                 stop.stop_code in walk_routes
-                and walk_routes[stop.stop_code].duration_minutes <= config.max_practical_walk_minutes
+                and walk_routes[stop.stop_code].duration_minutes <= config.max_bus_stop_access_walk_minutes
             ):
                 walkable_stop_evidence.append(
                     {
@@ -311,7 +311,7 @@ def compute_access(
     feeder_targets: list[tuple[Any, Any, RouteResult, list[dict[str, Any]]]] = []
     for stop in bus_candidates:
         walk_route = walk_routes.get(stop.stop_code)
-        if walk_route is None or walk_route.duration_minutes > config.max_practical_walk_minutes:
+        if walk_route is None or walk_route.duration_minutes > config.max_bus_stop_access_walk_minutes:
             continue
         corridors = usable_corridors_by_stop.get(stop.stop_code, [])
         if not corridors:
@@ -426,6 +426,7 @@ def compute_access(
         "practical_rail_entries": practical_rail,
         "primary_rail_entry": primary_rail,
         "walkable_bus_stop_codes": sorted({entry["bus_stop_code"] for entry in walkable_stop_evidence}),
+        "walkable_bus_stops": walkable_stop_evidence,
         "usable_bus_stop_codes": sorted({entry["bus_stop_code"] for entry in bus_entries}),
     }
     score = round(_score_access_cost(selected["generalised_access_cost"], config), 1)

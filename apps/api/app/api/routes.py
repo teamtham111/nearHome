@@ -24,8 +24,8 @@ from app.domain.models import (
     ImportantLocation,
     build_priorities,
 )
-from app.repositories.enrichment_repository import EnrichmentRepository
 from app.repositories.enrichment_job_repository import EnrichmentJobRepository
+from app.repositories.enrichment_repository import EnrichmentRepository
 from app.repositories.session_repository import SessionRepository
 from app.schemas.comparison import (
     BuyerProfileInput,
@@ -466,7 +466,7 @@ async def start_enrichment(session_id: UUID, db: Session = Depends(get_db)) -> E
     # Preserve the old ARQ path for local installations during migration.
     from app.jobs.queue import enqueue_enrichment
 
-    await enqueue_enrichment(session_id)
+    await enqueue_enrichment(job.id)
     return _job_start_response(job.id, session_id, job.status)
 
 

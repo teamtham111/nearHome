@@ -142,7 +142,10 @@ TAP_OUT_PAIRS: set[frozenset[str]] = {
 _LINE_NAMES = {
     "NS": "NSL", "EW": "EWL", "CG": "EWL", "NE": "NEL", "CC": "CCL", "DT": "DTL",
     "TE": "TEL", "BP": "BPLRT", "SE": "SKLRT", "SW": "SKLRT", "PE": "PGLRT",
-    "PW": "PGLRT", "STC": "NEL", "PTC": "NEL",
+    # STC/PTC are the Sengkang/Punggol LRT-centre nodes. They share a
+    # physical interchange with NE16/NE17 respectively, but their ride edges
+    # belong to the LRT systems—not the North-East Line.
+    "PW": "PGLRT", "STC": "SKLRT", "PTC": "PGLRT",
 }
 
 

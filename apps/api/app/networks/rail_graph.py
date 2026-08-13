@@ -75,21 +75,6 @@ class RailGraph:
         candidates.sort(key=lambda c: c[1])
         return candidates
 
-    def closest_physical_station(self, latitude: float, longitude: float) -> tuple[RailStation, float] | None:
-        """Return the nearest active physical station by straight-line distance.
-
-        This is used for the MRT Reach component's network-origin selection.
-        It deliberately scans all active stations instead of applying Access's
-        practical-walking pre-filter; walking feasibility is a separate
-        Access concern and must not suppress a rail-network reach score.
-        """
-        candidates = [
-            (station, haversine_m(latitude, longitude, station.latitude, station.longitude))
-            for station in self._data.stations
-            if station.active and station.latitude is not None and station.longitude is not None
-        ]
-        return min(candidates, key=lambda item: item[1]) if candidates else None
-
     def shortest_path(self, origin_code: str, destination_code: str) -> RailPathResult | None:
         """Dijkstra over ride+transfer edges. Because transfer edges cost
         more than ride edges, minimum-time paths naturally minimise

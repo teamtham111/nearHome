@@ -25,16 +25,12 @@ def compute_public_transport_model(
     access_result = compute_access(latitude, longitude, routing, config)
 
     access_value = access_result.value or {}
-    usable_bus_stop_codes = access_value.get(
-        "walkable_bus_stop_codes", access_value.get("usable_bus_stop_codes", [])
-    )
+    walkable_bus_stops = access_value.get("walkable_bus_stops", [])
     practical_rail_entries = access_value.get("practical_rail_entries", [])
-    bus_coverage_result = compute_bus_coverage(usable_bus_stop_codes, config)
+    bus_coverage_result = compute_bus_coverage(walkable_bus_stops, config)
     mrt_reach_result = compute_mrt_reach(
         practical_rail_entries,
         config,
-        origin_latitude=latitude,
-        origin_longitude=longitude,
     )
     route_resilience_result = compute_route_resilience(
         bus_coverage_result,

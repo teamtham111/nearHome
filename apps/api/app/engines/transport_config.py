@@ -23,16 +23,25 @@ class PublicTransportConfig:
     bus_stop_prefilter_m: float = 800.0
     mrt_prefilter_m: float = 2500.0
 
-    # Geographic sanity cutoff: beyond this routed walk time, a stop/station
-    # is not "practically accessible" even if it is the closest in the fixture.
+    # Geographic sanity cutoff for direct MRT entries. Bus-stop access uses its
+    # separate, stricter eligibility threshold below.
     max_practical_walk_minutes: float = 20.0
+
+    # A bus stop must be reached by an actual walking route within this time
+    # before it can contribute to Access or bus coverage candidate evidence.
+    max_bus_stop_access_walk_minutes: float = 10.0
+    # Bus Coverage is intentionally stricter than Access: it accepts only
+    # walkable stops whose routed walking distance is within this catchment.
+    max_bus_coverage_walk_distance_metres: float = 400.0
 
     max_access_points_evaluated: int = 8
     max_rail_entries_evaluated: int = 5
     max_feeder_route_pairs: int = 24
 
     assessed_frequency_period: str = "AM_PEAK"
-    maximum_usable_scheduled_interval_minutes: float = 20.0
+    # Eligibility ceiling only. Eligible corridors still differ in Access
+    # through their combined interval, wait proxy, and generalised cost.
+    maximum_usable_scheduled_interval_minutes: float = 15.0
     scheduled_wait_proxy_cap_minutes: float = 10.0
     station_entry_minutes: float = 2.0
     pre_rail_transfer_penalty_minutes: float = 6.0
@@ -55,6 +64,8 @@ class PublicTransportConfig:
     mrt_multi_transfer_saturation: int = 20
     mrt_extended_saturation: int = 60
 
+    # LCS length / shorter downstream sequence length. This is a deterministic
+    # heuristic, not a researched or calibrated transport-network threshold.
     corridor_overlap_threshold: float = 0.70
     # Score saturates once this many distinct corridors are reached — avoids
     # an unbounded count directly driving an unbounded score.
@@ -73,8 +84,30 @@ class DrivingConfig:
     weight_peak_access_penalty: float = 0.25
     weight_parking_convenience: float = 0.20
 
-    access_point_prefilter_m: float = 6000.0
-    max_access_points_evaluated: int = 6
+    # Major-road access: SLA geometry only shortlists official Major_Road
+    # features. OSM graph topology establishes legal vehicle entry/routing.
+    # Discovery takes the nearest distinct SLA roads. The safety radius bounds
+    # malformed/out-of-area source data; it is not an access-quality threshold.
+    major_road_candidate_limit: int = 5
+    major_road_search_safety_radius_m: float = 15_000.0
+    major_road_osm_match_tolerance_m: float = 35.0
+    # Without useful shared road names, demand close geometric alignment so
+    # nearby parallel but distinct roads do not become false matches.
+    major_road_osm_spatial_only_tolerance_m: float = 12.0
+    max_major_road_entry_nodes_per_road: int = 8
+    major_road_entry_node_dedup_m: float = 40.0
+    # Offline catalogue: place the Google routing target just downstream of a
+    # legal OSM entry junction, so online route geometry can prove actual entry.
+    major_road_entry_target_distance_m: float = 80.0
+    # Online cost controls. Local distance only reduces catalogue candidates;
+    # Google duration/distance remains the sole final ranking evidence.
+    max_major_road_route_candidates: int = 10
+    major_road_full_polyline_candidate_limit: int = 3
+    # Sustained entry must be more than a crossing/touch of an SLA line.
+    major_road_sustained_entry_buffer_m: float = 18.0
+    major_road_min_sustained_overlap_m: float = 60.0
+    major_road_entry_sample_spacing_m: float = 10.0
+    major_road_max_alignment_difference_degrees: float = 55.0
 
     independent_max_overlap: float = 0.30
     partially_independent_max_overlap: float = 0.70

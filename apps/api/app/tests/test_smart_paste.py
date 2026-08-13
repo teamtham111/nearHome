@@ -159,6 +159,13 @@ def test_mock_groq_extracts_propertyguru_style_flat_subtype_without_storey():
 @pytest.mark.parametrize(
     ("raw_value", "flat_type", "flat_model"),
     [
+        ("2I", "2 ROOM", "Improved"),
+        ("2A", "2 ROOM", "Model A"),
+        ("3I", "3 ROOM", "Improved"),
+        ("3NG", "3 ROOM", "New Generation"),
+        ("3S", "3 ROOM", "Simplified"),
+        ("3A", "3 ROOM", "Model A"),
+        ("3PA", "3 ROOM", "Premium Apartment"),
         ("4A", "4 ROOM", "Model A"),
         ("4NG", "4 ROOM", "New Generation"),
         ("4S", "4 ROOM", "Simplified"),
@@ -166,6 +173,11 @@ def test_mock_groq_extracts_propertyguru_style_flat_subtype_without_storey():
         ("4STD", "4 ROOM", "Standard"),
         ("4A2", "4 ROOM", "Model A2"),
         ("4PA", "4 ROOM", "Premium Apartment"),
+        ("5S", "5 ROOM", "Standard"),
+        ("5I", "5 ROOM", "Improved"),
+        ("5A", "5 ROOM", "Model A"),
+        ("5PA", "5 ROOM", "Premium Apartment"),
+        ("MG", "MULTI-GENERATION", "Multi Generation"),
         ("EA", "EXECUTIVE", "Apartment"),
         ("EM", "EXECUTIVE", "Maisonette"),
     ],
@@ -180,11 +192,18 @@ def test_listing_subtype_mapping_is_explicit_and_canonical(raw_value, flat_type,
 
 def test_listing_subtype_normalization_handles_case_spacing_and_ambiguity():
     assert normalise_listing_subtype("  4 std ").flat_model == "Standard"
+    assert normalise_listing_subtype("4I (Improved)").flat_model == "Improved"
+    assert normalise_listing_subtype("3NG (Modified)").flat_model == "New Generation"
+    assert normalise_listing_subtype("3I Modified").flat_model == "Improved"
+    assert normalise_listing_subtype("3A (Modified)").flat_model == "Model A"
+    assert normalise_listing_subtype("EA (Exec Apartment)").flat_model == "Apartment"
+    assert normalise_listing_subtype("4-room Improved").flat_model == "Improved"
     assert normalise_listing_subtype("A").status == "ambiguous"
     unknown = normalise_listing_subtype("4ZZ")
     assert unknown.status == "unknown"
     assert unknown.flat_type == "4 ROOM"
     assert unknown.flat_model is None
+    assert normalise_listing_subtype("Jumbo").flat_model is None
 
 
 def test_subtype_resolution_prefers_explicit_model_and_records_conflict():

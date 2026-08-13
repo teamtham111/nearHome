@@ -75,3 +75,10 @@ benchmark-enrichment-results.json
 Thumbs.db
 .vercel
 .env*
+
+# Generated local provider/cache output. Curated reference fixtures belong in
+# data_pipeline/fixtures and must remain reviewable and versioned.
+apps/api/cache/
+data_pipeline/validation/
+# Google Roads corroboration responses are generated audit evidence, never source data.
+data_pipeline/cache/google_roads_validation/

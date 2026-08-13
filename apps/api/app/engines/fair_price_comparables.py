@@ -537,7 +537,9 @@ def infer_flat_model_from_transactions(
         and _flat_type_key(record.flat_type) == target_type
         and record.flat_model
     ]
-    if len(models) < 3:
+    # Historical inference is deliberately a conservative fallback. Explicit
+    # recognised listing subtype evidence is resolved before this function.
+    if len(models) < 5:
         return None, None
     counts = {model: models.count(model) for model in set(models)}
     model, count = max(counts.items(), key=lambda item: item[1])

@@ -78,6 +78,9 @@ class RouteResult:
     raw_reference: str | None = None
     is_alternative: bool = False
     route_label: str | None = None
+    # Google Routes encoded route-level polyline. It is optional because mock
+    # and non-Google providers may not supply route geometry.
+    encoded_polyline: str | None = None
     # Transit decomposition is optional because walking/driving routes do not
     # have a transit leg. When present it is parsed from provider steps.
     transit_minutes: float | None = None
@@ -108,9 +111,7 @@ class RoutingProvider(ABC):
     provider_name: str
 
     @abstractmethod
-    def get_walking_route(
-        self, origin: tuple[float, float], destination: tuple[float, float]
-    ) -> RouteResult: ...
+    def get_walking_route(self, origin: tuple[float, float], destination: tuple[float, float]) -> RouteResult: ...
 
     @abstractmethod
     def get_driving_route(
@@ -120,6 +121,16 @@ class RoutingProvider(ABC):
         departure_time: datetime,
         traffic_aware: bool = True,
     ) -> RouteResult: ...
+
+    def get_driving_route_summary(
+        self,
+        origin: tuple[float, float],
+        destination: tuple[float, float],
+        departure_time: datetime,
+        traffic_aware: bool = True,
+    ) -> RouteResult:
+        """Cheap duration/distance pass; providers may omit route geometry."""
+        return self.get_driving_route(origin, destination, departure_time, traffic_aware)
 
     @abstractmethod
     def get_driving_alternatives(

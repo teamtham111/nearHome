@@ -41,11 +41,12 @@ _COMPUTE_ROUTES_URL = "https://routes.googleapis.com/directions/v2:computeRoutes
 _COMPUTE_ROUTE_MATRIX_URL = "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix"
 
 _ROUTES_FIELD_MASK = (
-    "routes.duration,routes.distanceMeters,routes.routeLabels,"
+    "routes.duration,routes.distanceMeters,routes.routeLabels,routes.polyline.encodedPolyline,"
     "routes.legs.steps.travelMode,routes.legs.steps.staticDuration,"
     "routes.legs.steps.distanceMeters,routes.legs.steps.navigationInstruction,"
     "routes.legs.steps.transitDetails,routes.warnings"
 )
+_ROUTES_SUMMARY_FIELD_MASK = "routes.duration,routes.distanceMeters,routes.routeLabels,routes.warnings"
 _MATRIX_FIELD_MASK = "originIndex,destinationIndex,duration,distanceMeters,condition"
 
 _MODE_MAP: dict[RouteMode, str] = {"WALK": "WALK", "DRIVE": "DRIVE", "TRANSIT": "TRANSIT"}
@@ -56,11 +57,16 @@ def _parse_duration_seconds(value: Any) -> float | None:
         return None
     if isinstance(value, str) and value.endswith("s"):
         try:
-            return float(value[:-1])
+            seconds = float(value[:-1])
         except ValueError:
             return None
+        return seconds if seconds >= 0 else None
     if isinstance(value, dict):
-        return float(value.get("seconds", 0))
+        try:
+            seconds = float(value["seconds"])
+        except (KeyError, TypeError, ValueError):
+            return None
+        return seconds if seconds >= 0 else None
     return None
 
 
@@ -215,6 +221,8 @@ class GoogleRoutingProvider(RoutingProvider):
         departure_time: datetime | None,
         alternatives: bool,
         traffic_aware: bool,
+        high_quality_polyline: bool = False,
+        include_polyline: bool = True,
     ) -> list[dict[str, Any]]:
         body: dict[str, Any] = {
             "origin": _waypoint(origin),
@@ -225,20 +233,23 @@ class GoogleRoutingProvider(RoutingProvider):
         }
         if travel_mode == "DRIVE":
             body["routingPreference"] = "TRAFFIC_AWARE" if traffic_aware else "TRAFFIC_UNAWARE"
+        if high_quality_polyline:
+            body["polylineQuality"] = "HIGH_QUALITY"
         # Google rejects departureTime when DRIVE uses TRAFFIC_UNAWARE.
         # A timestamp is meaningful for traffic-aware driving and transit;
         # omit it for non-traffic driving instead of sending an invalid pair.
         if departure_time is not None and not (travel_mode == "DRIVE" and not traffic_aware):
             body["departureTime"] = departure_time.astimezone(UTC).isoformat()
 
-        resp = self._post_json(_COMPUTE_ROUTES_URL, body, _ROUTES_FIELD_MASK, timeout=20.0)
+        field_mask = _ROUTES_FIELD_MASK if include_polyline else _ROUTES_SUMMARY_FIELD_MASK
+        resp = self._post_json(_COMPUTE_ROUTES_URL, body, field_mask, timeout=20.0)
         try:
             data: dict[str, Any] = resp.json()
         except (TypeError, ValueError) as exc:
             self._log_diagnostic(
                 endpoint=_COMPUTE_ROUTES_URL,
                 body=body,
-                field_mask=_ROUTES_FIELD_MASK,
+                field_mask=field_mask,
                 response=resp,
                 response_body=resp.text,
                 exc_info=True,
@@ -262,7 +273,22 @@ class GoogleRoutingProvider(RoutingProvider):
         from app.adapters.routing.base import RouteStep
 
         duration_s = _parse_duration_seconds(route.get("duration"))
-        distance_m = int(route.get("distanceMeters", 0))
+        if duration_s is None:
+            # A successful transport response without a duration is not a
+            # usable route. Treating it as zero minutes would let a malformed
+            # provider payload win every route comparison and cache a false
+            # success.
+            raise RoutingUnavailableError("Google Routes response omitted a valid route duration", self.provider_name)
+        try:
+            distance_m = int(route["distanceMeters"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise RoutingUnavailableError(
+                "Google Routes response omitted a valid route distance", self.provider_name
+            ) from exc
+        if distance_m < 0:
+            raise RoutingUnavailableError(
+                "Google Routes response contained a negative route distance", self.provider_name
+            )
         steps: list[RouteStep] = []
         walking_seconds = 0.0
         transit_seconds = 0.0
@@ -308,7 +334,7 @@ class GoogleRoutingProvider(RoutingProvider):
 
         labels = route.get("routeLabels", [])
         return RouteResult(
-            duration_minutes=round((duration_s or 0.0) / 60, 1),
+            duration_minutes=round(duration_s / 60, 1),
             distance_metres=distance_m,
             transfers=transfers if provider_mode == "TRANSIT" else None,
             walking_minutes=round(walking_seconds / 60, 1) if steps else None,
@@ -321,6 +347,7 @@ class GoogleRoutingProvider(RoutingProvider):
             raw_reference=None,
             is_alternative=is_alternative,
             route_label=labels[0] if labels else None,
+            encoded_polyline=(route.get("polyline") or {}).get("encodedPolyline"),
             transit_minutes=round(transit_seconds / 60, 1) if provider_mode == "TRANSIT" else None,
         )
 
@@ -359,22 +386,64 @@ class GoogleRoutingProvider(RoutingProvider):
         self._cache.set(cache_key, _result_to_cache(result), ttl_seconds=ttl)
         return result
 
+    def get_driving_route_summary(
+        self,
+        origin: tuple[float, float],
+        destination: tuple[float, float],
+        departure_time: datetime,
+        traffic_aware: bool = True,
+    ) -> RouteResult:
+        """Google duration/distance ranking request without route geometry."""
+        cache_key = build_cache_key(
+            self.provider_name,
+            "driving_summary",
+            origin,
+            destination,
+            "DRIVE",
+            departure_time,
+            {"traffic": traffic_aware},
+        )
+        cached = self._cache.get(cache_key)
+        record_route_cache(hit=bool(cached))
+        if cached:
+            return _result_from_cache(cached)
+        routes = self._compute_routes(
+            origin,
+            destination,
+            "DRIVE",
+            departure_time,
+            alternatives=False,
+            traffic_aware=traffic_aware,
+            include_polyline=False,
+        )
+        result = self._route_to_result(routes[0], "DRIVE", departure_time, traffic_aware, is_alternative=False)
+        self._cache.set(
+            cache_key,
+            _result_to_cache(result),
+            ttl_seconds=TRAFFIC_AWARE_TTL_SECONDS if traffic_aware else DEFAULT_TTL_SECONDS,
+        )
+        return result
+
     def get_driving_alternatives(
         self,
         origin: tuple[float, float],
         destination: tuple[float, float],
         departure_time: datetime,
     ) -> list[RouteResult]:
-        cache_key = build_cache_key(
-            self.provider_name, "driving_alts", origin, destination, "DRIVE", departure_time
-        )
+        cache_key = build_cache_key(self.provider_name, "driving_alts", origin, destination, "DRIVE", departure_time)
         cached = self._cache.get(cache_key)
         record_route_cache(hit=bool(cached))
         if cached and isinstance(cached.get("routes"), list):
             return [_result_from_cache(r) for r in cached["routes"]]
 
         routes = self._compute_routes(
-            origin, destination, "DRIVE", departure_time, alternatives=True, traffic_aware=True
+            origin,
+            destination,
+            "DRIVE",
+            departure_time,
+            alternatives=True,
+            traffic_aware=True,
+            high_quality_polyline=True,
         )
         results = [
             self._route_to_result(r, "DRIVE", departure_time, True, is_alternative=idx > 0)
@@ -483,6 +552,7 @@ def _result_to_cache(result: RouteResult) -> dict[str, Any]:
         "warnings": result.warnings,
         "is_alternative": result.is_alternative,
         "route_label": result.route_label,
+        "encoded_polyline": result.encoded_polyline,
         "transit_minutes": result.transit_minutes,
     }
 
@@ -513,5 +583,6 @@ def _result_from_cache(cached: dict[str, Any]) -> RouteResult:
         warnings=cached.get("warnings", []),
         is_alternative=cached.get("is_alternative", False),
         route_label=cached.get("route_label"),
+        encoded_polyline=cached.get("encoded_polyline"),
         transit_minutes=cached.get("transit_minutes"),
     )

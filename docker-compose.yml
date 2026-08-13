@@ -33,12 +33,20 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql+psycopg://nearhome:nearhome@postgres:5432/nearhome
-      JOB_EXECUTION_MODE: ${JOB_EXECUTION_MODE:-inline}
-      REDIS_URL: ${REDIS_URL:-}
+      # Use the queued worker locally so the browser receives a job ID
+      # immediately and can show real stage progress while enrichment runs.
+      JOB_EXECUTION_MODE: arq
+      REDIS_URL: redis://redis:6379/0
+      # The root .env can point a direct host-Python run at its locally trained
+      # artifact. Containers must instead use the immutable artifact built
+      # into the API image.
+      FAIR_PRICE_MODEL_ARTIFACT_PATH: /app/model-artifacts/fair-price
     ports:
-      - "8000:8000"
+      - "8000:8080"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     volumes:
       - ./apps/api:/app/apps/api
@@ -50,18 +58,23 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     command: ["python", "-m", "app.jobs.worker"]
-    profiles: ["arq"]
     env_file:
       - .env
     environment:
       DATABASE_URL: postgresql+psycopg://nearhome:nearhome@postgres:5432/nearhome
       REDIS_URL: redis://redis:6379/0
       JOB_EXECUTION_MODE: arq
+      FAIR_PRICE_MODEL_ARTIFACT_PATH: /app/model-artifacts/fair-price
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+    volumes:
+      # Keep local worker reference data in sync with the API without an image rebuild.
+      - ./apps/api:/app/apps/api
+      - ./data_pipeline:/app/data_pipeline
+      - ./ml:/app/ml
 
   web:
     build:

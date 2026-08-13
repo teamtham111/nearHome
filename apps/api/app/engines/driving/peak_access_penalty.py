@@ -48,18 +48,22 @@ def compute_peak_access_penalty(
         )
 
     point = major_road_access.selected_point
-    peak_route = major_road_access.selected_route
+    # Reuse the already validated AM-peak route in memory.  Only the off-peak
+    # route is a new request, and both use the exact same catalogue target.
     off_peak_departure = next_occurrence_at_hour(config.off_peak_hour)
 
     try:
+        peak_route = major_road_access.selected_route
+        if peak_route is None:
+            return not_assessed("peak_access_penalty", weight, "Selected Major Road route evidence is unavailable.")
         off_peak_route = routing.get_driving_route(
-            (latitude, longitude), (point.latitude, point.longitude), off_peak_departure, traffic_aware=True
+            (latitude, longitude), point.routing_coordinate, off_peak_departure, traffic_aware=True
         )
     except RoutingProviderError:
         return provider_error(
             "peak_access_penalty",
             weight,
-            "Routing provider could not confirm an off-peak driving duration to the selected access point.",
+            "Routing provider could not confirm peak and off-peak driving durations to the selected access point.",
         )
 
     penalty_minutes = round(peak_route.duration_minutes - off_peak_route.duration_minutes, 1)
@@ -89,7 +93,8 @@ def compute_peak_access_penalty(
         evidence=[
             {
                 "selected_access_point": point.name,
-                "expressway": point.expressway,
+                "sla_major_road": point.name,
+                "catalogue_target": point.routing_coordinate,
                 "off_peak_duration_minutes": off_peak_route.duration_minutes,
                 "peak_duration_minutes": peak_route.duration_minutes,
                 "penalty_minutes": penalty_minutes,

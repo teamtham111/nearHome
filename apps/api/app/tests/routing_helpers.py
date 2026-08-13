@@ -24,6 +24,31 @@ TAMPINES = (1.35619148271544, 103.9546344625)
 WOODLANDS = (1.43681962961519, 103.786066799253)
 
 
+def _encode_polyline(points: list[tuple[float, float]]) -> str:
+    """Small test-only encoder so driving fixtures carry route geometry."""
+    output: list[str] = []
+    previous_latitude = previous_longitude = 0
+    for latitude, longitude in points:
+        for value, previous in (
+            (round(latitude * 100_000), previous_latitude),
+            (round(longitude * 100_000), previous_longitude),
+        ):
+            delta = value - previous
+            encoded = ~(delta << 1) if delta < 0 else delta << 1
+            while encoded >= 0x20:
+                output.append(chr((0x20 | (encoded & 0x1F)) + 63))
+                encoded >>= 5
+            output.append(chr(encoded + 63))
+        previous_latitude, previous_longitude = round(latitude * 100_000), round(longitude * 100_000)
+    return "".join(output)
+
+
+def _driving_polyline(origin: tuple[float, float], destination: tuple[float, float]) -> str:
+    # The middle point makes the final leg run along the destination latitude,
+    # modelling a route that has entered a horizontal synthetic major-road edge.
+    return _encode_polyline([origin, (destination[0], origin[1]), destination])
+
+
 class FixedDurationRoutingProvider(RoutingProvider):
     """Always returns the same duration regardless of coordinates.
 
@@ -40,9 +65,7 @@ class FixedDurationRoutingProvider(RoutingProvider):
         self.distance_metres = distance_metres
         self.calls: list[str] = []
 
-    def get_walking_route(
-        self, origin: tuple[float, float], destination: tuple[float, float]
-    ) -> RouteResult:
+    def get_walking_route(self, origin: tuple[float, float], destination: tuple[float, float]) -> RouteResult:
         self.calls.append("walking")
         return RouteResult(
             duration_minutes=self.minutes,
@@ -74,6 +97,7 @@ class FixedDurationRoutingProvider(RoutingProvider):
             departure_time=departure_time,
             arrival_time=None,
             traffic_aware=traffic_aware,
+            encoded_polyline=_driving_polyline(origin, destination),
         )
 
     def get_driving_alternatives(
@@ -131,9 +155,7 @@ class AlwaysFailingRoutingProvider(RoutingProvider):
     def _fail(self) -> RouteResult:
         raise RoutingProviderError("simulated provider outage", provider=self.provider_name, retryable=True)
 
-    def get_walking_route(
-        self, origin: tuple[float, float], destination: tuple[float, float]
-    ) -> RouteResult:
+    def get_walking_route(self, origin: tuple[float, float], destination: tuple[float, float]) -> RouteResult:
         return self._fail()
 
     def get_driving_route(

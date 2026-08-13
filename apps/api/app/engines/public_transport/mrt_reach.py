@@ -1,10 +1,9 @@
-"""MRT Reach from the geographically closest active MRT station.
+"""Structural MRT Reach from Access's practically best rail entry station.
 
-Walking, feeder and waiting friction belong to Access. This component starts
-at exactly one physical station selected from the listing coordinates and
-scores mutually exclusive structural rail-reach buckets. The station is
-selected independently of whether Access confirms a practical walking or
-feeder path to it.
+Access owns the route to a station, including walking, feeder, waiting and
+entry friction. MRT Reach reuses Access's qualifying physical station and
+starts its structural rail-graph calculation from every station-line code at
+that station. It does not independently choose a Haversine-nearest station.
 """
 
 from __future__ import annotations
@@ -39,17 +38,17 @@ def _normalise_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         station_id = str(candidate["physical_station_id"])
         previous = normalised.get(station_id)
-        if previous is None or candidate.get("generalised_access_cost", float("inf")) < previous.get(
-            "generalised_access_cost", float("inf")
-        ):
+        if previous is None or _access_entry_sort_key(candidate) < _access_entry_sort_key(previous):
             normalised[station_id] = candidate
-    return sorted(
-        normalised.values(),
-        key=lambda item: (
-            0 if item.get("is_primary_rail_entry") else 1,
-            item.get("generalised_access_cost", 0),
-            item["physical_station_id"],
-        ),
+    return sorted(normalised.values(), key=_access_entry_sort_key)
+
+
+def _access_entry_sort_key(entry: dict[str, Any]) -> tuple[float, float, str]:
+    """Use the same generalised metric Access records for rail entries."""
+    return (
+        float(entry.get("generalised_access_cost", float("inf"))),
+        float(entry.get("total_expected_minutes", float("inf"))),
+        str(entry.get("physical_station_id", "")),
     )
 
 
@@ -57,9 +56,6 @@ def compute_mrt_reach(
     practical_rail_entries: list[dict[str, Any]] | None = None,
     config: PublicTransportConfig = PT_CONFIG,
     rail_graph: RailGraph | None = None,
-    *,
-    origin_latitude: float,
-    origin_longitude: float,
 ) -> ComponentResult:
     weight = config.weight_mrt_reach
     graph = rail_graph or get_rail_graph()
@@ -72,18 +68,31 @@ def compute_mrt_reach(
         )
 
     access_entries = _normalise_entries(practical_rail_entries or [])
-    nearest = graph.closest_physical_station(origin_latitude, origin_longitude)
-    if nearest is None:
+    if not access_entries:
         return not_assessed(
             "mrt_reach",
             weight,
-            "No active MRT station with valid coordinates is available in the rail graph.",
+            "Access did not confirm a qualifying MRT entry station.",
         )
-    nearest_station, nearest_distance_m = nearest
-    primary_id = nearest_station.station_name
-    origin_codes = list(nearest_station.codes)
-    station = nearest_station
-    selection_source = "geographic_nearest"
+
+    primary_access_entry: dict[str, Any] | None = None
+    station = None
+    for entry in access_entries:
+        candidate = graph.station_by_name(str(entry["physical_station_id"]))
+        if candidate is not None and candidate.active:
+            primary_access_entry = entry
+            station = candidate
+            break
+    if primary_access_entry is None or station is None:
+        return not_assessed(
+            "mrt_reach",
+            weight,
+            "No qualifying Access MRT entry maps to an active station in the rail graph.",
+        )
+
+    primary_id = station.station_name
+    origin_codes = list(station.codes)
+    selection_source = "lowest_generalised_access_cost"
 
     if not origin_codes or station is None:
         return not_assessed(
@@ -154,10 +163,9 @@ def compute_mrt_reach(
         "primary_physical_station_id": primary_id,
         "station_codes": list(station.codes),
         "selection_method": selection_source,
-        "closest_station_distance_metres": round(nearest_distance_m, 1) if nearest_distance_m is not None else None,
-        "access_confirmed_practical_entry": any(
-            entry.get("physical_station_id") == primary_id for entry in access_entries
-        ),
+        "primary_access_entry": primary_access_entry,
+        "primary_generalised_access_cost": primary_access_entry["generalised_access_cost"],
+        "access_confirmed_practical_entry": True,
         "direct_lines": sorted(direct_lines),
         "primary_station_lines": sorted(station.lines),
         "primary_station_name": station.station_name,
@@ -178,9 +186,7 @@ def compute_mrt_reach(
         name="mrt_reach",
         value={
             "primary_physical_station_id": primary_id,
-            "closest_station_distance_metres": round(nearest_distance_m, 1)
-            if nearest_distance_m is not None
-            else None,
+            "primary_generalised_access_cost": primary_access_entry["generalised_access_cost"],
             "direct_lines": len(direct_lines),
             "is_interchange": station.is_interchange,
             "additional_lines": len(additional_lines),
@@ -193,7 +199,7 @@ def compute_mrt_reach(
         weight=weight,
         status=ComponentStatus.CALCULATED,
         explanation=(
-            f"{primary_id} is the geographically closest MRT station; {len(zero)} zero-transfer, "
+            f"{primary_id} is the lowest-generalised-cost practical MRT entry; {len(zero)} zero-transfer, "
             f"{len(one)} one-transfer and {len(extended)} extended physical stations are counted once."
         ),
         strengths=[f"Direct rail lines: {', '.join(sorted(direct_lines)) or 'none'}."]
@@ -210,7 +216,7 @@ def compute_mrt_reach(
             "Walking, feeder, waiting and station-entry minutes are excluded because they belong to Access.",
         ],
         evidence=[evidence],
-        source="Nearest active MRT station coordinates + curated rail graph",
+        source="Routed Access evidence + curated rail graph",
         provenance=Provenance.CURATED_REFERENCE_DATA,
         confidence="high",
     )

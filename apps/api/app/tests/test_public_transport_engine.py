@@ -4,17 +4,18 @@ from __future__ import annotations
 
 import pytest
 
+from app.adapters.reference_data import haversine_m
 from app.adapters.routing.base import RouteResult, RouteStep
-from app.adapters.transport_data.lta_bus import BusServiceInfo, FrequencyRange, LtaBusDataStore
+from app.adapters.transport_data.lta_bus import BusRouteStop, BusServiceInfo, FrequencyRange, LtaBusDataStore
 from app.domain.enums import ComponentStatus
 from app.domain.transport_models import ComponentResult, ModelRollup, build_rollup, not_assessed
-from app.engines.public_transport.access import compute_access
+from app.engines.public_transport.access import _frequency_for_corridors, compute_access
 from app.engines.public_transport.bus_coverage import compute_bus_coverage
 from app.engines.public_transport.engine import compute_public_transport_model
 from app.engines.public_transport.mrt_reach import compute_mrt_reach
 from app.engines.public_transport.route_resilience import compute_route_resilience
 from app.engines.transport_config import PublicTransportConfig
-from app.networks.bus_network import BusNetwork, CorridorInfo
+from app.networks.bus_network import BusNetwork, downstream_similarity
 from app.networks.rail_graph import RailGraph
 from app.tests.routing_helpers import (
     DHOBY_GHAUT,
@@ -24,6 +25,47 @@ from app.tests.routing_helpers import (
     AlwaysFailingRoutingProvider,
     FixedDurationRoutingProvider,
 )
+
+
+def _install_bus_data(
+    monkeypatch: pytest.MonkeyPatch,
+    routes: dict[tuple[str, int], list[str]],
+    *,
+    maximum_interval_minutes: float = 10.0,
+) -> None:
+    """Install a small direction-aware LTA network for bus tests."""
+    route_rows = {
+        key: [BusRouteStop(key[0], key[1], index + 1, stop_code, None) for index, stop_code in enumerate(stops)]
+        for key, stops in routes.items()
+    }
+    by_stop: dict[str, set[tuple[str, int]]] = {}
+    for key, stops in routes.items():
+        for stop_code in stops:
+            by_stop.setdefault(stop_code, set()).add(key)
+    info = {
+        key: BusServiceInfo(
+            key[0],
+            key[1],
+            "TEST",
+            "TRUNK",
+            stops[0],
+            stops[-1],
+            "",
+            {
+                "AM_PEAK": FrequencyRange(
+                    5,
+                    maximum_interval_minutes,
+                    (5 + maximum_interval_minutes) / 2,
+                    "AM_PEAK",
+                )
+            },
+        )
+        for key, stops in routes.items()
+    }
+    monkeypatch.setattr(LtaBusDataStore, "is_usable", classmethod(lambda cls: True))
+    monkeypatch.setattr(LtaBusDataStore, "services_by_stop", classmethod(lambda cls, code: by_stop.get(code, set())))
+    monkeypatch.setattr(LtaBusDataStore, "route_stops", classmethod(lambda cls, key: route_rows.get(key, [])))
+    monkeypatch.setattr(LtaBusDataStore, "service_info", classmethod(lambda cls, key: info.get(key)))
 
 
 class TestAccessComponent:
@@ -67,7 +109,6 @@ class TestAccessComponent:
     def test_frequent_direct_feeder_to_interchange_is_a_practical_rail_entry(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        import app.engines.public_transport.access as access_module
         from app.adapters.reference_data import BusStop, ReferenceDataStore
         from app.adapters.transport_data.rail_data import RailStation
 
@@ -107,23 +148,13 @@ class TestAccessComponent:
                     transit_minutes=6.0,
                 )
 
-        class OneCorridorNetwork:
-            def corridor_for(self, key):
-                return "FEEDER-CORRIDOR"
-
-        info = BusServiceInfo(
-            "410W", 1, "SMRT", "FEEDER", "A", "B", "", {"AM_PEAK": FrequencyRange(8, 12, 10, "AM_PEAK")}
-        )
         monkeypatch.setattr(ReferenceDataStore, "bus_stops", classmethod(lambda cls: [stop]))
-        monkeypatch.setattr(LtaBusDataStore, "is_usable", classmethod(lambda cls: True))
-        monkeypatch.setattr(LtaBusDataStore, "services_by_stop", classmethod(lambda cls, code: {("410W", 1)}))
-        monkeypatch.setattr(LtaBusDataStore, "service_info", classmethod(lambda cls, key: info))
-        monkeypatch.setattr(access_module, "get_bus_network", lambda: OneCorridorNetwork())
+        _install_bus_data(monkeypatch, {("410W", 1): ["99999", "90001"]})
 
         result = compute_access(1.3, 103.8, FeederRouting(), rail_graph=OneStationGraph())
         feeder = next(entry for entry in result.value["practical_rail_entries"] if entry["access_mode"] == "feeder_bus")
         assert feeder["physical_station_id"] == "Test Interchange"
-        assert feeder["scheduled_wait_proxy_minutes"] == 5.0
+        assert feeder["scheduled_wait_proxy_minutes"] == 3.8
         assert feeder["transfers_before_rail"] == 0
 
     def test_walking_time_comes_from_the_provider_not_from_distance(self) -> None:
@@ -136,6 +167,23 @@ class TestAccessComponent:
         assert result.evidence
         for entry in result.evidence:
             assert entry["walk_minutes"] == 4.2
+
+    @pytest.mark.parametrize(
+        ("maximum_interval", "eligible"),
+        [(15.0, True), (15.01, False), (20.0, False)],
+    )
+    def test_bus_corridor_frequency_uses_fifteen_minute_combined_maximum_ceiling(
+        self, monkeypatch: pytest.MonkeyPatch, maximum_interval: float, eligible: bool
+    ) -> None:
+        # One service is the simplest harmonic-rate case: its own maximum is
+        # the combined maximum interval supplied to the eligibility check.
+        _install_bus_data(
+            monkeypatch,
+            {("A", 1): ["S", "D"]},
+            maximum_interval_minutes=maximum_interval,
+        )
+        corridors = _frequency_for_corridors("S", PublicTransportConfig(), BusNetwork())
+        assert bool(corridors) is eligible
 
     def test_provider_error_does_not_fabricate_a_route(self) -> None:
         failing = AlwaysFailingRoutingProvider()
@@ -172,39 +220,66 @@ class TestAccessComponent:
         bus_codes = {e["bus_stop_code"] for e in result.evidence if e["access_point_type"] == "bus_stop"}
         assert bus_codes == {"11111", "22222"}
 
+    @pytest.mark.parametrize(
+        ("minutes", "expected"), [(9.9, True), (10.0, True), (10.1, False)]
+    )
+    def test_bus_stop_access_uses_ten_minute_routed_walk_cutoff(
+        self, monkeypatch: pytest.MonkeyPatch, minutes: float, expected: bool
+    ) -> None:
+        from app.adapters.reference_data import BusStop, ReferenceDataStore
+
+        class EmptyRailGraph:
+            def nearby_station_codes(self, *_args, **_kwargs):
+                return []
+
+        class RoutedWalk(FixedDurationRoutingProvider):
+            def get_walking_route(self, origin, destination):
+                result = super().get_walking_route(origin, destination)
+                result.duration_minutes = minutes
+                result.walking_minutes = minutes
+                result.distance_metres = 300
+                return result
+
+        stop = BusStop("S", "Test stop", 1.3001, 103.8001, "Road", [])
+        monkeypatch.setattr(ReferenceDataStore, "bus_stops", classmethod(lambda cls: [stop]))
+        _install_bus_data(monkeypatch, {("A", 1): ["S", "D"]})
+        result = compute_access(1.3, 103.8, RoutedWalk(), rail_graph=EmptyRailGraph())
+        assert ("S" in result.value["walkable_bus_stop_codes"]) is expected
+
 
 class TestBusCoverageComponent:
-    class _FakeBusNetwork(BusNetwork):
-        def __init__(self, direct: int, one_transfer: int) -> None:
-            super().__init__()
-            self._direct = {f"C{i}" for i in range(direct)}
-            self._one_transfer = {f"T{i}" for i in range(one_transfer)}
+    @pytest.mark.parametrize(("distance", "expected"), [(399.0, True), (400.0, True), (401.0, False)])
+    def test_bus_coverage_uses_four_hundred_metre_routed_distance_cutoff(
+        self, monkeypatch: pytest.MonkeyPatch, distance: float, expected: bool
+    ) -> None:
+        _install_bus_data(monkeypatch, {("A", 1): ["S", "D"]})
+        result = compute_bus_coverage([{"bus_stop_code": "S", "walk_distance_metres": distance}])
+        assert (result.status == ComponentStatus.CALCULATED) is expected
 
-        def direct_corridors_for_stops(self, stop_codes: set[str]) -> set[str]:
-            return self._direct
-
-        def one_transfer_corridors(self, direct_stop_codes: set[str], direct_corridor_ids: set[str]) -> set[str]:
-            return self._one_transfer
-
-        def corridor_info(self, corridor_id: str) -> CorridorInfo | None:
-            return CorridorInfo(corridor_id, frozenset({("1", 1)}), "Somewhere")
-
-    def test_many_stops_one_corridor_does_not_outrank_few_stops_many_corridors(
+    def test_access_can_include_stop_that_bus_coverage_excludes_by_distance(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        from app.adapters.transport_data.lta_bus import LtaBusDataStore
+        from app.adapters.reference_data import BusStop, ReferenceDataStore
 
-        monkeypatch.setattr(LtaBusDataStore, "is_usable", classmethod(lambda cls: True))
+        class EmptyRailGraph:
+            def nearby_station_codes(self, *_args, **_kwargs):
+                return []
 
-        ten_stops_one_corridor = compute_bus_coverage(
-            [f"stop{i}" for i in range(10)], bus_network=self._FakeBusNetwork(direct=1, one_transfer=0)
-        )
-        four_stops_four_corridors = compute_bus_coverage(
-            [f"stop{i}" for i in range(4)], bus_network=self._FakeBusNetwork(direct=4, one_transfer=0)
-        )
-        assert four_stops_four_corridors.score is not None
-        assert ten_stops_one_corridor.score is not None
-        assert four_stops_four_corridors.score > ten_stops_one_corridor.score
+        class RoutedWalk(FixedDurationRoutingProvider):
+            def get_walking_route(self, origin, destination):
+                result = super().get_walking_route(origin, destination)
+                result.duration_minutes = 8.0
+                result.walking_minutes = 8.0
+                result.distance_metres = 650
+                return result
+
+        stop = BusStop("S", "Test stop", 1.3001, 103.8001, "Road", [])
+        monkeypatch.setattr(ReferenceDataStore, "bus_stops", classmethod(lambda cls: [stop]))
+        _install_bus_data(monkeypatch, {("A", 1): ["S", "D"]})
+        access = compute_access(1.3, 103.8, RoutedWalk(), rail_graph=EmptyRailGraph())
+        coverage = compute_bus_coverage(access.value["walkable_bus_stops"])
+        assert access.value["walkable_bus_stop_codes"] == ["S"]
+        assert coverage.status == ComponentStatus.NOT_ASSESSED
 
     def test_no_usable_stops_is_not_assessed(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from app.adapters.transport_data.lta_bus import LtaBusDataStore
@@ -217,13 +292,103 @@ class TestBusCoverageComponent:
         from app.adapters.transport_data.lta_bus import LtaBusDataStore
 
         monkeypatch.setattr(LtaBusDataStore, "is_usable", classmethod(lambda cls: False))
-        result = compute_bus_coverage(["11111"])
+        result = compute_bus_coverage([{"bus_stop_code": "11111", "walk_distance_metres": 100.0}])
         assert result.status == ComponentStatus.NOT_ASSESSED
+
+
+class TestBoardingStopSpecificCorridors:
+    def test_upstream_overlap_does_not_merge_downstream_choices(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        _install_bus_data(
+            monkeypatch,
+            {("A", 1): ["1", "2", "3", "S", "4", "5", "6"], ("B", 1): ["1", "2", "3", "S", "7", "8", "9"]},
+        )
+        context = BusNetwork().corridors_for_boarding_stops({"S"})
+        assert len(context.direct_corridor_ids()) == 2
+
+    def test_reversed_order_is_not_a_shared_corridor(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        _install_bus_data(
+            monkeypatch,
+            {("A", 1): ["S", "1", "2", "3", "4", "5"], ("B", 1): ["S", "5", "4", "3", "2", "1"]},
+        )
+        network = BusNetwork()
+        context = network.corridors_for_boarding_stops({"S"})
+        options = [network.downstream_option(key, "S") for key in [("A", 1), ("B", 1)]]
+        assert options[0] is not None and options[1] is not None
+        assert downstream_similarity(options[0], options[1]) < 0.70
+        assert len(context.direct_corridor_ids()) == 2
+
+    def test_ordered_overlap_is_measured_and_config_controls_grouping(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        _install_bus_data(
+            monkeypatch,
+            {("A", 1): ["S", "1", "2", "3", "4", "5"], ("B", 1): ["S", "1", "2", "3", "8", "9"]},
+        )
+        default_context = BusNetwork(overlap_threshold=0.70).corridors_for_boarding_stops({"S"})
+        changed_context = BusNetwork(overlap_threshold=0.60).corridors_for_boarding_stops({"S"})
+        assert len(default_context.direct_corridor_ids()) == 2
+        assert len(changed_context.direct_corridor_ids()) == 1
+        stops = [{"bus_stop_code": "S", "walk_distance_metres": 100.0}]
+        default_result = compute_bus_coverage(stops, config=PublicTransportConfig(corridor_overlap_threshold=0.70))
+        changed_result = compute_bus_coverage(stops, config=PublicTransportConfig(corridor_overlap_threshold=0.60))
+        assert default_result.value["direct_corridors"] == 2
+        assert changed_result.value["direct_corridors"] == 1
+
+    def test_opposite_directions_with_reversed_stops_remain_distinct(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        _install_bus_data(monkeypatch, {("99", 1): ["S", "1", "2"], ("99", 2): ["S", "2", "1"]})
+        context = BusNetwork().corridors_for_boarding_stops({"S"})
+        assert len(context.direct_corridor_ids()) == 2
+
+    def test_transfer_search_does_not_use_stops_before_boarding(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        _install_bus_data(
+            monkeypatch,
+            {
+                ("A", 1): ["UPSTREAM", "S", "DOWNSTREAM"],
+                ("B", 1): ["UPSTREAM", "OTHER"],
+            },
+        )
+        context = BusNetwork().corridors_for_boarding_stops({"S"})
+        assert len(context.direct_corridor_ids()) == 1
+        assert context.one_transfer_corridor_ids() == set()
+
+    def test_transfer_search_uses_a_downstream_stop_after_boarding(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        _install_bus_data(
+            monkeypatch,
+            {
+                ("A", 1): ["S", "TRANSFER"],
+                ("B", 1): ["TRANSFER", "NEW_DESTINATION"],
+            },
+        )
+        context = BusNetwork().corridors_for_boarding_stops({"S"})
+        assert len(context.direct_corridor_ids()) == 1
+        assert len(context.one_transfer_corridor_ids()) == 1
+
+    def test_transfer_search_does_not_connect_distinct_nearby_stop_codes(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        _install_bus_data(
+            monkeypatch,
+            {
+                ("A", 1): ["S", "ALIGHT_A"],
+                ("B", 1): ["BOARD_B", "NEW_DESTINATION"],
+            },
+        )
+        context = BusNetwork().corridors_for_boarding_stops({"S"})
+        assert len(context.direct_corridor_ids()) == 1
+        assert context.one_transfer_corridor_ids() == set()
+
+    def test_same_service_from_two_nearby_boarding_stops_is_one_corridor(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        _install_bus_data(monkeypatch, {("A", 1): ["S1", "S2", "1", "2"]})
+        context = BusNetwork().corridors_for_boarding_stops({"S1", "S2"})
+        assert len(context.direct_corridor_ids()) == 1
 
 
 class TestMrtReachComponent:
     def test_bishan_deduplicates_physical_stations_and_explains_additional_lines(self) -> None:
-        result = compute_mrt_reach([], rail_graph=RailGraph(), origin_latitude=1.3521, origin_longitude=103.8498)
+        result = compute_mrt_reach(
+            [{"station_name": "Bishan", "codes": ["NS17", "CC15"], "walk_minutes": 4.0}],
+            rail_graph=RailGraph(),
+        )
         evidence = result.evidence[0]
         assert result.value["primary_physical_station_id"] == "Bishan"
         assert evidence["direct_lines"] == ["CCL", "NSL"]
@@ -233,34 +398,53 @@ class TestMrtReachComponent:
         assert len(evidence["reachable_station_summaries"]["zero_transfer"]) == 51
         assert len(evidence["reachable_station_summaries"]["one_transfer"]) == 70
 
-    def test_reach_uses_geographically_closest_station_even_without_practical_access(self) -> None:
+    def test_routed_best_station_beats_geographically_nearer_station(self) -> None:
         graph = RailGraph()
+        yishun_station = graph.station_by_name("Yishun")
+        bishan_station = graph.station_by_name("Bishan")
+        assert yishun_station is not None and bishan_station is not None
+        assert yishun_station.latitude is not None and yishun_station.longitude is not None
+        assert bishan_station.latitude is not None and bishan_station.longitude is not None
+        assert haversine_m(*YISHUN, yishun_station.latitude, yishun_station.longitude) < haversine_m(
+            *YISHUN, bishan_station.latitude, bishan_station.longitude
+        )
         result = compute_mrt_reach(
-            [],
+            [
+                {
+                    "physical_station_id": "Yishun",
+                    "station_codes": ["NS13"],
+                    "generalised_access_cost": 11.0,
+                    "total_expected_minutes": 11.0,
+                },
+                {
+                    "physical_station_id": "Bishan",
+                    "station_codes": ["NS17", "CC15"],
+                    "generalised_access_cost": 7.0,
+                    "total_expected_minutes": 7.0,
+                },
+            ],
             rail_graph=graph,
-            origin_latitude=YISHUN[0],
-            origin_longitude=YISHUN[1],
         )
         assert result.status == ComponentStatus.CALCULATED
-        assert result.value["primary_physical_station_id"] == "Yishun"
-        assert result.evidence[0]["selection_method"] == "geographic_nearest"
-        assert result.evidence[0]["access_confirmed_practical_entry"] is False
-        assert result.score != 15.0
+        assert result.value["primary_physical_station_id"] == "Bishan"
+        assert result.evidence[0]["selection_method"] == "lowest_generalised_access_cost"
+        assert result.evidence[0]["primary_generalised_access_cost"] == 7.0
 
-    def test_reach_does_not_use_a_more_distant_access_station_as_its_origin(self) -> None:
+    def test_selected_access_station_controls_the_graph_result(self) -> None:
         graph = RailGraph()
-        result = compute_mrt_reach(
-            [{"station_name": "Bishan", "codes": ["NS17", "CC15"], "walk_minutes": 1.0}],
-            rail_graph=graph,
-            origin_latitude=YISHUN[0],
-            origin_longitude=YISHUN[1],
+        bishan = compute_mrt_reach(
+            [{"station_name": "Bishan", "codes": ["NS17", "CC15"], "walk_minutes": 4.0}], rail_graph=graph
         )
-        assert result.value["primary_physical_station_id"] == "Yishun"
-        assert result.evidence[0]["alternative_practical_stations"][0]["physical_station_id"] == "Bishan"
+        yishun = compute_mrt_reach(
+            [{"station_name": "Yishun", "codes": ["NS13"], "walk_minutes": 4.0}], rail_graph=graph
+        )
+        assert bishan.value["primary_physical_station_id"] == "Bishan"
+        assert bishan.evidence[0]["direct_lines"] == ["CCL", "NSL"]
+        assert bishan.score is not None and yishun.score is not None
+        assert bishan.score > yishun.score
 
-    def test_does_not_only_count_lines_at_the_nearest_station(self) -> None:
-        """A second, distinct walkable station and one-transfer reach must
-        both influence the result — not just len(lines_at(nearest))."""
+    def test_alternative_access_entries_do_not_change_selected_station_reach(self) -> None:
+        """Only the lowest-cost qualifying Access station is the graph origin."""
         graph = RailGraph()
         single_station = [
             {"station_name": "Yishun", "codes": ["NS13"], "lines": ["NSL"], "walk_minutes": 5.0},
@@ -270,10 +454,10 @@ class TestMrtReachComponent:
             {"station_name": "Khatib", "codes": ["NS14"], "lines": ["NSL"], "walk_minutes": 9.0},
         ]
         result_single = compute_mrt_reach(
-            single_station, rail_graph=graph, origin_latitude=YISHUN[0], origin_longitude=YISHUN[1]
+            single_station, rail_graph=graph
         )
         result_two = compute_mrt_reach(
-            two_stations, rail_graph=graph, origin_latitude=YISHUN[0], origin_longitude=YISHUN[1]
+            two_stations, rail_graph=graph
         )
         assert result_single.score is not None and result_two.score is not None
         assert result_two.score == result_single.score
@@ -286,9 +470,9 @@ class TestMrtReachComponent:
             {"station_name": "Khatib", "codes": ["NS14"], "lines": ["NSL"], "walk_minutes": 6.0}
         ]
         assert compute_mrt_reach(
-            alternative, rail_graph=graph, origin_latitude=YISHUN[0], origin_longitude=YISHUN[1]
+            alternative, rail_graph=graph
         ).score == compute_mrt_reach(
-            primary, rail_graph=graph, origin_latitude=YISHUN[0], origin_longitude=YISHUN[1]
+            primary, rail_graph=graph
         ).score
 
     def test_interchange_scores_higher_than_single_line_station(self) -> None:
@@ -298,29 +482,34 @@ class TestMrtReachComponent:
         ]
         single_line = [{"station_name": "Yishun", "codes": ["NS13"], "lines": ["NSL"], "walk_minutes": 4.0}]
         interchange_score = compute_mrt_reach(
-            interchange, rail_graph=graph, origin_latitude=1.35101889777844, origin_longitude=103.850057208608
+            interchange, rail_graph=graph
         ).score
         single_line_score = compute_mrt_reach(
-            single_line, rail_graph=graph, origin_latitude=YISHUN[0], origin_longitude=YISHUN[1]
+            single_line, rail_graph=graph
         ).score
         assert interchange_score is not None and single_line_score is not None
         assert interchange_score > single_line_score
 
-    def test_no_practical_station_still_scores_the_nearest_rail_network(self) -> None:
-        """Access reachability must not suppress the nearest-station MRT score."""
+    def test_no_practical_station_is_not_assessed(self) -> None:
+        result = compute_mrt_reach([], rail_graph=RailGraph())
+        assert result.status == ComponentStatus.NOT_ASSESSED
+        assert result.score is None
+
+    def test_home_to_station_access_is_not_added_to_structural_rail_minutes(self) -> None:
         graph = RailGraph()
-        result = compute_mrt_reach(
-            [], rail_graph=graph, origin_latitude=1.05, origin_longitude=103.60
+        short_walk = compute_mrt_reach(
+            [{"station_name": "Yishun", "codes": ["NS13"], "walk_minutes": 3.0}], rail_graph=graph
         )
-        assert result.status == ComponentStatus.CALCULATED
-        assert result.score is not None
-        assert result.value["primary_physical_station_id"] == "Tuas Crescent"
-        assert result.evidence[0]["access_confirmed_practical_entry"] is False
+        long_walk = compute_mrt_reach(
+            [{"station_name": "Yishun", "codes": ["NS13"], "walk_minutes": 19.0}], rail_graph=graph
+        )
+        assert short_walk.score == long_walk.score
+        assert short_walk.value["zero_transfer_30"] == long_walk.value["zero_transfer_30"]
 
     def test_missing_rail_graph_is_not_assessed(self, monkeypatch: pytest.MonkeyPatch) -> None:
         graph = RailGraph()
         monkeypatch.setattr(RailGraph, "is_loaded", property(lambda self: False))
-        result = compute_mrt_reach([], rail_graph=graph, origin_latitude=YISHUN[0], origin_longitude=YISHUN[1])
+        result = compute_mrt_reach([], rail_graph=graph)
         assert result.status == ComponentStatus.NOT_ASSESSED
         assert result.score is None
 

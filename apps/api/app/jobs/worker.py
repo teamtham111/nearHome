@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from arq.connections import RedisSettings
 
+from app.adapters.transport_data.major_road_network import validate_major_road_mapping_artifacts
 from app.core.config import settings
 from app.jobs.tasks import TASKS
 
@@ -11,6 +12,8 @@ if settings.job_execution_mode != "arq":
     raise RuntimeError("The ARQ worker requires JOB_EXECUTION_MODE=arq")
 if not settings.redis_url:
     raise RuntimeError("REDIS_URL is required when JOB_EXECUTION_MODE=arq")
+if not settings.demo_mode:
+    validate_major_road_mapping_artifacts()
 
 
 class WorkerSettings:

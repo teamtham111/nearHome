@@ -11,6 +11,11 @@ COPY apps/api/alembic.ini apps/api/
 # Enrichment uses curated, repository-managed fixtures at runtime. Keep these
 # in the immutable image so production never silently loses evidence data.
 COPY data_pipeline/fixtures data_pipeline/fixtures
+# Live workers must contain an immutable, graph-versioned Major Road mapping.
+# A missing artifact is a deployment error, never a request-time fallback.
+RUN test -s /app/data_pipeline/fixtures/sla_major_roads.geojson && \
+    test -s /app/data_pipeline/fixtures/singapore-drive.graphml && \
+    test -s /app/data_pipeline/fixtures/sla_osm_major_road_mapping.json
 COPY scripts/start-api.sh scripts/start-api.sh
 
 WORKDIR /app/apps/api

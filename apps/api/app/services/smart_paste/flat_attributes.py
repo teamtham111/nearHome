@@ -42,8 +42,12 @@ _GENERIC = {"HDB", "HDB FLAT", "FLAT", "RESALE FLAT", "RESALE HDB", "APARTMENT"}
 
 
 # These are the compact labels used by listing portals. The values are the
-# exact canonical strings used by the HDB transaction fixture/pipeline.
-SUBTYPE_MAPPING: dict[str, dict[str, str]] = {
+# exact canonical strings used by the HDB transaction fixture/pipeline. This
+# explicit allowlist is intentionally not derived from a final-letter rule:
+# for example, 3S/4S are Simplified while 5S is Standard.
+FLAT_CODE_ATTRIBUTES: dict[str, dict[str, str]] = {
+    "1STD": {"flat_type": "1 ROOM", "flat_model": "Standard"},
+    "1I": {"flat_type": "1 ROOM", "flat_model": "Improved"},
     "2A": {"flat_type": "2 ROOM", "flat_model": "Model A"},
     "2A2": {"flat_type": "2 ROOM", "flat_model": "Model A2"},
     "2NG": {"flat_type": "2 ROOM", "flat_model": "New Generation"},
@@ -68,13 +72,32 @@ SUBTYPE_MAPPING: dict[str, dict[str, str]] = {
     "5A": {"flat_type": "5 ROOM", "flat_model": "Model A"},
     "5A2": {"flat_type": "5 ROOM", "flat_model": "Model A2"},
     "5NG": {"flat_type": "5 ROOM", "flat_model": "New Generation"},
-    "5S": {"flat_type": "5 ROOM", "flat_model": "Simplified"},
+    "5S": {"flat_type": "5 ROOM", "flat_model": "Standard"},
     "5I": {"flat_type": "5 ROOM", "flat_model": "Improved"},
     "5STD": {"flat_type": "5 ROOM", "flat_model": "Standard"},
     "5PA": {"flat_type": "5 ROOM", "flat_model": "Premium Apartment"},
     "EA": {"flat_type": "EXECUTIVE", "flat_model": "Apartment"},
     "EM": {"flat_type": "EXECUTIVE", "flat_model": "Maisonette"},
+    "MG": {"flat_type": "MULTI-GENERATION", "flat_model": "Multi Generation"},
 }
+# Public, model-only view of the one canonical attribute mapping. Do not add a
+# second hand-maintained code-to-model table elsewhere.
+FLAT_CODE_TO_MODEL = {code: attributes["flat_model"] for code, attributes in FLAT_CODE_ATTRIBUTES.items()}
+
+_FULL_MODEL_NAMES: tuple[tuple[str, str, str | None], ...] = (
+    ("EXECUTIVE MAISONETTE", "Maisonette", "EXECUTIVE"),
+    ("EXEC MAISONETTE", "Maisonette", "EXECUTIVE"),
+    ("EXECUTIVE APARTMENT", "Apartment", "EXECUTIVE"),
+    ("EXEC APARTMENT", "Apartment", "EXECUTIVE"),
+    ("MULTI GENERATION", "Multi Generation", "MULTI-GENERATION"),
+    ("PREMIUM APARTMENT", "Premium Apartment", None),
+    ("NEW GENERATION", "New Generation", None),
+    ("MODEL A2", "Model A2", None),
+    ("MODEL A", "Model A", None),
+    ("SIMPLIFIED", "Simplified", None),
+    ("IMPROVED", "Improved", None),
+    ("STANDARD", "Standard", None),
+)
 
 
 def _compact_subtype(value: str | None) -> str | None:
@@ -85,12 +108,18 @@ def _compact_subtype(value: str | None) -> str | None:
 
 
 def normalise_listing_subtype(value: str | None) -> NormalisedFlatSubtype:
-    """Decode one compact portal subtype without guessing unknown models."""
+    """Decode explicit HDB flat-code/name evidence without fuzzy guessing."""
     raw = " ".join(str(value).strip().split()) if value is not None else None
-    compact = _compact_subtype(raw)
+    if raw is None:
+        return NormalisedFlatSubtype(None, None, None, None, "unknown")
+    # Parenthesised explanations and the known marketplace "Modified" suffix
+    # do not change the underlying recognised HDB code family.
+    code_text = re.sub(r"\s*\([^)]*\)\s*$", "", raw, flags=re.IGNORECASE)
+    code_text = re.sub(r"\s+MODIFIED\s*$", "", code_text, flags=re.IGNORECASE)
+    compact = _compact_subtype(code_text)
     if not compact:
         return NormalisedFlatSubtype(raw, None, None, None, "unknown")
-    mapped = SUBTYPE_MAPPING.get(compact)
+    mapped = FLAT_CODE_ATTRIBUTES.get(compact)
     if mapped:
         return NormalisedFlatSubtype(
             raw,
@@ -99,6 +128,17 @@ def normalise_listing_subtype(value: str | None) -> NormalisedFlatSubtype:
             mapped["flat_model"],
             "known",
         )
+    upper = raw.upper()
+    room_match = _ROOM_WORD.search(upper)
+    for label, model, fixed_type in _FULL_MODEL_NAMES:
+        if re.fullmatch(rf"(?:[2-5]\s*[- ]?ROOM\s+)?{re.escape(label)}", upper):
+            return NormalisedFlatSubtype(
+                raw,
+                None,
+                fixed_type or (f"{room_match.group(1)} ROOM" if room_match else None),
+                model,
+                "known",
+            )
     if compact in {"A", "A2", "NG", "S", "I", "STD", "PA"}:
         return NormalisedFlatSubtype(raw, compact, None, None, "ambiguous")
     room_match = re.fullmatch(r"([2-5])[A-Z0-9]{1,5}", compact)

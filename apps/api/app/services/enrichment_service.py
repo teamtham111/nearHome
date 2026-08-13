@@ -39,9 +39,25 @@ from app.repositories.session_repository import SessionRepository
 from app.services.enrichment_metrics import collect_enrichment_metrics, measure_stage
 from app.services.journey.timestamp_resolver import resolve_departure_timestamp
 from app.services.lease_estimation import LeaseEvidenceCache, estimate_remaining_lease
+from app.services.smart_paste.flat_attributes import normalise_listing_subtype
 from app.utils.hdb_address import canonical_hdb_address_key
 
 logger = get_logger(__name__)
+
+
+def resolve_flat_model_for_enrichment(
+    listing: ConfirmedListing,
+    transaction_records: list,
+) -> tuple[str | None, str | None]:
+    """Resolve explicit listing evidence before conservative transaction fallback."""
+    if listing.flat_model:
+        return listing.flat_model, listing.flat_model_source
+    subtype = normalise_listing_subtype(listing.raw_listing_subtype or listing.listing_flat_subtype)
+    if subtype.flat_model:
+        return subtype.flat_model, "derived_from_subtype"
+    if transaction_records:
+        return infer_flat_model_from_transactions(transaction_records, listing)
+    return None, None
 
 
 def _rollup_to_field(rollup: ModelRollup) -> dict:
@@ -339,23 +355,25 @@ class EnrichmentService:
                 confidence=lease_estimate.confidence.upper(),
                 provenance=lease_estimate.source.upper(),
             )
-        if not listing.flat_model and transaction_records:
-            inferred_model, model_source = infer_flat_model_from_transactions(transaction_records, listing)
-            if inferred_model:
-                valuation_listing = replace(
-                    valuation_listing,
-                    flat_model=inferred_model,
-                    flat_model_source=model_source,
-                )
-                self.repo.save_enriched_field(
-                    lid,
-                    "hdb_flat_attributes",
-                    {"flat_model": inferred_model, "flat_model_source": model_source},
-                    DataStatus.AVAILABLE.value,
-                    "HDB_TRANSACTIONS",
-                    confidence="MEDIUM",
-                    provenance="INFERRED",
-                )
+        resolved_model, model_source = resolve_flat_model_for_enrichment(valuation_listing, transaction_records)
+        if not listing.flat_model and resolved_model:
+            # Re-resolve deterministic subtype evidence for listings confirmed
+            # before subtype-derived flat models were persisted. Explicit codes
+            # win over historical inference, which remains fallback-only.
+            valuation_listing = replace(
+                valuation_listing,
+                flat_model=resolved_model,
+                flat_model_source=model_source,
+            )
+            self.repo.save_enriched_field(
+                lid,
+                "hdb_flat_attributes",
+                {"flat_model": resolved_model, "flat_model_source": model_source},
+                DataStatus.AVAILABLE.value,
+                "LISTING_FLAT_CODE" if model_source == "derived_from_subtype" else "HDB_TRANSACTIONS",
+                confidence="HIGH" if model_source == "derived_from_subtype" else "MEDIUM",
+                provenance="DERIVED_FROM_SUBTYPE" if model_source == "derived_from_subtype" else "INFERRED",
+            )
         lease_provenance = lease_estimate.source.upper()
         self.repo.upsert_run(lid, EnrichmentType.LEASE.value, EnrichmentStatus.SUCCEEDED.value)
 

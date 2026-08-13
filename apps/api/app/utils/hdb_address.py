@@ -53,7 +53,12 @@ def normalize_hdb_address(address: str, postal_code: str | None = None) -> tuple
         block += tokens.pop(0)
 
     street_text = re.sub(r"\b\d{6}\b", " ", " ".join(tokens))
-    street_tokens = [_STREET_ALIASES.get(token, token) for token in street_text.split()]
+    # OneMap/listing portals commonly append the country after the street.
+    # It is not part of the HDB street identity and must not make the same
+    # address fail exact geocoder/transaction matching.
+    street_tokens = [
+        _STREET_ALIASES.get(token, token) for token in street_text.split() if token != "SINGAPORE"
+    ]
     street = " ".join(street_tokens).strip() or None
     return block, street, _normalize_postal(postal_code)
 

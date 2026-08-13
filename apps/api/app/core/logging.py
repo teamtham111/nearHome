@@ -12,6 +12,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 
 from app.core.config import settings
 
+
 def configure_logging() -> None:
     logging.basicConfig(format="%(message)s", stream=sys.stdout, level=settings.log_level)
     structlog.configure(

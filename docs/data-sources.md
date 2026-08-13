@@ -5,6 +5,9 @@ NearHome integrates official and provider data. All adapters implement typed int
 | Provider | Purpose | Documentation | Storage policy |
 | --- | --- | --- | --- |
 | OneMap (SLA) | Listing geocoding, address standardisation | https://www.onemap.gov.sg/apidocs/ | Coordinates cached; audit raw response in restricted field |
+| SLA National Map Line | Official `Layers/Major_Road` geometries for Major-road access classification | https://data.gov.sg/datasets/d_10480c0b59e65663dfae1028ff4aa8bb/view | Offline filtered GeoJSON artifact; refreshed periodically |
+| OpenStreetMap / OSMnx | Directed local drive graph for Major-road entry/routing topology | https://osmnx.readthedocs.io/ | Offline GraphML artifact; never downloaded per listing |
+| Derived SLA→OSM Major Road mapping | Versioned STRtree preprocessing of official SLA Major Roads against the persisted OSM graph | — | Offline JSON with input hashes, matched edge IDs and valid entry nodes; regenerated after SLA/OSM refresh |
 | data.gov.sg | HDB resale transactions, property info | https://data.gov.sg/ | Snapshot metadata + cleaned rows in PostgreSQL |
 | LTA DataMall | Bus/MRT reference | https://datamall.lta.gov.sg/content/datamall/en.html | Reference snapshots |
 | MOE | School locations | https://data.gov.sg (school datasets) | Snapshot with retrieval date |

@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.adapters.transport_data.major_road_network import validate_major_road_mapping_artifacts
 from app.api.routes import router
 from app.core.config import settings
 from app.core.logging import RequestLoggingMiddleware, configure_logging, get_logger
@@ -15,6 +16,8 @@ from app.core.rate_limit import RateLimitMiddleware
 async def lifespan(_app: FastAPI):
     configure_logging()
     settings.validate_production()
+    if not settings.demo_mode:
+        validate_major_road_mapping_artifacts()
     get_logger(__name__).info(
         "api_started",
         app_env=settings.app_env,

@@ -18,8 +18,8 @@ weighted components:
    MRT/LRT stations (routed walking).
 2. **Bus coverage** — genuinely different bus corridors reachable directly
    or via one practical transfer (deduplicated, not raw stop/service counts).
-3. **MRT reach and connections** — from the geographically closest MRT station,
-   how much of the rail network becomes available (structural rail graph).
+3. **MRT reach and connections** — from Access's practically best qualifying
+   MRT station, how much of the rail network becomes available (structural rail graph).
 4. **Route resilience** — whether genuinely independent alternatives exist
    if the usual route is disrupted.
 
@@ -28,8 +28,9 @@ weighted components:
 General neighbourhood driving connectivity, independent of a buyer's personal
 destination, as four weighted components:
 
-1. **Peak-hour major-road access** — routed peak driving time to a *useful*
-   expressway/arterial entrance (not the geographically closest coordinate).
+1. **Major-road access** — Google driving time from the listing's actual
+   coordinates to a valid precomputed OSM-derived entry onto an SLA-designated Major Road
+   (not nearest line geometry).
 2. **Route connectivity** — genuinely independent driving alternatives,
    classified by road-name overlap.
 3. **Peak-hour access reliability** — extra minutes vs off-peak to the *same*
@@ -148,7 +149,7 @@ cache TTL.
 ### Haversine’s limited role
 
 Haversine (`adapters/reference_data.haversine_m`) is used **only** to
-shortlist candidates (bus stops, stations, road access points, carparks).
+shortlist candidates (bus stops, stations, carparks).
 User-facing walk/drive minutes always come from `RoutingProvider`.
 
 ```mermaid
@@ -321,11 +322,15 @@ Union-find groups overlapping service-directions. Score buckets saturate at
 
 ### 5.3 MRT reach and connections
 
-Uses exactly the **geographically closest active MRT station** to the listing
-coordinates, independently of Access's practical walking/feeder result.
-Structural Dijkstra then counts each physical station once in mutually exclusive buckets:
+Access uses Haversine only to shortlist plausible station candidates, confirms
+routed direct-walk/feeder paths, and records a generalised access cost for each
+qualifying physical station. MRT Reach reuses the qualifying station with the
+lowest such cost; it does not independently select a Haversine-nearest station.
+It resolves the physical station to all of its graph codes (preserving
+interchange origins), then structural Dijkstra counts each physical station
+once in mutually exclusive buckets:
 
-- direct lines at the geographically closest station
+- direct lines at the selected practical station
 - interchange flag
 - lines reachable within one transfer
 - stations reachable within 30 / 45 structural minutes
@@ -344,8 +349,8 @@ score = zero_transfer_score × .35
 | Field | Detail |
 | ----- | ------ |
 | Weight | 0.30 |
-| Missing data | Rail graph not loaded, or no active station has valid coordinates → `not_assessed` |
-| Limitation | Access separately reports practical entry; rail minutes remain structural approximations |
+| Missing data | Rail graph not loaded, no qualifying Access station, or no qualifying Access station maps to an active graph station → `not_assessed` |
+| Limitation | Home-to-station access belongs to Access and is not added again; rail minutes remain structural approximations |
 | Files | `engines/public_transport/mrt_reach.py`, `networks/rail_graph.py` |
 | Tests | `TestMrtReachComponent`, golden cases (Dhoby Ghaut vs Yishun) |
 
@@ -419,14 +424,17 @@ CC14 --ride--> CC15 --ride--> CC16
 | Source | Detail | Provenance |
 | ------ | ------ | ---------- |
 | Google Routes (driving, traffic-aware, alternatives) | Peak/off-peak durations, steps for overlap | ROUTED_LIVE |
-| Road access points | Curated 30 named arterial→expressway points, OneMap-geocoded; version `2026-08-02`; covers PIE, CTE, ECP, AYE, BKE, KJE, KPE, MCE, SLE, TPE | CURATED_REFERENCE_DATA |
+| SLA Major Road geometry | SLA National Map Line, filtered to `FOLDERPATH=Layers/Major_Road`; determines which roads count | OFFICIAL |
+| Singapore OSM drive graph | Periodically built OSMnx `network_type=drive` GraphML; determines directed legal-car entry topology, not Major Road travel time | CURATED_REFERENCE_DATA |
 | Peak / off-peak times | Configurable hours (default AM peak 08:00, off-peak 22:00 SGT) via `next_occurrence_at_hour` | — |
 | HDB carparks | Official [HDB Carpark Information](https://data.gov.sg/datasets/d_23f946fa557947f93a8043bbef41dd09/view); SVY21→WGS84 via pyproj; static records plus live availability | OFFICIAL |
 | Parking availability | Official [HDB Carpark Availability API](https://data.gov.sg/datasets/d_ca933a644e55d34fe21f28b8052fac63/view); cached, stale/not-covered/error states preserved | ROUTED_LIVE |
 
 Ingestion:
 
-- `data_pipeline/build_road_access_points.py` (OneMap)
+- `data_pipeline/ingest_sla_major_roads.py` (filters official SLA National Map Line)
+- `data_pipeline/build_singapore_drive_graph.py` (periodic OSMnx GraphML refresh)
+- `data_pipeline/build_major_road_mapping.py` (STRtree SLA→OSM matching and entry-node derivation; rerun after either source artifact refresh)
 - `data_pipeline/ingest_hdb_carparks.py`
 - `data_pipeline/ingest_hdb_carparks.py --live --persist-db` also mirrors the
   refreshed static records into `hdb_carparks`.
@@ -452,25 +460,70 @@ Weights (`DrivingConfig`):
 
 Minimum core weight coverage: **0.6**.
 
-### 9.1 Peak-hour major-road access
+### 9.1 Major-road access
 
-1. Haversine shortlist within 6000 m (up to 6 candidates).
-2. Route each at AM peak with traffic-aware driving.
-3. Select **shortest routed duration** (useful, not closest).
-4. Score by minutes: ≤4 → 95; ≤7 → 85; ≤10 → 72; ≤15 → 58; ≤22 → 42; else 25.
+#### Static preprocessing
 
-Returns `MajorRoadAccessOutcome` so later components reuse the **same**
-selected point/route.
+1. `data_pipeline/build_major_road_mapping.py` loads the filtered SLA Major Roads and persisted OSMnx GraphML.
+2. It reads both source geometries as WGS84 longitude/latitude, projects them into SVY21 metres only to build one Shapely `STRtree`, and queries a **100 m candidate region** for every SLA road.
+3. The 100 m STRtree region is only a retrieval optimisation. The final canonical matcher uses its existing local metres-per-degree point-to-segment geometry calculation: meaningful shared name tokens permit 35 m geometry/alignment; absent name evidence requires 12 m; at least two OSM edge geometry points must align with the SLA road.
+4. It derives directed entry junctions where a non-major incoming OSM edge enters a matched directed Major Road edge. Nodes within 40 m are deduplicated; a catalogue record retains the approach-edge IDs, entering major-edge IDs, a stable candidate ID, and an **80 m downstream target** on that directed Major Road edge.
+5. It writes the versioned `major-road-access-catalogue-v2` artifact at `data_pipeline/fixtures/sla_osm_major_road_mapping.json`, including graph/SLA SHA-256 hashes, generation time, matching algorithm version, catalogue version, and all entry evidence. The loader refuses a stale, malformed, hash-incompatible, or version-incompatible catalogue.
 
-| Missing data | Unusable dataset / no candidates → `not_assessed`; all routes fail → `provider_error` |
-| Files | `engines/driving/major_road_access.py`, `adapters/transport_data/road_access.py` |
-| Tests | `TestMajorRoadAccessComponent` (useful-not-closest, no 5-anchor reliance, provider error) |
+```text
+OFFLINE
+
+SLA Major_Road + OSM drive graph
+        ↓ STRtree + strict SLA↔OSM alignment
+directed local-road → major-road junctions
+        ↓ deduplicate + downstream routing targets
+versioned access catalogue
+        ↓ optional Google Roads QA
+```
+
+`data_pipeline/validate_major_road_mapping.py` is an offline quality check, not an enrichment step. It compares all OSM edges with STRtree candidates through the same final matcher, writes per-road CSV/JSON diagnostics plus reviewed-road GeoJSON, and can calculate precision/recall/F1 only when manually verified labels are added to `data_pipeline/fixtures/major_road_mapping_gold_labels.json`.
+
+#### Runtime enrichment
+
+1. Sort distinct SLA `Layers/Major_Road` roads by LineString proximity; attempt the nearest 5. A 15,000 m safety bound only rejects missing/out-of-area source data and is not scored.
+2. Load their version-compatible catalogue entrances. Runtime never scans OSM edges, runs OSM routing, or performs SLA↔OSM matching.
+3. Locally sort all catalogue entrances by approximate proximity and retain at most 10. This is an API-cost filter only—not a final access metric.
+4. Send Google Routes traffic-aware **summary** requests from the actual listing coordinates to the catalogue's 80 m downstream targets at the configured AM peak hour. Google duration, then Google distance and stable IDs, ranks the candidates.
+5. Request high-quality Google route polylines only for the best 3 summary candidates. A candidate passes only if its ordered Google geometry has a continuous, directionally aligned section within an 18 m buffer of the corresponding official SLA road for at least 60 m. A crossing, brief touch, nearby parallel/frontage road, missing polyline, or weakly aligned geometry is rejected.
+6. The first point of that sustained section is the **actual validated access coordinate**. Among valid candidates, select the smallest Google duration then distance. Score by minutes: ≤4 → 95; ≤7 → 85; ≤10 → 72; ≤15 → 58; ≤22 → 42; else 25.
+
+Returns `MajorRoadAccessOutcome` with the selected catalogue candidate, Google
+route, actual validated access coordinate, and catalogue version. Route
+Connectivity reuses the valid catalogue destinations and Google alternatives;
+Peak Access Penalty reuses the selected validated catalogue target and the
+already obtained AM-peak route, requesting only the off-peak comparison.
+
+```text
+ONLINE
+
+listing → nearby SLA roads → catalogue entrances → local cap (10)
+        ↓ Google duration/distance summaries
+top 3 → Google high-quality polylines × SLA geometry
+        ↓ sustained-entry validation
+fastest valid entrance → Major Road Access
+                        ├─ Route Connectivity
+                        └─ Peak Access Penalty
+```
+
+| Missing data | Missing/corrupt/incompatible SLA, GraphML or catalogue, no precomputed entry, failed Google summaries, or no candidate with sustained Google×SLA overlap → `not_assessed`; no runtime OSM matching, OSM-time, or geometric-time fallback |
+| Files | `engines/driving/major_road_access.py`, `adapters/transport_data/major_road_network.py` |
+| Tests | `TestMajorRoadAccessComponent` (SLA candidate/match, junction, no crossing, directionality, Google duration/distance selection and failures) |
 
 ### 9.2 Route connectivity
 
-Uses distinct-expressway candidates from major-road access as destinations.
-Requests driving alternatives; classifies each alt vs primary via
-`networks/route_overlap.py`:
+Uses distinct SLA Major Road catalogue entrances that passed Major Road Access
+validation as destinations.
+Requests Google driving alternatives with `polylineQuality=HIGH_QUALITY`; no
+additional Google request is made for comparison. `networks/route_overlap.py`
+decodes the route polylines and map-matches their ordered travel progression to
+the local directed OSM graph using geometry, heading, and graph continuity—not
+independent nearest-edge snaps. It then classifies each alternative against its
+primary route:
 
 | Classification | Rule |
 | -------------- | ---- |
@@ -479,14 +532,27 @@ Requests driving alternatives; classifies each alt vs primary via
 | `partially_independent` | ≤ 0.70 |
 | `substantially_overlapping` | > 0.70 |
 
-Overlap = Jaccard of named roads extracted from turn-by-turn instructions
-(documented approximation; not polyline geometry). Fallback when no road
-names parse: distance similarity (flagged in evidence note).
+With HIGH-confidence matches on both routes, overlap is the symmetric average
+of shared directed OSM-edge distance as a fraction of each route's matched
+distance. Separate nearby parallel/frontage roads and opposite carriageways
+remain different edges; proximity alone does not make them overlap.
+
+Map-match confidence is HIGH at ≥85% matched distance with ≤15% ambiguity and
+≤10% discontinuity; MEDIUM at ≥60% matched, ≤40% unmatched, and ≤30%
+discontinuity; otherwise LOW. HIGH/MEDIUM matches use 75% edge overlap + 25%
+of a symmetric length-weighted 25 m geometric buffer overlap (`hybrid`). LOW
+matches use geometry only. Missing/unusable polylines use the legacy named-road
+Jaccard fallback, then a clearly weak distance-similarity proxy if instructions
+have no road names. Evidence records the method and matching metrics. The
+encoded polyline is kept in the short-lived route cache but not persisted in
+the enrichment JSON. Map-matched edge sequences are recalculated from the
+currently loaded OSM graph per enrichment run, avoiding stale graph-version
+matches.
 
 ```text
 score = min(95,
-    50
-  + 12 × min(3, distinct_expressways)
+  50
+  + 12 × min(3, distinct SLA Major Roads)
   + 6 × min(4, independent_alts)
   + 3 × min(4, partial_alts))
 ```
@@ -660,7 +726,7 @@ Construction of `ComponentResult` forces `score=None` / `value=None` for
 | Value | Meaning |
 | ----- | ------- |
 | `ROUTED_LIVE` | Live Google Routes result |
-| `CURATED_REFERENCE_DATA` | Hand-compiled but real structural data (rail / road access points) |
+| `CURATED_REFERENCE_DATA` | Persisted structural reference data (for example, rail or OSM road topology) |
 | `CALCULATED` | Derived from official/curated inputs without a live route call |
 | `MOCK_DEMO_DATA` | Demo/mock path |
 | `OFFICIAL` | Official source datasets (LTA / data.gov.sg) |
@@ -705,10 +771,11 @@ Genuine current limitations (not aspirational):
    not live train times.
 3. Scheduled frequency is a waiting-time proxy, not a real-time prediction.
 4. Corridor dedup uses stop-sequence overlap, not geometry/polylines.
-5. Driving route overlap uses **named roads in turn-by-turn text**, not
-   shared polyline distance.
-6. Road access points and rail topology are **curated** and need periodic
-   manual revalidation against LTA / road maps.
+5. Driving route overlap is a deterministic OSM/polyline map-matching
+   approximation, not a live disruption/resilience simulation; weak map
+   matches may use geometric or instruction-name fallback evidence.
+6. OSM road topology and rail topology need periodic refresh/revalidation
+   against their source maps.
 7. **Parking availability** is a point-in-time official snapshot; it is not a
    prediction of typical parking difficulty and current lot counts do not
    affect the score.
@@ -751,7 +818,8 @@ python data_pipeline/validate_transport_data.py
 python data_pipeline/build_rail_graph.py
 
 # Driving reference
-python data_pipeline/build_road_access_points.py
+python data_pipeline/ingest_sla_major_roads.py /path/to/SLA_National_Map_Line.geojson
+python data_pipeline/build_singapore_drive_graph.py
 python data_pipeline/ingest_hdb_carparks.py
 ```
 
@@ -799,10 +867,10 @@ counts toward recommendation.
 
 ### 14.2 Driving (illustrative)
 
-1. **Major-road access** — 6 candidates routed at 08:00; farthest CTE
-   entrance is 6 min vs nearer PIE slip at 18 min → select CTE (useful not
-   closest) → score ~85.
-2. **Route connectivity** — alternatives to 3 expressways; 1 independent +
+1. **Major-road access** — nearby SLA lines become matched OSM junctions; a
+   farther valid entry has a 6 min Google drive versus 18 min for a nearer
+   entry → select the 6 min entry → score ~85.
+2. **Route connectivity** — alternatives to 3 SLA Major Roads; 1 independent +
    1 partial → score mid-70s.
 3. **Peak penalty** — same CTE point off-peak 12 min, peak 20 min →
    penalty 8 → score ~70.
@@ -851,7 +919,7 @@ Only `major_road_access` calculated (weight 0.35), others
 | MRT reach via rail graph | `mrt_reach.py`, `rail_graph.py` | `TestMrtReachComponent`, `test_rail_graph.py` | Done |
 | Route resilience independent units | `route_resilience.py` | `TestRouteResilienceComponent` | Done |
 | Curated rail graph + Dijkstra | `build_rail_graph.py`, `rail_graph.py` | `test_rail_graph.py` | Done |
-| Major-road access useful-not-closest | `major_road_access.py`, `road_access_points.json` | `TestMajorRoadAccessComponent` | Done |
+| Major-road access via SLA + OSM entry | `major_road_access.py`, `major_road_network.py` | `TestMajorRoadAccessComponent` | Done |
 | Route overlap classification | `route_overlap.py`, `route_connectivity.py` | `TestRouteOverlapClassification`, `TestRouteConnectivity` | Done |
 | Peak−off-peak same access point | `peak_access_penalty.py` | `TestPeakAccessPenalty` | Done |
 | Parking convenience / availability N/A | `parking_convenience.py`, `hdb_carpark.py` | `TestParkingConvenience` | Done |

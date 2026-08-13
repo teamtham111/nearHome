@@ -1,18 +1,20 @@
 """Bus coverage component — genuinely different corridors reachable by bus.
 
 Spec (Part 6.3):
-    bus_coverage_score = direct_coverage_score * 0.70 + practical_one_transfer_score * 0.30
+    bus_coverage_score = direct_coverage_score * 0.70 + same_stop_one_transfer_score * 0.30
 
 Measures deduplicated *corridors*, never raw bus-stop or bus-service counts.
 """
 
 from __future__ import annotations
 
+from typing import Any
+
 from app.adapters.transport_data.lta_bus import LtaBusDataStore
 from app.domain.enums import ComponentStatus, Provenance
 from app.domain.transport_models import ComponentResult, not_assessed
 from app.engines.transport_config import PT_CONFIG, PublicTransportConfig
-from app.networks.bus_network import BusNetwork, get_bus_network
+from app.networks.bus_network import BoardingCorridorContext, BusNetwork, get_bus_network
 
 DIRECT_WEIGHT = 0.70
 ONE_TRANSFER_WEIGHT = 0.30
@@ -48,34 +50,46 @@ def _bucket_one_transfer(count: int, saturation: int) -> float:
 
 def _corridor_usable(
     corridor_id: str,
-    network: BusNetwork,
+    context: BoardingCorridorContext,
     config: PublicTransportConfig,
+    *,
+    direct_only: bool,
 ) -> bool:
-    info = network.corridor_info(corridor_id)
-    if info is None:
-        return False
-    frequencies = []
-    unknown_service = False
-    for key in info.member_services:
-        service = LtaBusDataStore.service_info(key)
-        if service is None:
-            unknown_service = True
-            continue
-        frequency = service.frequencies.get(config.assessed_frequency_period)
-        if frequency is not None:
-            frequencies.append(frequency)
-    # Synthetic network test doubles may not have service metadata; the
-    # corridor itself is still valid structural evidence in that case.
-    if unknown_service and not frequencies:
-        return True
-    if not frequencies:
-        return False
-    combined_max = 1 / sum(1 / frequency.maximum_minutes for frequency in frequencies)
-    return combined_max <= config.maximum_usable_scheduled_interval_minutes
+    # A corridor can be boardable from several nearby stops. Evaluate each
+    # boarding stop independently so a service from another stop never boosts
+    # its frequency at the resident's actual boarding stop.
+    for stop_code in context.boarding_stops_for_corridor(corridor_id, direct_only=direct_only):
+        frequencies = []
+        for key in context.service_keys_at_boarding_stop(corridor_id, stop_code, direct_only=direct_only):
+            service = LtaBusDataStore.service_info(key)
+            if service is None:
+                continue
+            frequency = service.frequencies.get(config.assessed_frequency_period)
+            if frequency is not None:
+                frequencies.append(frequency)
+        if frequencies:
+            combined_max = 1 / sum(1 / frequency.maximum_minutes for frequency in frequencies)
+            if combined_max <= config.maximum_usable_scheduled_interval_minutes:
+                return True
+    return False
+
+
+def _coverage_stop_codes(
+    walkable_bus_stops: list[dict[str, Any]],
+    config: PublicTransportConfig,
+) -> set[str]:
+    """Return the strict bus-coverage catchment from routed Access evidence."""
+    return {
+        str(stop["bus_stop_code"])
+        for stop in walkable_bus_stops
+        if stop.get("bus_stop_code")
+        and isinstance(stop.get("walk_distance_metres"), (int, float))
+        and float(stop["walk_distance_metres"]) <= config.max_bus_coverage_walk_distance_metres
+    }
 
 
 def compute_bus_coverage(
-    usable_bus_stop_codes: list[str],
+    walkable_bus_stops: list[dict[str, Any]],
     config: PublicTransportConfig = PT_CONFIG,
     bus_network: BusNetwork | None = None,
 ) -> ComponentResult:
@@ -87,24 +101,25 @@ def compute_bus_coverage(
             weight,
             "Bus route/service reference data is unavailable or failed data-quality validation.",
         )
-    if not usable_bus_stop_codes:
+    stop_set = _coverage_stop_codes(walkable_bus_stops, config)
+    if not stop_set:
         return not_assessed(
             "bus_coverage",
             weight,
-            "No practically walkable bus stop was found, so bus coverage cannot be assessed.",
+            "No bus stop within the routed walking-distance catchment was found, so bus coverage cannot be assessed.",
         )
 
-    network = bus_network or get_bus_network()
-    stop_set = set(usable_bus_stop_codes)
+    network = bus_network or get_bus_network(config.corridor_overlap_threshold)
+    context = network.corridors_for_boarding_stops(stop_set)
     direct_corridors = {
         corridor
-        for corridor in network.direct_corridors_for_stops(stop_set)
-        if _corridor_usable(corridor, network, config)
+        for corridor in context.direct_corridor_ids()
+        if _corridor_usable(corridor, context, config, direct_only=True)
     }
     one_transfer_corridors = {
         corridor
-        for corridor in network.one_transfer_corridors(stop_set, direct_corridors)
-        if _corridor_usable(corridor, network, config)
+        for corridor in context.one_transfer_corridor_ids()
+        if _corridor_usable(corridor, context, config, direct_only=False)
     }
 
     if not direct_corridors:
@@ -118,7 +133,7 @@ def compute_bus_coverage(
     transfer_score = _bucket_one_transfer(len(one_transfer_corridors), config.one_transfer_corridor_saturation_count)
     score = round(direct_score * DIRECT_WEIGHT + transfer_score * ONE_TRANSFER_WEIGHT, 1)
 
-    sample_direct = [network.corridor_info(c) for c in list(direct_corridors)[:8]]
+    sample_direct = [context.corridor_info(c) for c in list(direct_corridors)[:8]]
     evidence = [
         {
             "corridor_id": info.corridor_id,
@@ -134,7 +149,7 @@ def compute_bus_coverage(
     if len(direct_corridors) >= config.direct_corridor_saturation_count:
         strengths.append(f"{len(direct_corridors)} distinct direct bus corridors — broad direct reach.")
     if one_transfer_corridors:
-        strengths.append(f"{len(one_transfer_corridors)} additional corridors reachable with one practical transfer.")
+        strengths.append(f"{len(one_transfer_corridors)} additional corridors reachable with one same-stop transfer.")
     else:
         limitations.append("One-transfer connections do not unlock materially new corridors from this location.")
 
@@ -146,11 +161,15 @@ def compute_bus_coverage(
         status=ComponentStatus.CALCULATED,
         explanation=(
             f"{len(direct_corridors)} deduplicated direct bus corridor(s) reachable, plus "
-            f"{len(one_transfer_corridors)} genuinely new corridor(s) via one practical transfer."
+            f"{len(one_transfer_corridors)} genuinely new corridor(s) via one same-stop transfer."
         ),
         strengths=strengths,
         limitations=limitations
-        + ["Corridor grouping is a deterministic stop-sequence-overlap heuristic, not a live route planner."],
+        + [
+            "One-transfer coverage requires the same LTA bus-stop code; "
+            "no walking transfer between nearby stops is assumed.",
+            "Corridor grouping is a deterministic stop-sequence-overlap heuristic, not a live route planner.",
+        ],
         evidence=evidence,
         source="LTA DataMall BusRoutes/BusServices (joined, deduplicated by corridor)",
         provenance=Provenance.CALCULATED,

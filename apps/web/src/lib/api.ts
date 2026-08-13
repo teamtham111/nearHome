@@ -1,8 +1,9 @@
 type ApiFetchInit = RequestInit & { timeoutMs?: number };
 
-// URL retrieval can fall back to a browser before Groq extraction begins. Keep this
-// bounded, but do not apply the ordinary interaction timeout to Smart Paste.
-const SMART_PASTE_TIMEOUT_MS = 120_000;
+// Keep ordinary interactions responsive, while allowing operations that deliberately
+// perform retrieval or inline enrichment to complete without a premature abort.
+export const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
+export const LONG_RUNNING_REQUEST_TIMEOUT_MS = 120_000;
 
 function getApiUrl(): string {
   const deploymentEnvironment = process.env.NEXT_PUBLIC_DEPLOYMENT_ENV;
@@ -56,7 +57,7 @@ export function parseApiError(detail: string): string {
 export async function apiFetch<T>(path: string, init?: ApiFetchInit): Promise<T> {
   const controller = new AbortController();
   let timedOut = false;
-  const timeoutMs = init?.timeoutMs ?? 15_000;
+  const timeoutMs = init?.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
   const timer = window.setTimeout(() => {
     timedOut = true;
     controller.abort();
@@ -382,7 +383,7 @@ export function startEnrichment(sessionId: string) {
     status_url: string;
   }>(
     `/api/v1/sessions/${sessionId}/enrichment/start`,
-    { method: "POST" },
+    { method: "POST", timeoutMs: LONG_RUNNING_REQUEST_TIMEOUT_MS },
   );
 }
 
@@ -430,7 +431,7 @@ export function smartPaste(
   }>(`/api/v1/sessions/${sessionId}/smart-paste`, {
     method: "POST",
     body: JSON.stringify(body),
-    timeoutMs: SMART_PASTE_TIMEOUT_MS,
+    timeoutMs: LONG_RUNNING_REQUEST_TIMEOUT_MS,
   });
 }
 

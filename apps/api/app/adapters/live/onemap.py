@@ -8,6 +8,12 @@ import httpx
 
 from app.adapters.base import GeocodeResult
 from app.core.config import settings
+from app.utils.hdb_address import canonical_hdb_address_key, canonical_hdb_parts
+
+# Broad defensive envelope, not an address-quality score. It prevents a
+# provider coordinate/order error from becoming plausible downstream input.
+_SINGAPORE_LATITUDE_RANGE = (1.15, 1.49)
+_SINGAPORE_LONGITUDE_RANGE = (103.58, 104.12)
 
 
 class LiveOneMapAdapter:
@@ -62,7 +68,9 @@ class LiveOneMapAdapter:
         if not results:
             raise ValueError(f"No geocode result for: {query}")
 
-        r = results[0]
+        r = next((row for row in results if self._is_usable_match(row, original_address)), None)
+        if r is None:
+            raise ValueError(f"OneMap returned no coordinate/address match for: {original_address}")
         return GeocodeResult(
             latitude=float(r["LATITUDE"]),
             longitude=float(r["LONGITUDE"]),
@@ -75,3 +83,27 @@ class LiveOneMapAdapter:
             provenance="OFFICIAL",
             retrieved_at=datetime.now(UTC),
         )
+
+    @staticmethod
+    def _is_usable_match(result: dict, original_address: str) -> bool:
+        """Reject obviously unsafe or wrong-HDB-block provider results.
+
+        OneMap search results are ranked but can contain similarly named
+        streets and POIs. A parsed HDB listing therefore must not silently
+        accept a result with a conflicting block/street. Missing provider
+        address components remain allowed because some legitimate OneMap rows
+        do not expose them; their coordinate is still checked independently.
+        """
+        try:
+            latitude = float(result["LATITUDE"])
+            longitude = float(result["LONGITUDE"])
+        except (KeyError, TypeError, ValueError):
+            return False
+        if not (
+            _SINGAPORE_LATITUDE_RANGE[0] <= latitude <= _SINGAPORE_LATITUDE_RANGE[1]
+            and _SINGAPORE_LONGITUDE_RANGE[0] <= longitude <= _SINGAPORE_LONGITUDE_RANGE[1]
+        ):
+            return False
+        requested = canonical_hdb_address_key(original_address)
+        returned = canonical_hdb_parts(result.get("BLK_NO"), result.get("ROAD_NAME"))
+        return requested is None or returned is None or requested == returned

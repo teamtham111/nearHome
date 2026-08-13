@@ -978,7 +978,8 @@
         "STC"
       ],
       "lines": [
-        "NEL"
+        "NEL",
+        "SKLRT"
       ],
       "is_interchange": true,
       "latitude": 1.39169462601522,
@@ -992,7 +993,8 @@
         "PTC"
       ],
       "lines": [
-        "NEL"
+        "NEL",
+        "PGLRT"
       ],
       "is_interchange": true,
       "latitude": 1.41492733388605,

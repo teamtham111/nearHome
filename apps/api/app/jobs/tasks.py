@@ -5,16 +5,14 @@ from __future__ import annotations
 from uuid import UUID
 
 from app.db.session import SessionLocal
-from app.services.enrichment_service import EnrichmentService
+from app.worker_main import CloudTaskPayload, run_enrichment_task
 
 
-async def run_session_enrichment(ctx: dict, session_id: str) -> dict:
-    """ARQ task: run full enrichment for a comparison session."""
+async def run_session_enrichment(ctx: dict, job_id: str) -> dict:
+    """ARQ task: run one durable enrichment job and persist its progress."""
     db = SessionLocal()
     try:
-        service = EnrichmentService(db)
-        result = service.run_session_enrichment(UUID(session_id), simulate_delay=False)
-        return {"session_id": session_id, "status": "completed", "result": result}
+        return run_enrichment_task(CloudTaskPayload(job_id=UUID(job_id)), None, db)
     finally:
         db.close()
 

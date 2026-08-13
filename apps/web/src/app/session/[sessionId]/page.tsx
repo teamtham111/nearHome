@@ -47,6 +47,7 @@ const PRIORITY_LABELS: Record<(typeof PRIORITY_VALUES)[number], string> = {
 type PriorityValue = (typeof PRIORITY_VALUES)[number];
 
 const SCHOOL_NAME_PATTERN = /\b(school|college|institution|institute|academy|madrasah|polytechnic)\b/i;
+const SQ_FT_TO_SQ_M = 0.092903;
 
 const priorityValueSchema = z.enum(PRIORITY_VALUES);
 const optionalPrioritySchema = z.union([priorityValueSchema, z.literal("")]);
@@ -79,6 +80,7 @@ const listingSchema = z.object({
 type ProfileForm = z.infer<typeof profileSchema>;
 type ListingForm = z.infer<typeof listingSchema>;
 type SegmentOption<T extends string> = { value: T; label: string };
+type FloorAreaUnit = "sqm" | "sqft";
 
 function SegmentedControl<T extends string>({
   label,
@@ -164,6 +166,7 @@ export default function SessionPage() {
   const [pasteWarnings, setPasteWarnings] = useState<string[]>([]);
   const [pasteFieldSources, setPasteFieldSources] = useState<Record<string, string>>({});
   const [pasteInitialCanonical, setPasteInitialCanonical] = useState<{ flat_type?: string; flat_model?: string }>({});
+  const [floorAreaUnit, setFloorAreaUnit] = useState<FloorAreaUnit>("sqm");
   const [pendingRemoval, setPendingRemoval] = useState<SessionListing | null>(null);
   const shortlistHeadingRef = useRef<HTMLHeadingElement>(null);
   const addFlatHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -317,9 +320,17 @@ export default function SessionPage() {
   });
 
   const addListing = useMutation({
-    mutationFn: (values: ListingForm) => addManualListing(sessionId, values),
+    mutationFn: (values: ListingForm) =>
+      addManualListing(sessionId, {
+        ...values,
+        // The API and all downstream models use square metres as the canonical unit.
+        floor_area_sqm: floorAreaUnit === "sqft"
+          ? Number((values.floor_area_sqm * SQ_FT_TO_SQ_M).toFixed(2))
+          : values.floor_area_sqm,
+      }),
     onSuccess: async () => {
       listingForm.reset({ flat_type: "4 ROOM", storey_range: "" });
+      setFloorAreaUnit("sqm");
       setListingSavedMsg("Listing saved.");
       qc.invalidateQueries({ queryKey: ["session", sessionId] });
       qc.invalidateQueries({ queryKey: ["comparison", sessionId] });
@@ -378,6 +389,7 @@ export default function SessionPage() {
     setPasteError(null);
     setPasteSourceUrl(null);
     listingForm.reset({ flat_type: "4 ROOM", storey_range: "" });
+    setFloorAreaUnit("sqm");
     pasteExtract.reset();
     confirmFromPaste.reset();
     setInputMode("paste");
@@ -459,6 +471,18 @@ export default function SessionPage() {
     if (moveFocus) {
       window.requestAnimationFrame(() => (mode === "manual" ? manualEntryTabRef : smartPasteTabRef).current?.focus());
     }
+  }
+
+  function changeFloorAreaUnit(nextUnit: FloorAreaUnit) {
+    if (nextUnit === floorAreaUnit) return;
+    const currentArea = listingForm.getValues("floor_area_sqm");
+    if (typeof currentArea === "number" && Number.isFinite(currentArea) && currentArea > 0) {
+      const converted = nextUnit === "sqft"
+        ? currentArea / SQ_FT_TO_SQ_M
+        : currentArea * SQ_FT_TO_SQ_M;
+      listingForm.setValue("floor_area_sqm", Number(converted.toFixed(2)), { shouldValidate: true });
+    }
+    setFloorAreaUnit(nextUnit);
   }
 
   function handleLocationQueryChange(q: string) {
@@ -847,13 +871,21 @@ export default function SessionPage() {
 
           {inputMode === "paste" && !listingInputId && (
             <div id="smart-paste-panel" role="tabpanel" aria-labelledby={pasteVariant === "url" ? "smart-paste-url-tab" : "smart-paste-text-tab"} className="mt-5 max-w-3xl space-y-3">
-              <p className="text-sm text-slate-600">{pasteVariant === "text" ? "Copy and paste listing details from a property portal, agent or chat. You will review every extracted field before it is added." : "Paste a listing URL. Some listing websites restrict automated URL access, so copied listing text is the more reliable option."}</p>
+              {pasteVariant === "text" ? (
+                <div>
+                  <p className="text-sm font-medium text-slate-900">Copy and paste the entire listing page below.</p>
+                  <p className="mt-1 text-sm text-slate-600">NearHome will automatically find the relevant listing details — you don&apos;t need to clean up the text first.</p>
+                  <p className="mt-3 text-xs font-medium text-slate-600">Mac: ⌘ A → ⌘ C → ⌘ V <span className="mx-2 text-slate-300">|</span> Windows: Ctrl + A → Ctrl + C → Ctrl + V</p>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-600">Paste a listing URL. Some listing websites restrict automated URL access, so copied listing text is the more reliable option.</p>
+              )}
               <textarea
                 ref={pasteInputRef}
                 className="nh-textarea h-40 font-mono"
                 value={pasteText}
                 onChange={(e) => setPasteText(e.target.value)}
-                placeholder={pasteVariant === "text" ? "Paste listing details here…" : "Paste a PropertyGuru, 99.co or other listing URL here…"}
+                placeholder={pasteVariant === "text" ? "Paste the full listing page here…" : "Paste a PropertyGuru, 99.co or other listing URL here…"}
               />
               <div className="rounded-xl border border-blue-100 bg-blue-50/60 px-3 py-2.5 text-sm" aria-live="polite">
                 {pasteVariant === "url" ? (
@@ -861,7 +893,7 @@ export default function SessionPage() {
                     ? <p className="font-medium text-blue-800">Listing URL recognised. Select <span className="font-semibold">Add a flat</span> to retrieve it and show the real extracted details for review.</p>
                     : <p className="text-slate-600">Paste a full listing URL beginning with <span className="font-medium">https://</span>. Extracted details appear only after NearHome retrieves the page.</p>
                 ) : (
-                  <p className="text-slate-600">Paste the listing text, then select <span className="font-medium text-blue-800">Add a flat</span> to extract the details you can review.</p>
+                  <p className="text-slate-600">Next: Select <span className="font-medium text-blue-800">Add a flat</span> and NearHome will extract the details for you to review.</p>
                 )}
               </div>
               <button type="button" className="nh-primary" onClick={() => pasteExtract.mutate()} disabled={pasteExtract.isPending || !pasteText.trim()}>
@@ -930,8 +962,17 @@ export default function SessionPage() {
                 <input type="number" inputMode="numeric" className="nh-input" {...listingForm.register("asking_price")} />
               </label>
               <label className="nh-label">
-                Floor area (sqm) <span className="text-red-700">*</span>
+                Floor area ({listingInputId ? "sqm" : floorAreaUnit === "sqm" ? "sqm" : "sq ft"}) <span className="text-red-700">*</span>
                 <input type="number" inputMode="decimal" step="0.1" className="nh-input" {...listingForm.register("floor_area_sqm")} />
+                {!listingInputId && (
+                  <>
+                    <span className="mt-2 flex rounded-lg border border-slate-200 bg-white p-1" role="group" aria-label="Floor area unit">
+                      <button type="button" className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ${floorAreaUnit === "sqm" ? "bg-teal-700 text-white" : "text-slate-700 hover:bg-slate-50"}`} aria-pressed={floorAreaUnit === "sqm"} onClick={() => changeFloorAreaUnit("sqm")}>sqm</button>
+                      <button type="button" className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ${floorAreaUnit === "sqft" ? "bg-teal-700 text-white" : "text-slate-700 hover:bg-slate-50"}`} aria-pressed={floorAreaUnit === "sqft"} onClick={() => changeFloorAreaUnit("sqft")}>sq ft</button>
+                    </span>
+                    <span className="nh-helper">NearHome converts square feet to square metres before saving and calculating your comparison.</span>
+                  </>
+                )}
               </label>
               <label className="nh-label">
                 Flat type <span className="text-red-700">*</span>
