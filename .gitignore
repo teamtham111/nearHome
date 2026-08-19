@@ -85,3 +85,6 @@ data_pipeline/cache/google_roads_validation/
 
 # Local-only technical working document.
 docs/tier-1-technical-understanding.md
+
+# Local-only resume draft generated from the NearHome repository audit.
+nearhome-resume.md
