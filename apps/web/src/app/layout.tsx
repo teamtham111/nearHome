@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </header>
           <main className="nh-page-grid py-6 sm:py-8">{children}</main>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
