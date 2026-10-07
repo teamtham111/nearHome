@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
+from pydantic import TypeAdapter
+
 from app.adapters.base import TransactionRecord
+from app.adapters.provider_schemas.hdb import HdbTransactionSnapshotRow
 
 _FIXTURE_PATH = Path(__file__).resolve().parents[5] / "data_pipeline" / "fixtures" / "hdb_transactions.json"
+_TRANSACTION_ROWS_ADAPTER = TypeAdapter(list[HdbTransactionSnapshotRow])
 
 
 class FixtureHDBTransactionsAdapter:
@@ -23,28 +26,28 @@ class FixtureHDBTransactionsAdapter:
         if not _FIXTURE_PATH.exists():
             self._records = []
             return self._records
-        raw = json.loads(_FIXTURE_PATH.read_text())
+        raw = _TRANSACTION_ROWS_ADAPTER.validate_json(_FIXTURE_PATH.read_text())
         self._records = [
             TransactionRecord(
-                transaction_id=r["transaction_id"],
-                transaction_month=r["transaction_month"],
-                town=r["town"],
-                flat_type=r["flat_type"],
-                block=r["block"],
-                street=r["street"],
-                storey_range=r["storey_range"],
-                floor_area_sqm=r["floor_area_sqm"],
-                flat_model=r.get("flat_model"),
-                lease_commencement=r["lease_commencement"],
-                remaining_lease=(float(r["remaining_lease"]) if r.get("remaining_lease") is not None else None),
-                resale_price=r["resale_price"],
-                price_per_sqm=r["price_per_sqm"],
-                remaining_lease_months=r.get("remaining_lease_months"),
+                transaction_id=r.transaction_id,
+                transaction_month=r.transaction_month,
+                town=r.town,
+                flat_type=r.flat_type,
+                block=r.block,
+                street=r.street,
+                storey_range=r.storey_range,
+                floor_area_sqm=r.floor_area_sqm,
+                flat_model=r.flat_model,
+                lease_commencement=r.lease_commencement,
+                remaining_lease=r.remaining_lease,
+                resale_price=r.resale_price,
+                price_per_sqm=r.price_per_sqm,
+                remaining_lease_months=r.remaining_lease_months,
             )
             for r in raw
         ]
         # Index for faster comparable lookup on large ingested datasets
-        self._by_town_type: dict[tuple[str, str], list[TransactionRecord]] = {}
+        self._by_town_type = {}
         for rec in self._records:
             key = (rec.town.upper(), rec.flat_type.upper())
             self._by_town_type.setdefault(key, []).append(rec)
@@ -73,7 +76,9 @@ class FixtureHDBTransactionsAdapter:
             area_diff = abs(r.floor_area_sqm - floor_area_sqm) / floor_area_sqm
             if area_diff > area_tolerance:
                 continue
-            if remaining_lease is not None and abs(r.remaining_lease - remaining_lease) > lease_tolerance:
+            if remaining_lease is not None and (
+                r.remaining_lease is None or abs(r.remaining_lease - remaining_lease) > lease_tolerance
+            ):
                 continue
             results.append(r)
         return results

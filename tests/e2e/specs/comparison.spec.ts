@@ -1,5 +1,33 @@
 import { test, expect } from "@playwright/test";
 
+test.describe("How NearHome works", () => {
+  test("renders the complete workflow, navigation and comparison CTAs", async ({ page }) => {
+    await page.goto("/how-it-works");
+
+    await expect(page.getByRole("heading", { level: 1, name: "How NearHome works" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "How it works" })).toHaveAttribute("href", "/how-it-works");
+    const main = page.getByRole("main");
+    const startLinks = main.getByRole("link", { name: "Start comparing" });
+    await expect(startLinks).toHaveCount(2);
+    await expect(startLinks.nth(0)).toHaveAttribute("href", "/");
+    await expect(startLinks.nth(1)).toHaveAttribute("href", "/");
+
+    const workflowHeadings = await main.locator("#workflow h2[id^='workflow-step-']").allTextContents();
+    expect(workflowHeadings).toEqual([
+      "Tell NearHome what matters",
+      "Copy and paste property listings",
+      "Review the details and add more homes",
+      "Compare the trade-offs",
+    ]);
+
+    await page.goto("/how-it-works#copy-and-paste");
+    await expect(page.locator("#copy-and-paste")).toBeInViewport();
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+});
+
 async function openManualEntry(page: import("@playwright/test").Page) {
   const tab = page.getByRole("tab", { name: "Enter manually" });
   if ((await tab.getAttribute("aria-selected")) !== "true") await tab.click();
@@ -668,6 +696,56 @@ test.describe("NearHome manual comparison (no external API)", () => {
 });
 
 test.describe("Smart Paste flow", () => {
+  test("shows the contextual paste guide beside the listing textarea", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: /start new comparison/i }).click();
+    await page.getByRole("button", { name: /save profile/i }).click();
+
+    const textarea = page.getByRole("textbox", { name: "Listing text" });
+    const helpButton = page.getByRole("button", { name: "How to paste listing text" });
+    const unsavedListingText = "Messy listing text that must stay in the field";
+    await textarea.fill(unsavedListingText);
+    await expect(helpButton).toBeVisible();
+    await expect(textarea).toBeVisible();
+    expect((await helpButton.boundingBox())?.y).toBeLessThan((await textarea.boundingBox())?.y ?? 0);
+
+    await helpButton.click();
+    const dialog = page.getByRole("dialog", { name: "How to paste listing text" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("link", { name: "View the complete guide →" })).toHaveAttribute("href", "/how-it-works#copy-and-paste");
+    await expect(dialog.getByText("Step 1 of 4", { exact: true })).toBeVisible();
+    await dialog.getByRole("button", { name: "Next" }).click();
+    await expect(dialog.getByText("Step 2 of 4", { exact: true })).toBeVisible();
+    await dialog.getByRole("button", { name: "Back" }).click();
+    await expect(dialog.getByText("Step 1 of 4", { exact: true })).toBeVisible();
+    await dialog.getByRole("button", { name: "Next" }).click();
+    await dialog.getByRole("button", { name: "Next" }).click();
+    await expect(dialog.getByText("Step 3 of 4", { exact: true })).toBeVisible();
+    await expect(dialog.getByText(/don't worry if it looks messy/i)).toBeVisible();
+    await dialog.getByRole("button", { name: "Next" }).click();
+    await expect(dialog.getByText("Step 4 of 4", { exact: true })).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Review the formatted details" })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Got it" })).toBeVisible();
+    await dialog.getByRole("button", { name: "Got it" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(helpButton).toBeFocused();
+    await expect(textarea).toHaveValue(unsavedListingText);
+
+    await helpButton.click();
+    await page.getByRole("button", { name: "Close paste guide" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
+    await helpButton.click();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(helpButton).toBeFocused();
+
+    await page.setViewportSize({ width: 390, height: 700 });
+    await helpButton.click();
+    await expect(page.getByRole("dialog", { name: "How to paste listing text" })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+
   test("discards an extracted listing before confirmation", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: /start new comparison/i }).click();

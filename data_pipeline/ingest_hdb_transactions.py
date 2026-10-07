@@ -7,10 +7,11 @@ import argparse
 import hashlib
 import json
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
+from pydantic import TypeAdapter
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_PATH = ROOT / "data_pipeline" / "fixtures" / "hdb_transactions.json"
@@ -46,6 +47,11 @@ def parse_remaining_lease(value: object) -> float | None:
 
 
 def ingest(csv_path: Path, output: Path | None = None, min_month: str | None = "2022-01") -> dict:
+    import sys
+
+    sys.path.insert(0, str(ROOT / "apps" / "api"))
+    from app.adapters.provider_schemas.hdb import DataGovHdbTransactionRow, HdbTransactionSnapshotRow
+
     df = pd.read_csv(csv_path)
     df = df.rename(columns={c: c.lower() for c in df.columns})
 
@@ -54,44 +60,41 @@ def ingest(csv_path: Path, output: Path | None = None, min_month: str | None = "
 
     records = []
     for idx, row in df.iterrows():
-        area = float(row.get("floor_area_sqm", row.get("floor_area", 90)))
-        price = float(row.get("resale_price", 0))
-        if price <= 0 or area <= 0:
-            continue
-        lease_raw = row.get("lease_commence_date", row.get("lease_commencement", 1990))
-        try:
-            lease_year = int(str(lease_raw)[:4])
-        except (TypeError, ValueError):
-            lease_year = 1990
+        source = DataGovHdbTransactionRow.model_validate(row.to_dict())
+        area = source.floor_area_sqm
+        price = source.resale_price
         records.append(
             {
                 "transaction_id": f"ingest-{idx}",
-                "transaction_month": str(row.get("month", ""))[:7],
-                "town": str(row.get("town", "")).upper(),
-                "flat_type": str(row.get("flat_type", "")).upper(),
-                "block": str(row.get("block", "")),
-                "street": str(row.get("street_name", row.get("street", ""))).upper(),
-                "storey_range": str(row.get("storey_range", "")),
+                "transaction_month": source.month,
+                "town": source.town.upper(),
+                "flat_type": source.flat_type.upper(),
+                "block": source.block,
+                "street": source.street.upper(),
+                "storey_range": source.storey_range,
                 "floor_area_sqm": area,
-                "flat_model": str(row.get("flat_model", "")) or None,
-                "lease_commencement": lease_year,
-                "remaining_lease": parse_remaining_lease(row.get("remaining_lease")),
-                "remaining_lease_months": parse_remaining_lease_months(row.get("remaining_lease")),
+                "flat_model": source.flat_model,
+                "lease_commencement": source.lease_commencement,
+                "remaining_lease": parse_remaining_lease(source.remaining_lease),
+                "remaining_lease_months": parse_remaining_lease_months(source.remaining_lease),
                 "resale_price": price,
                 "price_per_sqm": round(price / area, 2),
             }
         )
 
+    validated_records = TypeAdapter(list[HdbTransactionSnapshotRow]).validate_python(records)
+    serialized_records = [record.model_dump(mode="json") for record in validated_records]
+
     out_path = output or FIXTURE_PATH
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(records, indent=2))
+    out_path.write_text(json.dumps(serialized_records, indent=2))
 
     checksum = hashlib.sha256(out_path.read_bytes()).hexdigest()
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
     meta = {
         "dataset_id": csv_path.name,
-        "retrieved_at": datetime.now(timezone.utc).isoformat(),
-        "row_count": len(records),
+        "retrieved_at": datetime.now(UTC).isoformat(),
+        "row_count": len(serialized_records),
         "checksum": checksum,
         "output": str(out_path),
     }

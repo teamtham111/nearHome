@@ -44,7 +44,7 @@ class SmartPasteService:
             retrieved = retrieve_listing_content(source_url)
             source_url = retrieved.source_url
             original_text = source_url
-            text = retrieved.cleaned_text
+            text = retrieved.cleaned_text #final text
         else:
             if not text or not text.strip():
                 raise ValueError("Paste content cannot be empty")

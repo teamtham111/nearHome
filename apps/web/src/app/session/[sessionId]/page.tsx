@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { CircleHelp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +23,7 @@ import { canonicalFloorAreaSqm, convertFloorArea, type FloorAreaUnit } from "@/l
 import { buildSmartPasteRequest } from "@/lib/smart-paste";
 import { SmartPasteProgress } from "@/components/smart-paste-progress";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { PasteHelpDialog } from "@/components/paste-help-dialog";
 import { PriorityRanking } from "@/components/priority-ranking";
 import { WorkflowStepper } from "@/components/workflow-stepper";
 
@@ -43,6 +45,16 @@ const PRIORITY_LABELS: Record<(typeof PRIORITY_VALUES)[number], string> = {
   DRIVING: "Driving",
   SCHOOLS: "Schools",
   FAIR_PRICE: "Fair price",
+};
+
+const PRIORITY_DESCRIPTIONS: Record<(typeof PRIORITY_VALUES)[number], string> = {
+  AFFORDABILITY: "Prioritise lower asking prices relative to your maximum budget.",
+  SPACE: "Prioritise homes with a larger floor area.",
+  LEASE: "Prioritise homes with more years remaining on the lease.",
+  PUBLIC_TRANSPORT: "Prioritise homes with stronger access to public transport, including MRT and bus connections.",
+  DRIVING: "Prioritise homes with stronger road access and driving connectivity.",
+  SCHOOLS: "Prioritise homes with better access to nearby schools.",
+  FAIR_PRICE: "Prioritise homes whose asking price compares favourably with the estimated fair price.",
 };
 
 type PriorityValue = (typeof PRIORITY_VALUES)[number];
@@ -84,11 +96,15 @@ function SegmentedControl<T extends string>({
   value,
   options,
   onChange,
+  demoId,
+  demoOptionValue,
 }: {
   label: string;
   value: T;
   options: SegmentOption<T>[];
   onChange: (value: T) => void;
+  demoId?: string;
+  demoOptionValue?: T;
 }) {
   return (
     <div className="flex flex-wrap gap-2" role="group" aria-label={label}>
@@ -98,6 +114,7 @@ function SegmentedControl<T extends string>({
           <button
             key={option.value}
             type="button"
+            {...(demoId && option.value === (demoOptionValue ?? ("MAINLY_DRIVING" as T)) ? { "data-demo-id": demoId } : {})}
             aria-pressed={selected}
             onClick={() => onChange(option.value)}
             className={`min-h-11 flex-1 rounded-lg border px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 sm:flex-none ${selected ? "border-teal-700 bg-teal-50 text-teal-900 shadow-sm" : "border-slate-300 bg-white text-slate-700 hover:border-teal-400 hover:bg-slate-50"}`}
@@ -134,6 +151,8 @@ export default function SessionPage() {
   const [pasteError, setPasteError] = useState<string | null>(null);
   const [pasteSourceUrl, setPasteSourceUrl] = useState<string | null>(null);
   const pasteInputRef = useRef<HTMLTextAreaElement>(null);
+  const pasteHelpButtonRef = useRef<HTMLButtonElement>(null);
+  const [pasteHelpOpen, setPasteHelpOpen] = useState(false);
   const manualEntryTabRef = useRef<HTMLButtonElement>(null);
   const smartPasteTabRef = useRef<HTMLButtonElement>(null);
   const pasteGenerationRef = useRef(0);
@@ -196,6 +215,7 @@ export default function SessionPage() {
   });
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("demo") === "1" || document.body.dataset.demoActive === "true") return;
     const profile = sessionQuery.data?.buyer_profile;
     if (!profile) return;
 
@@ -246,6 +266,44 @@ export default function SessionPage() {
       priority_3: validPriorities[2] ?? "",
     });
   }, [profileForm, sessionQuery.data]);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("demo") !== "1" && document.body.dataset.demoActive !== "true") return;
+    try {
+      const saved = JSON.parse(localStorage.getItem("nearhome_interactive_demo_form") ?? "{}") as Record<string, unknown>;
+      const mode = String(saved.main_transport_mode ?? "MAINLY_PUBLIC_TRANSPORT") as ProfileForm["main_transport_mode"];
+      const priorities = Array.isArray(saved.priorities) ? saved.priorities.map(String) : [];
+      profileForm.reset({
+        max_budget: Number(saved.max_budget ?? 730000),
+        main_transport_mode: mode,
+        priority_1: (priorities[0] ?? "") as ProfileForm["priority_1"],
+        priority_2: (priorities[1] ?? "") as ProfileForm["priority_2"],
+        priority_3: (priorities[2] ?? "") as ProfileForm["priority_3"],
+      });
+      setProfileSaved(false);
+      setSchoolsMatter(Boolean(saved.schools_matter));
+      setNamedSchools(Array.isArray(saved.named_schools) ? saved.named_schools.map(String) : []);
+      setLocLabel("Work");
+      setLocQuery("");
+      setSelectedPlace(null);
+      setDestinationOpen(false);
+      const place = saved.important_location as Record<string, unknown> | undefined;
+      if (place) {
+        setLocLabel(String(place.label ?? "Work"));
+        setLocQuery(String(place.formatted_address ?? ""));
+        setSelectedPlace({
+          place_id: String(place.place_id ?? "demo-place"),
+          description: String(place.description ?? place.formatted_address ?? "Raffles Place, Singapore"),
+          main_text: String(place.main_text ?? "Raffles Place"),
+          formatted_address: String(place.formatted_address ?? "Raffles Place, Singapore"),
+          latitude: Number(place.latitude ?? 1.284),
+          longitude: Number(place.longitude ?? 103.852),
+        });
+      }
+    } catch {
+      // Ignore an incomplete local demo snapshot and use the form defaults.
+    }
+  }, [profileForm]);
 
   const selectedPriorities = profileForm.watch(["priority_1", "priority_2", "priority_3"]);
 
@@ -621,7 +679,7 @@ export default function SessionPage() {
       : "compare";
 
   return (
-    <div className="nh-workflow-grid flex flex-col gap-8 py-8 sm:py-10">
+    <div className="nh-workflow-grid flex flex-col gap-7 py-8 sm:py-10">
       <div className="order-0 space-y-4">
         <Link href="/" className="text-sm text-teal-700 hover:underline">← Home</Link>
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -660,7 +718,7 @@ export default function SessionPage() {
             <p className="mt-1 text-sm text-slate-600">Your maximum purchase budget is used to assess affordability for every flat.</p>
             <label className="nh-label mt-4 block max-w-md">
               Maximum purchase budget
-              <input type="number" inputMode="numeric" className="nh-input" {...profileForm.register("max_budget")} />
+              <input type="number" inputMode="numeric" className="nh-input" data-demo-id="budget" {...profileForm.register("max_budget")} />
               <span className="nh-helper">Enter the highest purchase price you are comfortable with, in Singapore dollars.</span>
             </label>
           </section>
@@ -676,6 +734,8 @@ export default function SessionPage() {
                   { value: "MAINLY_DRIVING", label: "Driving" },
                   { value: "BOTH", label: "Both" },
                 ]}
+                demoId="transport-both"
+                demoOptionValue="BOTH"
                 onChange={(value) => profileForm.setValue("main_transport_mode", value, { shouldValidate: true })}
               />
             </div>
@@ -683,10 +743,14 @@ export default function SessionPage() {
           <section aria-labelledby="decision-priorities-heading">
             <h4 id="decision-priorities-heading" className="text-base font-semibold text-slate-900">Decision priorities</h4>
             <p className="mt-1 text-sm text-slate-600">Choose up to three factors, ordered from most to least important.</p>
-            <div className="mt-4">
+            <div className="mt-4" data-demo-id="priority-ranking">
               <PriorityRanking
                 priorities={orderedPriorities}
-                options={PRIORITY_VALUES.map((value) => ({ value, label: PRIORITY_LABELS[value] }))}
+                options={PRIORITY_VALUES.map((value) => ({
+                  value,
+                  label: PRIORITY_LABELS[value],
+                  description: PRIORITY_DESCRIPTIONS[value],
+                }))}
                 onReplace={(index, value) => replacePriority(index, value as PriorityValue)}
                 onRemove={removePriority}
                 onReorder={(next) => setOrderedPriorities(next as typeof orderedPriorities)}
@@ -701,7 +765,7 @@ export default function SessionPage() {
             </div>
             <p className="mt-1 text-sm text-slate-600">Add a workplace, school or other frequently visited location to compare journey times.</p>
             {!destinationOpen && !selectedPlace && (
-              <button type="button" className="mt-4 nh-secondary" onClick={() => setDestinationOpen(true)} aria-expanded="false">+ Add regular destination</button>
+              <button type="button" data-demo-id="destination-add" className="mt-4 nh-secondary" onClick={() => setDestinationOpen(true)} aria-expanded="false">+ Add regular destination</button>
             )}
             {!destinationOpen && selectedPlace && (
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -720,9 +784,9 @@ export default function SessionPage() {
               <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="nh-label">Label <input className="nh-input" placeholder="e.g. Work" value={locLabel} onChange={(e) => setLocLabel(e.target.value)} /></label>
-                  <label className="nh-label md:col-span-2">Search Singapore address <input className="nh-input" placeholder="Search address…" value={locQuery} onChange={(e) => handleLocationQueryChange(e.target.value)} aria-describedby={locSearchError ? "location-search-error" : undefined} /></label>
+                  <label className="nh-label md:col-span-2">Search Singapore address <input data-demo-id="destination-query" className="nh-input" placeholder="Search address…" value={locQuery} onChange={(e) => handleLocationQueryChange(e.target.value)} aria-describedby={locSearchError ? "location-search-error" : undefined} /></label>
                   {locSearchPending && <p className="text-xs text-slate-500 md:col-span-2">Searching Singapore addresses…</p>}
-                  {locSuggestions.length > 0 && <ul className="rounded-lg border border-slate-200 bg-white text-sm md:col-span-2">{locSuggestions.map((s) => <li key={s.place_id}><button type="button" className="w-full px-3 py-2 text-left hover:bg-slate-50" onClick={() => selectPlace(s)}>{s.description}</button></li>)}</ul>}
+                  {locSuggestions.length > 0 && <ul className="rounded-lg border border-slate-200 bg-white text-sm md:col-span-2">{locSuggestions.map((s) => <li key={s.place_id}><button type="button" data-demo-id="destination-suggestion" className="w-full px-3 py-2 text-left hover:bg-slate-50" onClick={() => selectPlace(s)}>{s.description}</button></li>)}</ul>}
                   {locSearchError && <div className="flex items-center gap-2 text-xs text-red-700 md:col-span-2" role="alert" id="location-search-error"><span>{locSearchError}</span><button type="button" className="font-medium underline" onClick={retryLocationSearch} disabled={locSearchPending}>Retry</button></div>}
                   <label className="nh-label">Typical day <select className="nh-select" value={locDay} onChange={(e) => setLocDay(e.target.value as "WEEKDAY" | "WEEKEND")}><option value="WEEKDAY">Weekday</option><option value="WEEKEND">Weekend</option></select></label>
                   <label className="nh-label">Arrival time <input type="time" className="nh-input" value={locTime} onChange={(e) => setLocTime(e.target.value)} /></label>
@@ -733,7 +797,7 @@ export default function SessionPage() {
                 <div className="mt-4 flex flex-wrap justify-end gap-2">
                   {selectedPlace && <button type="button" className="mr-auto text-sm text-red-700 underline" onClick={() => setDestinationRemovalPending(true)}>Remove destination</button>}
                   <button type="button" className="nh-secondary" onClick={() => selectedPlace ? setDestinationOpen(false) : clearDestination()}>Cancel</button>
-                  <button type="button" className="nh-primary" disabled={!selectedPlace} onClick={() => setDestinationOpen(false)}>Done</button>
+                  <button type="button" data-demo-id="destination-done" className="nh-primary" disabled={!selectedPlace} onClick={() => setDestinationOpen(false)}>Done</button>
                 </div>
               </div>
             )}
@@ -741,7 +805,7 @@ export default function SessionPage() {
           <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4" aria-labelledby="schools-preference-heading">
             <div className="flex items-start justify-between gap-3">
               <label className="flex cursor-pointer items-start gap-3" id="schools-preference-heading">
-                <input aria-label="Schools matter to me — compare nearby schools" className="mt-1 h-4 w-4 rounded border-slate-300 text-teal-700 focus:ring-teal-600" type="checkbox" checked={schoolsMatter} onChange={(e) => setSchoolsMatter(e.target.checked)} />
+                <input aria-label="Schools matter to me — compare nearby schools" data-demo-id="schools-toggle" className="mt-1 h-4 w-4 rounded border-slate-300 text-teal-700 focus:ring-teal-600" type="checkbox" checked={schoolsMatter} onChange={(e) => setSchoolsMatter(e.target.checked)} />
                 <span><span className="block text-sm font-semibold text-slate-900">Compare nearby schools</span><span className="mt-1 block text-sm text-slate-600">Include school access in your comparison and optionally select specific schools.</span></span>
               </label>
               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Optional</span>
@@ -766,6 +830,7 @@ export default function SessionPage() {
                     Search for a named school
                     <input
                       className="nh-input"
+                      data-demo-id="school-query"
                       aria-describedby={schoolSearchError ? "school-search-error" : undefined}
                       placeholder="e.g. Raffles Institution"
                       value={schoolQuery}
@@ -780,7 +845,7 @@ export default function SessionPage() {
                     <ul className="mt-2 rounded border bg-white text-sm" aria-label="Named school search results">
                       {schoolSuggestions.map((suggestion) => (
                         <li key={suggestion.place_id}>
-                          <button type="button" className="w-full px-3 py-2 text-left hover:bg-slate-50" onClick={() => selectSchool(suggestion)}>
+                          <button type="button" data-demo-id="school-suggestion" className="w-full px-3 py-2 text-left hover:bg-slate-50" onClick={() => selectSchool(suggestion)}>
                             <span className="block font-medium">{suggestion.main_text}</span>
                             <span className="block text-xs text-slate-500">{suggestion.description}</span>
                           </button>
@@ -797,6 +862,7 @@ export default function SessionPage() {
           <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 pt-6">
             <button
               type="submit"
+              data-demo-id="save-profile"
               className="nh-primary"
               disabled={saveProfile.isPending || !profileForm.formState.isValid}
             >
@@ -865,15 +931,30 @@ export default function SessionPage() {
             <div id="smart-paste-panel" role="tabpanel" aria-labelledby={pasteVariant === "url" ? "smart-paste-url-tab" : "smart-paste-text-tab"} className="mt-5 max-w-3xl space-y-3">
               {pasteVariant === "text" ? (
                 <div>
-                  <p className="text-sm font-medium text-slate-900">Copy and paste the entire listing page below.</p>
+                  <p className="text-sm font-medium text-slate-900">Listing text</p>
+                  <p className="mt-1 text-sm text-slate-600">Paste the entire PropertyGuru or 99.co page.</p>
                   <p className="mt-1 text-sm text-slate-600">NearHome will automatically find the relevant listing details — you don&apos;t need to clean up the text first.</p>
-                  <p className="mt-3 text-xs font-medium text-slate-600">Mac: ⌘ A → ⌘ C → ⌘ V <span className="mx-2 text-slate-300">|</span> Windows: Ctrl + A → Ctrl + C → Ctrl + V</p>
+                  <button
+                    ref={pasteHelpButtonRef}
+                    type="button"
+                    className="nh-secondary mt-4 w-full border-teal-200 bg-teal-50/60 py-3 text-base font-semibold text-teal-900 hover:border-teal-400 hover:bg-teal-50"
+                    aria-describedby="paste-help-summary"
+                    onClick={() => setPasteHelpOpen(true)}
+                  >
+                    <CircleHelp className="mr-2" size={21} aria-hidden="true" />
+                    How to paste listing text
+                  </button>
+                  <p id="paste-help-summary" className="mt-1.5 text-center text-xs font-medium text-slate-500">
+                    See the quick 4-step guide
+                  </p>
                 </div>
               ) : (
                 <p className="text-sm text-slate-600">Paste a listing URL. Some listing websites restrict automated URL access, so copied listing text is the more reliable option.</p>
               )}
               <textarea
                 ref={pasteInputRef}
+                data-demo-id="listing-text"
+                aria-label={pasteVariant === "text" ? "Listing text" : "Listing URL"}
                 className="nh-textarea h-40 font-mono"
                 value={pasteText}
                 onChange={(e) => setPasteText(e.target.value)}
@@ -885,10 +966,13 @@ export default function SessionPage() {
                     ? <p className="font-medium text-blue-800">Listing URL recognised. Select <span className="font-semibold">Add a flat</span> to retrieve it and show the real extracted details for review.</p>
                     : <p className="text-slate-600">Paste a full listing URL beginning with <span className="font-medium">https://</span>. Extracted details appear only after NearHome retrieves the page.</p>
                 ) : (
-                  <p className="text-slate-600">Next: Select <span className="font-medium text-blue-800">Add a flat</span> and NearHome will extract the details for you to review.</p>
+                  <div className="space-y-1 text-slate-600">
+                    <p><span className="font-semibold text-blue-800">Don&apos;t worry if it looks messy</span> — we&apos;ll organise it for you.</p>
+                    <p>Next: Select <span className="font-medium text-blue-800">Add a flat</span> and review the neatly formatted details before confirming.</p>
+                  </div>
                 )}
               </div>
-              <button type="button" className="nh-primary" onClick={() => pasteExtract.mutate()} disabled={pasteExtract.isPending || !pasteText.trim()}>
+              <button type="button" data-demo-id="add-flat" className="nh-primary" onClick={() => pasteExtract.mutate()} disabled={pasteExtract.isPending || !pasteText.trim()}>
                 {pasteExtract.isPending ? "Extracting…" : "Add a flat"}
               </button>
               <SmartPasteProgress
@@ -997,12 +1081,14 @@ export default function SessionPage() {
               </label>
               <label className="nh-label">
                 Remaining lease (years) <span className="font-normal text-slate-500">(optional)</span>
-                <input type="number" inputMode="decimal" step="0.1" className="nh-input" {...listingForm.register("remaining_lease_years")} />
+                <input type="number" inputMode="decimal" step="0.1" data-demo-id="flag-lease" className={`nh-input ${listingInputId && !listingForm.watch("remaining_lease_years") ? "border-amber-500 ring-2 ring-amber-300" : ""}`} {...listingForm.register("remaining_lease_years")} />
+                {listingInputId && !listingForm.watch("remaining_lease_years") && <span className="mt-1 block text-xs font-semibold text-amber-800">⚠ Not found in the pasted listing. Check it, or leave blank.</span>}
                 <span className="nh-helper">Leave blank if it is not known; NearHome can estimate it from transaction evidence.</span>
               </label>
               <div className="md:col-span-2 flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 pt-5">
                 <button
                   type="submit"
+                  data-demo-id="confirm-listing"
                   className="nh-primary"
                   disabled={addListing.isPending || confirmFromPaste.isPending || !listingForm.formState.isValid}
                 >
@@ -1048,7 +1134,7 @@ export default function SessionPage() {
                 Open your comparison to begin analysis and follow the live progress there.
               </p>
             </div>
-            <Link href={`/session/${sessionId}/comparison?run=1`} className="nh-primary">
+            <Link href={`/session/${sessionId}/comparison?run=1`} data-demo-id="run-comparison" className="nh-primary">
               Open comparison and run enrichment
             </Link>
           </div>
@@ -1084,6 +1170,11 @@ export default function SessionPage() {
           clearDestination();
           setDestinationRemovalPending(false);
         }}
+      />
+      <PasteHelpDialog
+        open={pasteHelpOpen}
+        onClose={() => setPasteHelpOpen(false)}
+        returnFocusRef={pasteHelpButtonRef}
       />
     </div>
   );

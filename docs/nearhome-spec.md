@@ -65,7 +65,7 @@ A suitable initial technical stack is:
 
 - **Frontend:** Next.js/React for a production portfolio project, or Streamlit for the first working prototype.
 - **Backend:** Python with FastAPI.
-- **Validation:** Pydantic schemas at API boundaries.
+- **Validation:** separate Pydantic contracts for public API input/output and for external-provider responses, normalized snapshots and artifact metadata; semantic and cross-record checks run after structural validation.
 - **Database:** PostgreSQL, optionally through Supabase.
 - **Data processing and valuation:** pandas/CatBoost for HDB transaction ingestion and fair-price estimation, with transparent weighted-comparable evidence.
 - **Geospatial calculations:** OneMap plus Python geospatial functions.
@@ -258,6 +258,88 @@ The user may optionally provide:
 - source website;
 - source URL;
 - property category, when already known.
+
+### Contextual paste guide
+
+The recommended **Paste listing text** tab includes a prominent full-width secondary button,
+**How to paste listing text**, directly above the listing-text textarea. The helper line below the
+button reads **See the quick 4-step guide**. The primary **Add a flat** extraction action remains
+visually stronger and its submission and extraction behaviour are unchanged.
+
+The button opens a medium-width modal guide implemented in
+`apps/web/src/components/paste-help-dialog.tsx`. It walks through four illustrated steps:
+
+1. **Select the whole listing page** — click the source listing page, then use `⌘ + A` on Mac or
+   `Ctrl + A` on Windows.
+2. **Copy everything** — while the page remains selected, use `⌘ + C` or `Ctrl + C`.
+3. **Paste it into NearHome** — return to the listing-text field and use `⌘ + V` or `Ctrl + V`.
+   The guide and inline input helper reassure the user: **Don't worry if it looks messy — we'll
+   organise it for you.** The screenshot deliberately uses noisy, repeated full-page content.
+4. **Review the formatted details** — select **Add a flat**, then review and edit the clean fields
+   NearHome extracted before confirming the listing.
+
+Each step contains a step count, heading, concise shortcut instructions, an informative local JPEG
+screenshot and progress dots. The screenshots live in `apps/web/public/paste-guide/`. Steps 1 and
+2 use genuine browser captures of open/selected content on a sanitized representative HDB listing; the
+property photo is the CC0-licensed `Bishan HDB apartment block 501.jpg` from Wikimedia Commons.
+Step 3 is a browser capture of the running NearHome listing-text panel with messy copied content
+pasted and the textarea focused. Step 4 captures the actual structured NearHome review form.
+Portal-owned interface elements and personal agent data are deliberately excluded.
+`tests/e2e/capture-paste-guide.cjs` regenerates the open/select/copy/paste/review captures as well
+as the How It Works profile and comparison visuals. **Back** and **Next** navigate
+without dismissing the guide, and **Next** becomes **Got it** on step 4.
+
+Steps 1–3 present keyboard commands as separate point-form rows for Mac and Windows. Every command
+is bold, using `⌘` for Mac (`⌘ + A`, `⌘ + C`, `⌘ + V`) and `Ctrl` for Windows (`Ctrl + A`,
+`Ctrl + C`, `Ctrl + V`).
+
+The dialog uses a centred medium-width presentation on desktop and a nearly full-screen bottom
+sheet on narrow screens, with a scrollable content area so the illustration and instructions
+remain readable. It traps keyboard focus, gives every informative image useful alternative text,
+locks background scrolling, closes from **Got it**, the visible close button, Escape, or a backdrop
+click, and restores focus to the **How to paste listing text** button after every close path. A
+**View the complete guide →** link targets `/how-it-works#copy-and-paste`. Because the dialog is
+independent of the controlled textarea value, every open and close path preserves unsubmitted text.
+
+Component tests in `apps/web/src/components/paste-help-dialog.test.tsx` cover initial content,
+four-step Next/Back navigation, the reassurance and formatted-review step, the final **Got it**
+action, visible-close and Escape behavior,
+focus trapping/restoration and scroll locking. The Smart Paste Playwright coverage in
+`tests/e2e/specs/comparison.spec.ts` verifies that the button appears above the live listing-text
+textarea, exercises each close path and focus restoration, and retains the existing extraction and
+confirmation flow coverage.
+
+### How NearHome Works page
+
+The App Router route `/how-it-works` is linked from the shared sticky primary navigation. Both page
+CTAs use `/`, the canonical comparison-start route. The page is a connected, vertically scrolling
+story with four numbered sections:
+
+1. tell NearHome the buyer's maximum budget, priorities, transport mode, regular destinations and
+   relevant school preferences;
+2. open, select/copy and paste a PropertyGuru or 99.co listing at the stable
+   `#copy-and-paste` anchor;
+3. review editable extracted fields, add missing information and repeat until 2–5 homes are
+   confirmed;
+4. compare the factor-level evidence and recommendation rationale without an unexplained overall
+   score.
+
+Desktop layouts alternate text/visual direction and use dotted curved connectors. Mobile layouts
+keep explanations before their visuals and replace connectors with downward arrows. Decorative
+connectors are hidden from assistive technology, the page prevents horizontal overflow, native
+anchor scrolling respects reduced-motion preferences, and each screenshot has meaningful alt text.
+
+The visuals in `apps/web/public/how-it-works/` and `apps/web/public/paste-guide/` are browser
+captures of the running NearHome UI or a sanitized representative listing. The capture script is
+`tests/e2e/capture-paste-guide.cjs`. The hero is intentionally a labelled placeholder because no
+product demo video exists yet; replace it with a compressed, controlled WebM/MP4 and poster in the
+same public directory. It must not autoplay sound and must preserve a useful static fallback.
+
+Supported listing inputs are intentionally limited to what the implementation confirms: copied
+PropertyGuru/99.co text, complete PropertyGuru/99.co Singapore URLs where retrieval is permitted,
+and manual entry. The comparison categories shown are price/affordability, space/property, lease
+and storey, important-location journeys, public transport, driving, schools, fair-price evidence
+and user observations. The page does not claim a standalone amenities assessment.
 
 ### What NearHome retrieves
 
@@ -4123,6 +4205,7 @@ Any late enrichment updates the relevant metrics and recommendation with visible
         +--> [Immediate metric calculator]
         |
         +--> [Enrichment orchestrator]
+        |        +--> provider-specific Pydantic validation
         |        +--> OneMap adapter for listing geocoding
         |        +--> HDB/data.gov.sg data adapter
         |        +--> LTA DataMall adapter
@@ -4157,7 +4240,11 @@ Any late enrichment updates the relevant metrics and recommendation with visible
 
 #### Reliability design
 
-Every external adapter has timeout, retry and cached-fallback behaviour where provider terms and product logic permit it.
+Every live network adapter has an explicit timeout. Retry, caching and fallback behavior is provider-specific and is added only where provider terms and product logic permit it; it is not a universal adapter guarantee.
+
+Every external value NearHome consumes must cross a provider-specific structural contract before conversion into a canonical domain/adapter dataclass. These contracts live in `apps/api/app/adapters/provider_schemas/`, use `extra="ignore"` for additive provider fields, and reject missing, malformed or wrongly nested consumed fields. Provider schema validation is separate from public FastAPI request validation and does not replace semantic checks such as Singapore bounds, HDB address identity, LTA cross-file referential quality, stale timestamps, duplicate handling, artifact hashes or model-feature compatibility.
+
+Malformed live success payloads become typed provider `invalid_output` failures rather than incidental `KeyError`/`AttributeError` exceptions. Invalid required snapshots and versioned artifacts fail loading; they are never silently converted into apparently valid zero or empty evidence.
 
 One failed journey element does not erase successful elements or the immediate factual comparison.
 

@@ -89,10 +89,25 @@ def get_transactions_adapter():
 
 
 def get_llm_adapter():
+    """Select the live LLM adapter without coupling Smart Paste to a vendor."""
     if settings.demo_mode:
         from app.adapters.mock.groq import MockGroqAdapter
 
         return MockGroqAdapter()
-    from app.adapters.live.groq import LiveGroqAdapter
+    provider = settings.llm_provider.casefold()
+    if provider == "groq":
+        from app.adapters.live.groq import LiveGroqAdapter
 
-    return LiveGroqAdapter()
+        return LiveGroqAdapter()
+    if provider == "gemini":
+        from app.adapters.live.gemini import LiveGeminiAdapter
+
+        return LiveGeminiAdapter()
+    if provider == "openai_compatible":
+        from app.adapters.live.openai_compatible import LiveOpenAICompatibleAdapter
+
+        return LiveOpenAICompatibleAdapter()
+    raise ValueError(
+        f"Unsupported LLM_PROVIDER '{settings.llm_provider}'. "
+        "Use 'groq', 'gemini', or 'openai_compatible'; add a provider adapter for other API protocols."
+    )

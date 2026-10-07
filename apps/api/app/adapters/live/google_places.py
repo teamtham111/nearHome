@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 import httpx
+from pydantic import ValidationError
 
-from app.adapters.base import PlaceDetails, PlaceSuggestion
+from app.adapters.base import AdapterError, PlaceDetails, PlaceSuggestion
+from app.adapters.provider_schemas.google_places import (
+    GooglePlaceDetailsResponse,
+    GooglePlacesAutocompleteResponse,
+)
 from app.core.config import settings
 
 
@@ -27,18 +32,25 @@ class LiveGooglePlacesAdapter:
         with httpx.Client(timeout=15.0) as client:
             resp = client.post(url, headers=headers, json=body)
             resp.raise_for_status()
-            data = resp.json()
+            try:
+                data = GooglePlacesAutocompleteResponse.model_validate(resp.json())
+            except (TypeError, ValueError, ValidationError) as exc:
+                raise AdapterError(
+                    "Google Places returned malformed autocomplete data.",
+                    error_code="invalid_output",
+                ) from exc
 
         suggestions = []
-        for item in data.get("suggestions", []):
-            place_pred = item.get("placePrediction", {})
+        for item in data.suggestions:
+            place_pred = item.place_prediction
+            if place_pred is None:
+                continue
+            main_text = place_pred.structured_format.main_text if place_pred.structured_format else None
             suggestions.append(
                 PlaceSuggestion(
-                    place_id=place_pred.get("placeId", ""),
-                    description=place_pred.get("text", {}).get("text", ""),
-                    main_text=place_pred.get("structuredFormat", {})
-                    .get("mainText", {})
-                    .get("text", ""),
+                    place_id=place_pred.place_id,
+                    description=place_pred.text.text,
+                    main_text=main_text.text if main_text else place_pred.text.text,
                 )
             )
         return suggestions
@@ -52,12 +64,18 @@ class LiveGooglePlacesAdapter:
         with httpx.Client(timeout=15.0) as client:
             resp = client.get(url, headers=headers)
             resp.raise_for_status()
-            data = resp.json()
+            try:
+                data = GooglePlaceDetailsResponse.model_validate(resp.json())
+            except (TypeError, ValueError, ValidationError) as exc:
+                raise AdapterError(
+                    "Google Places returned malformed place details.",
+                    error_code="invalid_output",
+                ) from exc
 
         return PlaceDetails(
-            place_id=data.get("id", place_id),
-            formatted_address=data.get("formattedAddress", ""),
-            latitude=data["location"]["latitude"],
-            longitude=data["location"]["longitude"],
+            place_id=data.place_id,
+            formatted_address=data.formatted_address,
+            latitude=data.location.latitude,
+            longitude=data.location.longitude,
             provider=self.provider,
         )

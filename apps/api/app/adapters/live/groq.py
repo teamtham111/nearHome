@@ -96,26 +96,28 @@ Return only the requested structured JSON object."""
 
 class LiveGroqAdapter:
     provider = "GROQ"
-    model_name = settings.groq_model
+    model_name = settings.effective_llm_model
 
     def __init__(self) -> None:
-        if not settings.groq_api_key:
+        if not settings.effective_llm_api_key:
             raise AdapterError(
-                "Groq is not configured. Add GROQ_API_KEY to the server environment.",
+                "No live LLM API key is configured. Add LLM_API_KEY to the server environment.",
                 error_code="configuration",
             )
         self.client = Groq(
-            api_key=settings.groq_api_key,
+            api_key=settings.effective_llm_api_key,
+            base_url=settings.effective_llm_base_url,
             timeout=60.0,
         )
 
     @staticmethod
-    def _provider_error(exc: Exception) -> AdapterError:
-        return _provider_error(exc)
+    def _provider_error(exc: Exception, provider: str = "Groq") -> AdapterError:
+        return _provider_error(exc, provider)
 
     def extract(self, cleaned_text: str) -> LLMExtractionResult:
         if settings.app_env == "development":
             logger.info("SMART_PASTE_GROK_REQUEST_STARTED", character_count=len(cleaned_text))
+        is_groq = settings.llm_provider.casefold() == "groq"
         request_kwargs = {
             "model": self.model_name,
             "messages": [
@@ -123,8 +125,6 @@ class LiveGroqAdapter:
                 {"role": "user", "content": cleaned_text[:MAX_LLM_CONTENT_CHARS]},
             ],
             "temperature": 0.1,
-            "reasoning_effort": GROQ_REASONING_EFFORT,
-            "max_completion_tokens": GROQ_MAX_COMPLETION_TOKENS,
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {
@@ -134,6 +134,13 @@ class LiveGroqAdapter:
                 },
             },
         }
+        # Keep provider-specific tuning out of the common request so switching
+        # OpenAI-compatible services only requires changing server configuration.
+        if is_groq:
+            request_kwargs["reasoning_effort"] = GROQ_REASONING_EFFORT
+            request_kwargs["max_completion_tokens"] = GROQ_MAX_COMPLETION_TOKENS
+        else:
+            request_kwargs["max_tokens"] = GROQ_MAX_COMPLETION_TOKENS
         for attempt in range(2):
             try:
                 response = self.client.chat.completions.create(  # type: ignore[call-overload]
@@ -141,7 +148,7 @@ class LiveGroqAdapter:
                 )
                 break
             except Exception as exc:
-                provider_error = _provider_error(exc)
+                provider_error = _provider_error(exc, self.provider)
                 if attempt == 0 and _is_schema_generation_error(provider_error):
                     logger.warning(
                         "SMART_PASTE_GROK_SCHEMA_RETRY",
@@ -164,12 +171,14 @@ class LiveGroqAdapter:
 
         if not response.choices or not response.choices[0].message.content:
             raise AdapterError(
-                "Groq returned an empty extraction response.",
+                f"{self.provider} returned an empty extraction response.",
                 error_code="empty_response",
             )
 
+        return self._result_from_content(response.choices[0].message.content)
+
+    def _result_from_content(self, raw_content: str) -> LLMExtractionResult:
         try:
-            raw_content = response.choices[0].message.content
             if settings.app_env == "development":
                 logger.info("SMART_PASTE_GROK_RESPONSE_RECEIVED", character_count=len(raw_content))
             parsed = _parse_json_response(raw_content)
@@ -177,8 +186,17 @@ class LiveGroqAdapter:
             if settings.app_env == "development":
                 logger.info("SMART_PASTE_SCHEMA_VALIDATED", field_count=len(parsed))
         except (json.JSONDecodeError, ValidationError) as exc:
+            validation_errors = exc.errors(include_input=False) if isinstance(exc, ValidationError) else []
+            logger.warning(
+                "SMART_PASTE_STRUCTURED_OUTPUT_REJECTED",
+                error_type=type(exc).__name__,
+                validation_issues=[
+                    {"path": ".".join(str(part) for part in issue["loc"]), "type": issue["type"]}
+                    for issue in validation_errors
+                ],
+            )
             raise AdapterError(
-                "Groq returned invalid structured extraction data.",
+                f"{self.provider} returned invalid structured extraction data.",
                 error_code="invalid_output",
             ) from exc
 
@@ -221,45 +239,59 @@ class LiveGroqAdapter:
         if normalized_flat_type and "flat_type" not in candidates:
             item = evidence_item
             if item is None:
-                raise AdapterError("Groq returned no usable flat-type evidence.", error_code="invalid_output")
-            candidates["flat_type"] = [{
-                **item.model_dump(),
-                "value": normalized_flat_type,
-                "extraction_method": "llm",
-                "verification_state": "UNVERIFIED",
-                "final_confidence": item.model_confidence,
-            }]
+                raise AdapterError(
+                    f"{self.provider} returned no usable flat-type evidence.",
+                    error_code="invalid_output",
+                )
+            candidates["flat_type"] = [
+                {
+                    **item.model_dump(),
+                    "value": normalized_flat_type,
+                    "extraction_method": "llm",
+                    "verification_state": "UNVERIFIED",
+                    "final_confidence": item.model_confidence,
+                }
+            ]
         if normalized_subtype and "listing_flat_subtype" not in candidates:
             item = evidence_item
             if item is None:
-                raise AdapterError("Groq returned no usable subtype evidence.", error_code="invalid_output")
-            candidates["listing_flat_subtype"] = [{
-                **item.model_dump(),
-                "value": normalized_subtype,
-                "extraction_method": "deterministic_normalizer",
-                "verification_state": "UNVERIFIED",
-                "final_confidence": item.model_confidence,
-            }]
+                raise AdapterError(
+                    f"{self.provider} returned no usable subtype evidence.",
+                    error_code="invalid_output",
+                )
+            candidates["listing_flat_subtype"] = [
+                {
+                    **item.model_dump(),
+                    "value": normalized_subtype,
+                    "extraction_method": "deterministic_normalizer",
+                    "verification_state": "UNVERIFIED",
+                    "final_confidence": item.model_confidence,
+                }
+            ]
         if subtype_attributes.flat_type and "flat_type" not in candidates:
             item = evidence_item
             if item is not None:
-                candidates["flat_type"] = [{
-                    **item.model_dump(),
-                    "value": subtype_attributes.flat_type,
-                    "extraction_method": "derived_from_subtype",
-                    "verification_state": "UNVERIFIED",
-                    "final_confidence": item.model_confidence,
-                }]
+                candidates["flat_type"] = [
+                    {
+                        **item.model_dump(),
+                        "value": subtype_attributes.flat_type,
+                        "extraction_method": "derived_from_subtype",
+                        "verification_state": "UNVERIFIED",
+                        "final_confidence": item.model_confidence,
+                    }
+                ]
         if subtype_attributes.flat_model and "flat_model" not in candidates:
             item = evidence_item
             if item is not None:
-                candidates["flat_model"] = [{
-                    **item.model_dump(),
-                    "value": subtype_attributes.flat_model,
-                    "extraction_method": "derived_from_subtype",
-                    "verification_state": "UNVERIFIED",
-                    "final_confidence": item.model_confidence,
-                }]
+                candidates["flat_model"] = [
+                    {
+                        **item.model_dump(),
+                        "value": subtype_attributes.flat_model,
+                        "extraction_method": "derived_from_subtype",
+                        "verification_state": "UNVERIFIED",
+                        "final_confidence": item.model_confidence,
+                    }
+                ]
 
         lease_candidate = _build_remaining_lease_candidate(extraction)
         if lease_candidate is not None:
@@ -393,7 +425,8 @@ def _normalise_field_value(field: str, value: Any, raw_text: str | None) -> Any:
         return value_attributes.listing_flat_subtype or raw_attributes.listing_flat_subtype
     return value
 
-def _provider_error(exc: Exception) -> AdapterError:
+
+def _provider_error(exc: Exception, provider: str = "Groq") -> AdapterError:
     status_code = getattr(exc, "status_code", None)
     provider_message: str | None = None
     if status_code is None:
@@ -411,16 +444,17 @@ def _provider_error(exc: Exception) -> AdapterError:
     code = str(status_code) if status_code is not None else type(exc).__name__
     exc_name = type(exc).__name__
 
+    label = provider
     if status_code == 401 or exc_name == "AuthenticationError":
         return AdapterError(
-            "Groq authentication failed. Check GROQ_API_KEY.",
+            f"{label} authentication failed. Check LLM_API_KEY.",
             provider_status=code,
             error_code="authentication",
             provider_message=provider_message,
         )
     if status_code == 429 or exc_name == "RateLimitError":
         return AdapterError(
-            "Groq is temporarily rate limited. Try again later.",
+            f"{label} is temporarily rate limited. Try again later.",
             provider_status=code,
             error_code="rate_limit",
             retryable=True,
@@ -429,7 +463,7 @@ def _provider_error(exc: Exception) -> AdapterError:
     if status_code == 413:
         # Groq's tokens-per-minute cap check (request too large) — surfaces as 413, not 429.
         return AdapterError(
-            "Groq is temporarily rate limited (too many tokens requested). Try again shortly.",
+            f"{label} is temporarily rate limited (too many tokens requested). Try again shortly.",
             provider_status=code,
             error_code="rate_limit",
             retryable=True,
@@ -437,7 +471,7 @@ def _provider_error(exc: Exception) -> AdapterError:
         )
     if exc_name in {"APITimeoutError", "APIConnectionError"}:
         return AdapterError(
-            "Groq could not be reached before the request timed out.",
+            f"{label} could not be reached before the request timed out.",
             provider_status=code,
             error_code="timeout",
             retryable=True,
@@ -445,14 +479,14 @@ def _provider_error(exc: Exception) -> AdapterError:
         )
     if status_code is not None and int(status_code) >= 500:
         return AdapterError(
-            "Groq is temporarily unavailable. Try again later.",
+            f"{label} is temporarily unavailable. Try again later.",
             provider_status=code,
             error_code="temporarily_unavailable",
             retryable=True,
             provider_message=provider_message,
         )
     return AdapterError(
-        "Groq could not complete Smart Paste extraction.",
+        f"{label} could not complete Smart Paste extraction.",
         provider_status=code,
         error_code="provider_error",
         provider_message=provider_message,

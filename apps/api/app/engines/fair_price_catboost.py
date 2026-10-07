@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 
 from app.adapters.base import TransactionRecord
+from app.adapters.provider_schemas.artifacts import FairPriceModelMetadata
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.domain.models import ConfirmedListing
@@ -93,9 +94,7 @@ def predict(
 
     target = _listing_frame(listing, town, valuation_date)
     target = _prepare_frame(target, fitted.numeric_medians)
-    predicted = float(
-        np.asarray(fitted.model.predict(target[CATEGORICAL_FEATURES + NUMERIC_FEATURES]), dtype=float)[0]
-    )
+    predicted = float(np.asarray(fitted.model.predict(target[CATEGORICAL_FEATURES + NUMERIC_FEATURES]), dtype=float)[0])
     if not np.isfinite(predicted) or predicted <= 0:
         return None
     return CatBoostPrediction(
@@ -131,7 +130,8 @@ def train_artifact(
         "supported_flat_types": sorted(fitted.supported_flat_types),
         "training_cutoff_month": valuation_month,
     }
-    _publish_artifact(target, fitted.model, metadata)
+    validated_metadata = FairPriceModelMetadata.model_validate(metadata)
+    _publish_artifact(target, fitted.model, validated_metadata.model_dump(mode="json"))
     _ARTIFACT_CACHE.pop(str(target), None)
     logger.info("fair_price_model_artifact_trained", extra={"artifact_path": str(target)})
     return {"artifact_dir": str(target), **metadata}
@@ -158,14 +158,12 @@ def load_artifact(history: pd.DataFrame) -> _FittedCatBoost | None:
         )
         return None
     try:
-        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-        if not isinstance(metadata, dict):
-            raise ValueError("metadata must be an object")
+        metadata = FairPriceModelMetadata.model_validate_json(metadata_path.read_text(encoding="utf-8"))
         required_features = CATEGORICAL_FEATURES + NUMERIC_FEATURES
         if (
-            metadata.get("model_version") != MODEL_VERSION
-            or metadata.get("transaction_snapshot_key") != _snapshot_key(history)
-            or metadata.get("feature_columns") != required_features
+            metadata.model_version != MODEL_VERSION
+            or metadata.transaction_snapshot_key != _snapshot_key(history)
+            or metadata.feature_columns != required_features
         ):
             logger.warning(
                 "fair_price_model_artifact_incompatible",
@@ -174,14 +172,14 @@ def load_artifact(history: pd.DataFrame) -> _FittedCatBoost | None:
             )
             return None
 
-        numeric_medians = pd.Series(metadata["numeric_medians"], dtype=float)
+        numeric_medians = pd.Series(metadata.numeric_medians, dtype=float)
         if set(NUMERIC_FEATURES) - set(numeric_medians.index) or not np.isfinite(numeric_medians).all():
             raise ValueError("numeric medians are incomplete or invalid")
-        residual_low = float(metadata["residual_low"])
-        residual_high = float(metadata["residual_high"])
-        training_rows = int(metadata["training_rows"])
-        calibration_rows = int(metadata["calibration_rows"])
-        supported_flat_types = frozenset(str(value) for value in metadata["supported_flat_types"])
+        residual_low = float(metadata.residual_low)
+        residual_high = float(metadata.residual_high)
+        training_rows = metadata.training_rows
+        calibration_rows = metadata.calibration_rows
+        supported_flat_types = frozenset(metadata.supported_flat_types)
         if (
             not np.isfinite([residual_low, residual_high]).all()
             or residual_low > residual_high
@@ -201,7 +199,7 @@ def load_artifact(history: pd.DataFrame) -> _FittedCatBoost | None:
             residual_high=residual_high,
             training_rows=training_rows,
             calibration_rows=calibration_rows,
-            calibration_source=str(metadata["calibration_source"]),
+            calibration_source=metadata.calibration_source,
             supported_flat_types=supported_flat_types,
         )
     except Exception as exc:  # Provider/model parsing must never break enrichment.

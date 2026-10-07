@@ -47,6 +47,7 @@ apps/api/catboost_info/
 # Data snapshots (large)
 data_pipeline/snapshots/
 !data_pipeline/snapshots/.gitkeep
+data_pipeline/manifests/
 
 # Logs
 *.log

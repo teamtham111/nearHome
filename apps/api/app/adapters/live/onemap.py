@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from datetime import UTC, datetime
+from typing import Any
 
 import httpx
+from pydantic import ValidationError
 
 from app.adapters.base import GeocodeResult
+from app.adapters.provider_schemas.onemap import OneMapSearchResponse, OneMapSearchResult, OneMapTokenResponse
 from app.core.config import settings
 from app.utils.hdb_address import canonical_hdb_address_key, canonical_hdb_parts
 
@@ -28,7 +32,11 @@ class LiveOneMapAdapter:
         with httpx.Client(timeout=15.0) as client:
             resp = client.post(url, json=body)
             resp.raise_for_status()
-            self._token = resp.json()["access_token"]
+            try:
+                token_response = OneMapTokenResponse.model_validate(resp.json())
+            except (TypeError, ValueError, ValidationError) as exc:
+                raise ValueError("OneMap returned a malformed authentication response") from exc
+            self._token = token_response.access_token
         return self._token
 
     def geocode(self, address: str) -> GeocodeResult:
@@ -41,7 +49,7 @@ class LiveOneMapAdapter:
         raise ValueError(f"No geocode result for: {address}") from last_error
 
     @staticmethod
-    def _search_queries(address: str):
+    def _search_queries(address: str) -> Iterator[str]:  # normalises the input going to onemap
         cleaned = address.strip()
         yield cleaned
         simplified = cleaned
@@ -57,14 +65,22 @@ class LiveOneMapAdapter:
     def _geocode_query(self, query: str, original_address: str) -> GeocodeResult:
         token = self._get_token()
         url = "https://www.onemap.gov.sg/api/common/elastic/search"
-        params = {"searchVal": query, "returnGeom": "Y", "getAddrDetails": "Y", "pageNum": 1}
+        params: dict[str, str | int] = {
+            "searchVal": query,
+            "returnGeom": "Y",
+            "getAddrDetails": "Y",
+            "pageNum": 1,
+        }
         headers = {"Authorization": token}
         with httpx.Client(timeout=15.0) as client:
             resp = client.get(url, params=params, headers=headers)
             resp.raise_for_status()
-            data = resp.json()
+            try:
+                data = OneMapSearchResponse.model_validate(resp.json())
+            except (TypeError, ValueError, ValidationError) as exc:
+                raise ValueError("OneMap returned a malformed search response") from exc
 
-        results = data.get("results", [])
+        results = data.results
         if not results:
             raise ValueError(f"No geocode result for: {query}")
 
@@ -72,20 +88,22 @@ class LiveOneMapAdapter:
         if r is None:
             raise ValueError(f"OneMap returned no coordinate/address match for: {original_address}")
         return GeocodeResult(
-            latitude=float(r["LATITUDE"]),
-            longitude=float(r["LONGITUDE"]),
-            formatted_address=r.get("ADDRESS", original_address),
-            postal_code=r.get("POSTAL"),
-            town=r.get("PLANNING_AREA"),
-            block=r.get("BLK_NO"),
-            street=r.get("ROAD_NAME"),
+            latitude=r.latitude,
+            longitude=r.longitude,
+            formatted_address=r.address or original_address,
+            postal_code=r.postal_code,
+            town=r.planning_area,
+            block=r.block,
+            street=r.road_name,
             provider=self.provider,
             provenance="OFFICIAL",
             retrieved_at=datetime.now(UTC),
         )
 
+    # converts onemaps schema into nearhomes schema
+
     @staticmethod
-    def _is_usable_match(result: dict, original_address: str) -> bool:
+    def _is_usable_match(result: OneMapSearchResult | dict[str, Any], original_address: str) -> bool:
         """Reject obviously unsafe or wrong-HDB-block provider results.
 
         OneMap search results are ranked but can contain similarly named
@@ -94,16 +112,18 @@ class LiveOneMapAdapter:
         address components remain allowed because some legitimate OneMap rows
         do not expose them; their coordinate is still checked independently.
         """
-        try:
-            latitude = float(result["LATITUDE"])
-            longitude = float(result["LONGITUDE"])
-        except (KeyError, TypeError, ValueError):
-            return False
+        if isinstance(result, dict):
+            try:
+                result = OneMapSearchResult.model_validate(result)
+            except ValidationError:
+                return False
+        latitude = result.latitude
+        longitude = result.longitude
         if not (
             _SINGAPORE_LATITUDE_RANGE[0] <= latitude <= _SINGAPORE_LATITUDE_RANGE[1]
             and _SINGAPORE_LONGITUDE_RANGE[0] <= longitude <= _SINGAPORE_LONGITUDE_RANGE[1]
         ):
             return False
         requested = canonical_hdb_address_key(original_address)
-        returned = canonical_hdb_parts(result.get("BLK_NO"), result.get("ROAD_NAME"))
+        returned = canonical_hdb_parts(result.block, result.road_name)
         return requested is None or returned is None or requested == returned

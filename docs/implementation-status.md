@@ -32,6 +32,7 @@ Last updated: full-spec build continuation
 | CatBoost fair-price valuation | ✅ | `app/engines/fair_price.py`, `app/engines/fair_price_catboost.py`, `app/engines/fair_price_comparables.py` |
 | Schools + observations UI | ✅ | `comparison-view.tsx`, session page |
 | Setup guide | ✅ | `docs/SETUP.md` |
+| External-provider structural validation | ✅ | `app/adapters/provider_schemas/*`, `app/tests/test_provider_schemas.py` |
 
 ## Remaining vs full spec (honest gaps)
 

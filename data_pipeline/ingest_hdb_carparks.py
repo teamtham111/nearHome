@@ -54,6 +54,9 @@ def fetch_live() -> list[dict]:
     import httpx
     from pyproj import Transformer
 
+    sys.path.insert(0, str(ROOT / "apps" / "api"))
+    from app.adapters.provider_schemas.hdb import DataGovHdbCarparkResponse
+
     # EPSG:3414 = SVY21 (Singapore), EPSG:4326 = WGS84 lat/lng.
     transformer = Transformer.from_crs("EPSG:3414", "EPSG:4326", always_xy=True)
 
@@ -72,32 +75,32 @@ def fetch_live() -> list[dict]:
                 break
             else:
                 raise RuntimeError("data.gov.sg rate-limited after 5 retries")
-            payload = resp.json()
-            records = payload.get("result", {}).get("records", [])
+            payload = DataGovHdbCarparkResponse.model_validate(resp.json())
+            records = payload.result.records
             if not records:
                 break
             for r in records:
                 try:
-                    x, y = float(r["x_coord"]), float(r["y_coord"])
+                    x, y = r.x_coord, r.y_coord
                     lng, lat = transformer.transform(x, y)
-                except (KeyError, ValueError, TypeError):
+                except (ValueError, TypeError):
                     continue
-                source_type = r.get("car_park_type")
+                source_type = r.carpark_type
                 rows.append(
                     {
-                        "carpark_no": r.get("car_park_no", ""),
-                        "address": r.get("address", ""),
+                        "carpark_no": r.carpark_no,
+                        "address": r.address,
                         "latitude": round(lat, 6),
                         "longitude": round(lng, 6),
                         "carpark_type": _normalise_type(source_type),
                         "source_carpark_type": source_type,
-                        "parking_system_type": _optional_text(r.get("type_of_parking_system")),
-                        "short_term_parking": _optional_text(r.get("short_term_parking")),
-                        "free_parking": _optional_text(r.get("free_parking")),
-                        "night_parking": _optional_text(r.get("night_parking")),
-                        "carpark_decks": r.get("car_park_decks") or None,
-                        "gantry_height_m": _optional_float(r.get("gantry_height")),
-                        "basement_indicator": _optional_text(r.get("car_park_basement")),
+                        "parking_system_type": _optional_text(r.parking_system_type),
+                        "short_term_parking": _optional_text(r.short_term_parking),
+                        "free_parking": _optional_text(r.free_parking),
+                        "night_parking": _optional_text(r.night_parking),
+                        "carpark_decks": r.carpark_decks,
+                        "gantry_height_m": _optional_float(r.gantry_height_m),
+                        "basement_indicator": _optional_text(r.basement_indicator),
                         "source": SOURCE_NAME,
                         "source_updated_at": datetime.now(UTC).isoformat(),
                     }
@@ -126,9 +129,16 @@ def main() -> int:
         rows = json.loads(FIXTURES.read_text()) if FIXTURES.exists() else []
         print(f"Using existing fixture ({len(rows)} carparks). Pass --live to refresh.")
 
+    sys.path.insert(0, str(ROOT / "apps" / "api"))
+    from pydantic import TypeAdapter
+
+    from app.adapters.provider_schemas.hdb import HdbCarparkSnapshotRow
+
+    validated_rows = TypeAdapter(list[HdbCarparkSnapshotRow]).validate_python(rows)
+    serialized_rows = [row.model_dump(mode="json") for row in validated_rows]
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(rows, indent=2))
-    print(f"Wrote {len(rows)} HDB carparks to {args.output}")
+    args.output.write_text(json.dumps(serialized_rows, indent=2))
+    print(f"Wrote {len(serialized_rows)} HDB carparks to {args.output}")
     if args.persist_db:
         sys.path.insert(0, str(ROOT / "apps" / "api"))
         from app.adapters.parking.hdb_carpark import HdbCarparkStore  # noqa: E402

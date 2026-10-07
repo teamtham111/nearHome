@@ -19,6 +19,11 @@ from numbers import Integral
 from pathlib import Path
 from typing import Any
 
+from app.adapters.provider_schemas.artifacts import (
+    MajorRoadMappingArtifact,
+    SlaMajorRoadFeatureCollection,
+    SlaMultiLineStringGeometry,
+)
 from app.core.config import settings
 
 ROOT = Path(__file__).resolve().parents[5]
@@ -653,22 +658,21 @@ class SlaMajorRoadStore:
         path = Path(settings.sla_major_roads_path) if settings.sla_major_roads_path else DEFAULT_SLA_FIXTURE
         if not path.exists():
             return ()
-        payload = json.loads(path.read_text())
+        payload = SlaMajorRoadFeatureCollection.model_validate_json(path.read_text())
         grouped: dict[str, tuple[str, list[tuple[tuple[float, float], ...]]]] = {}
-        for feature in payload.get("features", []):
-            properties = feature.get("properties", {})
-            if properties.get("FOLDERPATH") != "Layers/Major_Road":
+        for feature in payload.features:
+            properties = feature.properties
+            if properties.folder_path != "Layers/Major_Road":
                 continue
-            geometry = feature.get("geometry") or {}
-            coordinates = geometry.get("coordinates", [])
-            lines = coordinates if geometry.get("type") == "MultiLineString" else [coordinates]
-            name = str(properties.get("NAME") or "Unnamed SLA Major Road")
+            geometry = feature.geometry
+            lines = geometry.coordinates if isinstance(geometry, SlaMultiLineStringGeometry) else [geometry.coordinates]
+            name = properties.name or "Unnamed SLA Major Road"
             # National Map Line stores a road as many segments. Grouping by
             # official name lets matching assess its local alignment instead
             # of incorrectly treating one segment endpoint as the whole road.
             key = name.upper()
             for line in lines:
-                cleaned = tuple((float(point[0]), float(point[1])) for point in line if len(point) >= 2)
+                cleaned = tuple((float(point[0]), float(point[1])) for point in line)
                 if len(cleaned) >= 2:
                     grouped.setdefault(key, (name, []))[1].append(cleaned)
         return tuple(SlaMajorRoad(key, name, tuple(lines)) for key, (name, lines) in grouped.items())
@@ -914,7 +918,8 @@ def write_major_road_mapping(
         },
     }
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, sort_keys=True, separators=(",", ":")))
+    validated_payload = MajorRoadMappingArtifact.model_validate(payload)
+    path.write_text(json.dumps(validated_payload.model_dump(mode="json"), sort_keys=True, separators=(",", ":")))
 
 
 class SlaOsmMajorRoadMappingStore:
@@ -933,61 +938,53 @@ class SlaOsmMajorRoadMappingStore:
             SlaOsmMajorRoadMappingStore._last_error = "Major Road mapping source artifact is missing."
             return None
         try:
-            payload = json.loads(mapping_path.read_text())
-            if payload.get("schema_version") != MAPPING_SCHEMA_VERSION:
-                raise ValueError("unsupported mapping schema version")
-            metadata = payload["metadata"]
-            graph_sha256 = str(metadata["graph_sha256"])
-            sla_sha256 = str(metadata["sla_sha256"])
+            payload = MajorRoadMappingArtifact.model_validate_json(mapping_path.read_text())
+            metadata = payload.metadata
+            graph_sha256 = metadata.graph_sha256
+            sla_sha256 = metadata.sla_sha256
             if graph_sha256 != _sha256_file(graph_path):
                 raise ValueError("mapping graph hash does not match singapore-drive.graphml")
             if sla_sha256 != _sha256_file(sla_path):
                 raise ValueError("mapping SLA hash does not match sla_major_roads.geojson")
-            if metadata.get("matching_algorithm_version") != MAPPING_ALGORITHM_VERSION:
+            if metadata.matching_algorithm_version != MAPPING_ALGORITHM_VERSION:
                 raise ValueError("unsupported mapping algorithm version")
-            if metadata.get("catalogue_version") != CATALOGUE_VERSION:
+            if metadata.catalogue_version != CATALOGUE_VERSION:
                 raise ValueError("unsupported major-road access catalogue version")
             roads: dict[str, PrecomputedMajorRoad] = {}
-            for identifier, raw in payload["major_roads"].items():
-                if not isinstance(raw, dict) or not isinstance(raw.get("entry_nodes"), list):
-                    raise ValueError(f"malformed road mapping for {identifier}")
-                edge_ids = tuple(tuple(str(part) for part in edge) for edge in raw.get("matched_osm_edge_ids", []))
+            for identifier, raw in payload.major_roads.items():
+                edge_ids = tuple(raw.matched_osm_edge_ids)
                 entries = tuple(
                     MajorRoadEntryPoint(
-                        name=str(raw["name"]),
+                        name=raw.name,
                         major_road_id=str(identifier),
-                        node_id=str(entry["node_id"]),
-                        latitude=float(entry["latitude"]),
-                        longitude=float(entry["longitude"]),
-                        matched_edge_ids=tuple(
-                            tuple(str(part) for part in edge) for edge in entry.get("matched_osm_edge_ids", [])
-                        ),
-                        candidate_id=str(entry["candidate_id"]),
-                        target_latitude=float(entry["target_latitude"]),
-                        target_longitude=float(entry["target_longitude"]),
-                        approach_edge_ids=tuple(
-                            tuple(str(part) for part in edge) for edge in entry.get("approach_osm_edge_ids", [])
-                        ),
-                        matching_confidence=str(entry.get("matching_confidence", "TOPOLOGY_VALIDATED")),
+                        node_id=entry.node_id,
+                        latitude=float(entry.latitude),
+                        longitude=float(entry.longitude),
+                        matched_edge_ids=tuple(entry.matched_osm_edge_ids),
+                        candidate_id=entry.candidate_id,
+                        target_latitude=float(entry.target_latitude),
+                        target_longitude=float(entry.target_longitude),
+                        approach_edge_ids=tuple(entry.approach_osm_edge_ids),
+                        matching_confidence=entry.matching_confidence,
                     )
-                    for entry in raw["entry_nodes"]
+                    for entry in raw.entry_nodes
                 )
                 roads[str(identifier)] = PrecomputedMajorRoad(
                     identifier=str(identifier),
-                    name=str(raw["name"]),
+                    name=raw.name,
                     matched_edge_ids=edge_ids,
                     entry_nodes=entries,
-                    name_supported_edge_count=int(raw.get("name_supported_edge_count", 0)),
+                    name_supported_edge_count=raw.name_supported_edge_count,
                 )
             SlaOsmMajorRoadMappingStore._last_error = None
             return MajorRoadMapping(
                 graph_sha256=graph_sha256,
                 sla_sha256=sla_sha256,
-                generated_at=str(metadata["generated_at"]),
-                algorithm_version=str(metadata["matching_algorithm_version"]),
-                search_radius_metres=float(metadata["strtree_search_radius_metres"]),
+                generated_at=metadata.generated_at,
+                algorithm_version=metadata.matching_algorithm_version,
+                search_radius_metres=float(metadata.strtree_search_radius_metres),
                 roads_by_identifier=roads,
-                catalogue_version=str(metadata["catalogue_version"]),
+                catalogue_version=metadata.catalogue_version,
             )
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             SlaOsmMajorRoadMappingStore._last_error = f"Invalid SLA-to-OSM Major Road mapping artifact: {exc}"

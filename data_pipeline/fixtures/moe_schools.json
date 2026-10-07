@@ -1,7 +1,2361 @@
 [
-  {"school_name": "Catholic High School", "level": "Primary", "latitude": 1.3540, "longitude": 103.8450, "address": "BISHAN ST 22"},
-  {"school_name": "Kuo Chuan Presbyterian Primary School", "level": "Primary", "latitude": 1.3510, "longitude": 103.8520, "address": "BISHAN ST 13"},
-  {"school_name": "St. Hilda's Primary School", "level": "Primary", "latitude": 1.3480, "longitude": 103.9580, "address": "TAMPINES AVE 3"},
-  {"school_name": "Tampines Primary School", "level": "Primary", "latitude": 1.3520, "longitude": 103.9420, "address": "TAMPINES ST 21"},
-  {"school_name": "Jurong Primary School", "level": "Primary", "latitude": 1.3360, "longitude": 103.7380, "address": "JURONG WEST ST 42"}
+  {
+    "address": "11 WOODLANDS CIRCLE",
+    "latitude": 1.442634790331114,
+    "level": "PRIMARY",
+    "longitude": 103.800040119743,
+    "school_name": "ADMIRALTY PRIMARY SCHOOL"
+  },
+  {
+    "address": "31 WOODLANDS CRESCENT",
+    "latitude": 1.445890689109919,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8023981965959,
+    "school_name": "ADMIRALTY SECONDARY SCHOOL"
+  },
+  {
+    "address": "10 YISHUN STREET 11",
+    "latitude": 1.433152715435181,
+    "level": "PRIMARY",
+    "longitude": 103.8329424010853,
+    "school_name": "AHMAD IBRAHIM PRIMARY SCHOOL"
+  },
+  {
+    "address": "751 YISHUN AVENUE 7",
+    "latitude": 1.436059753688065,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8297186900766,
+    "school_name": "AHMAD IBRAHIM SECONDARY SCHOOL"
+  },
+  {
+    "address": "100 Bright Hill Drive",
+    "latitude": 1.360583433890406,
+    "level": "PRIMARY",
+    "longitude": 103.8330203339857,
+    "school_name": "AI TONG SCHOOL"
+  },
+  {
+    "address": "2A Prince Charles Crescent",
+    "latitude": 1.291334391613348,
+    "level": "PRIMARY",
+    "longitude": 103.8244246805311,
+    "school_name": "ALEXANDRA PRIMARY SCHOOL"
+  },
+  {
+    "address": "31 Anchorvale Drive",
+    "latitude": 1.390369986546132,
+    "level": "PRIMARY",
+    "longitude": 103.8871653759329,
+    "school_name": "ANCHOR GREEN PRIMARY SCHOOL"
+  },
+  {
+    "address": "19 ANG MO KIO AVE 9",
+    "latitude": 1.384264294367363,
+    "level": "PRIMARY",
+    "longitude": 103.8413920811184,
+    "school_name": "ANDERSON PRIMARY SCHOOL"
+  },
+  {
+    "address": "10 ANG MO KIO STREET 53",
+    "latitude": 1.374340017011785,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8515541070679,
+    "school_name": "ANDERSON SECONDARY SCHOOL"
+  },
+  {
+    "address": "1033 Upper Serangoon Road",
+    "latitude": 1.365043420024426,
+    "level": "JUNIOR COLLEGE",
+    "longitude": 103.8870388093729,
+    "school_name": "ANDERSON SERANGOON JUNIOR COLLEGE"
+  },
+  {
+    "address": "20 ANG MO KIO AVENUE 3",
+    "latitude": 1.369321765846087,
+    "level": "PRIMARY",
+    "longitude": 103.839630858752,
+    "school_name": "ANG MO KIO PRIMARY SCHOOL"
+  },
+  {
+    "address": "6 ANG MO KIO STREET 22",
+    "latitude": 1.367337101710713,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8421549736715,
+    "school_name": "ANG MO KIO SECONDARY SCHOOL"
+  },
+  {
+    "address": "600 UPPER CHANGI ROAD",
+    "latitude": 1.330581262051284,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.9410825130811,
+    "school_name": "ANGLICAN HIGH SCHOOL"
+  },
+  {
+    "address": "25 DOVER CLOSE EAST",
+    "latitude": 1.303042551933919,
+    "level": "JUNIOR COLLEGE",
+    "longitude": 103.7853584364079,
+    "school_name": "ANGLO-CHINESE JUNIOR COLLEGE"
+  },
+  {
+    "address": "60 BARKER ROAD",
+    "latitude": 1.319616491513279,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8357726899882,
+    "school_name": "ANGLO-CHINESE SCHOOL (BARKER ROAD)"
+  },
+  {
+    "address": "121 DOVER ROAD",
+    "latitude": 1.303704092577828,
+    "level": "MIXED LEVEL (S1-JC2)",
+    "longitude": 103.7803634176709,
+    "school_name": "ANGLO-CHINESE SCHOOL (INDEPENDENT)"
+  },
+  {
+    "address": "16 WINSTEDT ROAD",
+    "latitude": 1.309350412749673,
+    "level": "PRIMARY",
+    "longitude": 103.840950265464,
+    "school_name": "ANGLO-CHINESE SCHOOL (JUNIOR)"
+  },
+  {
+    "address": "50 BARKER ROAD",
+    "latitude": 1.31837054523522,
+    "level": "PRIMARY",
+    "longitude": 103.8356097323541,
+    "school_name": "ANGLO-CHINESE SCHOOL (PRIMARY)"
+  },
+  {
+    "address": "51 Tampines Street 61",
+    "latitude": 1.363605905883133,
+    "level": "PRIMARY",
+    "longitude": 103.9389409003993,
+    "school_name": "ANGSANA PRIMARY SCHOOL"
+  },
+  {
+    "address": "622 UPPER BUKIT TIMAH ROAD",
+    "latitude": 1.368381606628573,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.766687526556,
+    "school_name": "ASSUMPTION ENGLISH SCHOOL"
+  },
+  {
+    "address": "30 Cashew Road",
+    "latitude": 1.369670704322713,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.7659591305809,
+    "school_name": "ASSUMPTION PATHWAY SCHOOL"
+  },
+  {
+    "address": "10 JALAN BUNGA RAMPAI",
+    "latitude": 1.339954155878111,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8828062117046,
+    "school_name": "BARTLEY SECONDARY SCHOOL"
+  },
+  {
+    "address": "36 Bukit Panjang Ring Road",
+    "latitude": 1.383949362118238,
+    "level": "PRIMARY",
+    "longitude": 103.7736320229752,
+    "school_name": "BEACON PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 TOA PAYOH NORTH",
+    "latitude": 1.341790284928019,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8522808423451,
+    "school_name": "BEATTY SECONDARY SCHOOL"
+  },
+  {
+    "address": "1 BEDOK SOUTH AVE 2",
+    "latitude": 1.323445932879926,
+    "level": "PRIMARY",
+    "longitude": 103.937878976352,
+    "school_name": "BEDOK GREEN PRIMARY SCHOOL"
+  },
+  {
+    "address": "360 BEDOK NORTH AVE 3",
+    "latitude": 1.33451947288432,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9350283833453,
+    "school_name": "BEDOK GREEN SECONDARY SCHOOL"
+  },
+  {
+    "address": "1 JALAN LANGGAR BEDOK",
+    "latitude": 1.325136551591829,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9509891392604,
+    "school_name": "BEDOK SOUTH SECONDARY SCHOOL"
+  },
+  {
+    "address": "6 BEDOK SOUTH AVENUE 3",
+    "latitude": 1.324157040296861,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9437762450238,
+    "school_name": "BEDOK VIEW SECONDARY SCHOOL"
+  },
+  {
+    "address": "91 BENDEMEER ROAD",
+    "latitude": 1.321812507804748,
+    "level": "PRIMARY",
+    "longitude": 103.8654041676288,
+    "school_name": "BENDEMEER PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 ST WILFRED ROAD",
+    "latitude": 1.324611113079975,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8609702844009,
+    "school_name": "BENDEMEER SECONDARY SCHOOL"
+  },
+  {
+    "address": "91 TELOK BLANGAH HEIGHTS",
+    "latitude": 1.276120479240372,
+    "level": "PRIMARY",
+    "longitude": 103.808628535239,
+    "school_name": "BLANGAH RISE PRIMARY SCHOOL"
+  },
+  {
+    "address": "20 BOON LAY DRIVE",
+    "latitude": 1.343178537933179,
+    "level": "PRIMARY",
+    "longitude": 103.7132808894514,
+    "school_name": "BOON LAY GARDEN PRIMARY SCHOOL"
+  },
+  {
+    "address": "11 JURONG WEST STREET 65",
+    "latitude": 1.34272216334335,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7018914539119,
+    "school_name": "BOON LAY SECONDARY SCHOOL"
+  },
+  {
+    "address": "2 LORONG NAPIRI",
+    "latitude": 1.3703599443621,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.877659577677,
+    "school_name": "BOWEN SECONDARY SCHOOL"
+  },
+  {
+    "address": "61 DAKOTA CRESCENT",
+    "latitude": 1.307050611234331,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.886917922608,
+    "school_name": "BROADRICK SECONDARY SCHOOL"
+  },
+  {
+    "address": "50 BUKIT BATOK WEST AVE 8",
+    "latitude": 1.348491110790525,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7408737048192,
+    "school_name": "BUKIT BATOK SECONDARY SCHOOL"
+  },
+  {
+    "address": "10 LENGKOK BAHRU",
+    "latitude": 1.285692830642895,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8134389293932,
+    "school_name": "BUKIT MERAH SECONDARY SCHOOL"
+  },
+  {
+    "address": "7 CHOA CHU KANG AVE 4",
+    "latitude": 1.382242433600432,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7383612218687,
+    "school_name": "BUKIT PANJANG GOVT. HIGH SCHOOL"
+  },
+  {
+    "address": "109 CASHEW ROAD",
+    "latitude": 1.373621793024374,
+    "level": "PRIMARY",
+    "longitude": 103.7693749040251,
+    "school_name": "BUKIT PANJANG PRIMARY SCHOOL"
+  },
+  {
+    "address": "111 Lorong Kismis",
+    "latitude": 1.33729955751691,
+    "level": "PRIMARY",
+    "longitude": 103.7668287207205,
+    "school_name": "BUKIT TIMAH PRIMARY SCHOOL"
+  },
+  {
+    "address": "18 BUKIT BATOK STREET 21",
+    "latitude": 1.345860547886968,
+    "level": "PRIMARY",
+    "longitude": 103.75366641455,
+    "school_name": "BUKIT VIEW PRIMARY SCHOOL"
+  },
+  {
+    "address": "16 BUKIT BATOK STREET 21",
+    "latitude": 1.345733055429413,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7522265939839,
+    "school_name": "BUKIT VIEW SECONDARY SCHOOL"
+  },
+  {
+    "address": "21 ADMIRALTY DRIVE",
+    "latitude": 1.451250243715436,
+    "level": "PRIMARY",
+    "longitude": 103.8158588589283,
+    "school_name": "CANBERRA PRIMARY SCHOOL"
+  },
+  {
+    "address": "51 SEMBAWANG DRIVE",
+    "latitude": 1.453190863159718,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8142035838178,
+    "school_name": "CANBERRA SECONDARY SCHOOL"
+  },
+  {
+    "address": "1 Sallim Road",
+    "latitude": 1.326644245448396,
+    "level": "PRIMARY",
+    "longitude": 103.8822279648518,
+    "school_name": "CANOSSA CATHOLIC PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 CANTONMENT CLOSE",
+    "latitude": 1.275472526232034,
+    "level": "PRIMARY",
+    "longitude": 103.8399626317482,
+    "school_name": "CANTONMENT PRIMARY SCHOOL"
+  },
+  {
+    "address": "30 PASIR RIS ST 41",
+    "latitude": 1.372460639280005,
+    "level": "PRIMARY",
+    "longitude": 103.9570202861143,
+    "school_name": "CASUARINA PRIMARY SCHOOL"
+  },
+  {
+    "address": "9 BISHAN STREET 22",
+    "latitude": 1.354525170657562,
+    "level": "MIXED LEVEL (P1-S4)",
+    "longitude": 103.8449008048039,
+    "school_name": "CATHOLIC HIGH SCHOOL"
+  },
+  {
+    "address": "129 WHITLEY ROAD",
+    "latitude": 1.324556057832193,
+    "level": "JUNIOR COLLEGE",
+    "longitude": 103.8350288423532,
+    "school_name": "CATHOLIC JUNIOR COLLEGE"
+  },
+  {
+    "address": "1 CEDAR AVENUE",
+    "latitude": 1.333758002163343,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.8739330648855,
+    "school_name": "CEDAR GIRLS' SECONDARY SCHOOL"
+  },
+  {
+    "address": "15 CEDAR AVENUE",
+    "latitude": 1.335588501431211,
+    "level": "PRIMARY",
+    "longitude": 103.8756210494394,
+    "school_name": "CEDAR PRIMARY SCHOOL"
+  },
+  {
+    "address": "23 SIMEI ST 3",
+    "latitude": 1.339506300728762,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9532455255639,
+    "school_name": "CHANGKAT CHANGI SECONDARY SCHOOL"
+  },
+  {
+    "address": "11 SIMEI ST 3",
+    "latitude": 1.340231639516331,
+    "level": "PRIMARY",
+    "longitude": 103.9520801140343,
+    "school_name": "CHANGKAT PRIMARY SCHOOL"
+  },
+  {
+    "address": "17 MARTIA ROAD",
+    "latitude": 1.306485352770875,
+    "level": "PRIMARY",
+    "longitude": 103.9111056204962,
+    "school_name": "CHIJ (KATONG) PRIMARY"
+  },
+  {
+    "address": "1 Bukit Teresa Road",
+    "latitude": 1.275022722964019,
+    "level": "PRIMARY",
+    "longitude": 103.8281575648959,
+    "school_name": "CHIJ (KELLOCK)"
+  },
+  {
+    "address": "346 MARINE TERRACE",
+    "latitude": 1.306442680348951,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9171443500279,
+    "school_name": "CHIJ KATONG CONVENT"
+  },
+  {
+    "address": "2C Burghley Drive",
+    "latitude": 1.357429522696155,
+    "level": "PRIMARY",
+    "longitude": 103.8640093973725,
+    "school_name": "CHIJ OUR LADY OF GOOD COUNSEL"
+  },
+  {
+    "address": "1257 UPPER SERANGOON ROAD",
+    "latitude": 1.373302971401289,
+    "level": "PRIMARY",
+    "longitude": 103.8975757283031,
+    "school_name": "CHIJ OUR LADY OF THE NATIVITY"
+  },
+  {
+    "address": "4 Chestnut Drive",
+    "latitude": 1.366603668560997,
+    "level": "PRIMARY",
+    "longitude": 103.7674122046017,
+    "school_name": "CHIJ OUR LADY QUEEN OF PEACE"
+  },
+  {
+    "address": "628 Lorong 1 Toa Payoh",
+    "latitude": 1.332752647115879,
+    "level": "PRIMARY",
+    "longitude": 103.8418472637856,
+    "school_name": "CHIJ PRIMARY (TOA PAYOH)"
+  },
+  {
+    "address": "626 LORONG 1 TOA PAYOH",
+    "latitude": 1.332460799483043,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8432716250826,
+    "school_name": "CHIJ SECONDARY (TOA PAYOH)"
+  },
+  {
+    "address": "62 SENGKANG EAST WAY",
+    "latitude": 1.39175222260368,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9024649915428,
+    "school_name": "CHIJ ST. JOSEPH'S CONVENT"
+  },
+  {
+    "address": "501 ANG MO KIO STREET 13",
+    "latitude": 1.373476878789176,
+    "level": "MIXED LEVEL (P1-S4)",
+    "longitude": 103.8342532694353,
+    "school_name": "CHIJ ST. NICHOLAS GIRLS' SCHOOL"
+  },
+  {
+    "address": "160 LOWER DELTA ROAD",
+    "latitude": 1.275351775100545,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8224407016418,
+    "school_name": "CHIJ ST. THERESA'S CONVENT"
+  },
+  {
+    "address": "170 YISHUN AVENUE 6",
+    "latitude": 1.438395628970071,
+    "level": "PRIMARY",
+    "longitude": 103.8393091738164,
+    "school_name": "CHONGFU SCHOOL"
+  },
+  {
+    "address": "1 TAMPINES STREET 21",
+    "latitude": 1.350707392377436,
+    "level": "PRIMARY",
+    "longitude": 103.951399541868,
+    "school_name": "CHONGZHENG PRIMARY SCHOOL"
+  },
+  {
+    "address": "20 WOODLANDS DRIVE 17",
+    "latitude": 1.426567809014548,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7934511052413,
+    "school_name": "CHRIST CHURCH SECONDARY SCHOOL"
+  },
+  {
+    "address": "20 CHOA CHU KANG AVENUE 2",
+    "latitude": 1.377758900933685,
+    "level": "PRIMARY",
+    "longitude": 103.7418329174204,
+    "school_name": "CHUA CHU KANG PRIMARY SCHOOL"
+  },
+  {
+    "address": "31 TECK WHYE CRESCENT",
+    "latitude": 1.383334226370742,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7551032758298,
+    "school_name": "CHUA CHU KANG SECONDARY SCHOOL"
+  },
+  {
+    "address": "50 GOODMAN ROAD",
+    "latitude": 1.305091547530479,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.8916532293727,
+    "school_name": "CHUNG CHENG HIGH SCHOOL (MAIN)"
+  },
+  {
+    "address": "11 YISHUN STREET 61",
+    "latitude": 1.419226035861755,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8373907828488,
+    "school_name": "CHUNG CHENG HIGH SCHOOL (YISHUN)"
+  },
+  {
+    "address": "8 CLEMENTI AVE 3",
+    "latitude": 1.315063218278743,
+    "level": "PRIMARY",
+    "longitude": 103.7631444936865,
+    "school_name": "CLEMENTI PRIMARY SCHOOL"
+  },
+  {
+    "address": "10 CLEMENTI AVE 3",
+    "latitude": 1.315539129450737,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7620205985233,
+    "school_name": "CLEMENTI TOWN SECONDARY SCHOOL"
+  },
+  {
+    "address": "698 WEST COAST ROAD",
+    "latitude": 1.319203959348025,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.745637393049,
+    "school_name": "COMMONWEALTH SECONDARY SCHOOL"
+  },
+  {
+    "address": "21 COMPASSVALE ST",
+    "latitude": 1.394445296365664,
+    "level": "PRIMARY",
+    "longitude": 103.8978122299046,
+    "school_name": "COMPASSVALE PRIMARY SCHOOL"
+  },
+  {
+    "address": "51 COMPASSVALE CRESCENT",
+    "latitude": 1.396140839520089,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.899847164494,
+    "school_name": "COMPASSVALE SECONDARY SCHOOL"
+  },
+  {
+    "address": "3 CHOA CHU KANG AVE 4",
+    "latitude": 1.380008061972414,
+    "level": "PRIMARY",
+    "longitude": 103.7362254407264,
+    "school_name": "CONCORD PRIMARY SCHOOL"
+  },
+  {
+    "address": "31 JURONG WEST STREET 24",
+    "latitude": 1.350997798725388,
+    "level": "PRIMARY",
+    "longitude": 103.7075937243418,
+    "school_name": "CORPORATION PRIMARY SCHOOL"
+  },
+  {
+    "address": "357 TANGLIN ROAD",
+    "latitude": 1.293319470771038,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.8175444617547,
+    "school_name": "CRESCENT GIRLS' SCHOOL"
+  },
+  {
+    "address": "561 JURONG EAST STREET 24",
+    "latitude": 1.343119804507612,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.742628105304,
+    "school_name": "CREST SECONDARY SCHOOL"
+  },
+  {
+    "address": "52 BEDOK RESERVOIR CRESCENT",
+    "latitude": 1.335461068004069,
+    "level": "PRIMARY",
+    "longitude": 103.9212701696126,
+    "school_name": "DAMAI PRIMARY SCHOOL"
+  },
+  {
+    "address": "4800 BEDOK RESERVOIR ROAD",
+    "latitude": 1.33692798510394,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9270916534379,
+    "school_name": "DAMAI SECONDARY SCHOOL"
+  },
+  {
+    "address": "35 BUKIT BATOK STREET 31",
+    "latitude": 1.359179744727699,
+    "level": "PRIMARY",
+    "longitude": 103.7484721078394,
+    "school_name": "DAZHONG PRIMARY SCHOOL"
+  },
+  {
+    "address": "11 Choa Chu Kang St 52",
+    "latitude": 1.394707829639912,
+    "level": "PRIMARY",
+    "longitude": 103.7432018128304,
+    "school_name": "DE LA SALLE SCHOOL"
+  },
+  {
+    "address": "1 ANG MO KIO STREET 42",
+    "latitude": 1.365997025677177,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8525457724221,
+    "school_name": "DEYI SECONDARY SCHOOL"
+  },
+  {
+    "address": "21 BUKIT BATOK WEST AVENUE 2",
+    "latitude": 1.363579007928712,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7447210910693,
+    "school_name": "DUNEARN SECONDARY SCHOOL"
+  },
+  {
+    "address": "10 TANJONG RHU ROAD",
+    "latitude": 1.299962160149622,
+    "level": "MIXED LEVEL (S1-JC2)",
+    "longitude": 103.8829415598902,
+    "school_name": "DUNMAN HIGH SCHOOL"
+  },
+  {
+    "address": "21 TAMPINES STREET 45",
+    "latitude": 1.360652583370217,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9562139069653,
+    "school_name": "DUNMAN SECONDARY SCHOOL"
+  },
+  {
+    "address": "31 TAMPINES ST 33",
+    "latitude": 1.352684007463578,
+    "level": "PRIMARY",
+    "longitude": 103.9616768491644,
+    "school_name": "EAST SPRING PRIMARY SCHOOL"
+  },
+  {
+    "address": "30 TAMPINES STREET 34",
+    "latitude": 1.356225089925808,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9606407002974,
+    "school_name": "EAST SPRING SECONDARY SCHOOL"
+  },
+  {
+    "address": "41 EDGEFIELD PLAINS",
+    "latitude": 1.400091395109958,
+    "level": "PRIMARY",
+    "longitude": 103.907847599114,
+    "school_name": "EDGEFIELD PRIMARY SCHOOL"
+  },
+  {
+    "address": "36 PUNGGOL FIELD",
+    "latitude": 1.400593099818258,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9026873854646,
+    "school_name": "EDGEFIELD SECONDARY SCHOOL"
+  },
+  {
+    "address": "11 PASIR RIS STREET 52",
+    "latitude": 1.374512693777769,
+    "level": "PRIMARY",
+    "longitude": 103.9451281171382,
+    "school_name": "ELIAS PARK PRIMARY SCHOOL"
+  },
+  {
+    "address": "10 Admiralty Link",
+    "latitude": 1.454038374993021,
+    "level": "PRIMARY",
+    "longitude": 103.8174362317305,
+    "school_name": "ENDEAVOUR PRIMARY SCHOOL"
+  },
+  {
+    "address": "2 Sin Ming Place",
+    "latitude": 1.362137571835474,
+    "level": "JUNIOR COLLEGE",
+    "longitude": 103.8412861691214,
+    "school_name": "EUNOIA JUNIOR COLLEGE"
+  },
+  {
+    "address": "31 WOODLANDS CIRCLE",
+    "latitude": 1.444153328247356,
+    "level": "PRIMARY",
+    "longitude": 103.7945777877569,
+    "school_name": "EVERGREEN PRIMARY SCHOOL"
+  },
+  {
+    "address": "11 WOODLANDS STREET 83",
+    "latitude": 1.441491312737382,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.794137756171,
+    "school_name": "EVERGREEN SECONDARY SCHOOL"
+  },
+  {
+    "address": "100 DOVER ROAD",
+    "latitude": 1.300540824534253,
+    "level": "PRIMARY",
+    "longitude": 103.7854382700432,
+    "school_name": "FAIRFIELD METHODIST SCHOOL (PRIMARY)"
+  },
+  {
+    "address": "102 DOVER ROAD",
+    "latitude": 1.301633743958234,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7840996471483,
+    "school_name": "FAIRFIELD METHODIST SCHOOL (SECONDARY)"
+  },
+  {
+    "address": "2 FARRER PARK ROAD",
+    "latitude": 1.312368676813718,
+    "level": "PRIMARY",
+    "longitude": 103.8507664029651,
+    "school_name": "FARRER PARK PRIMARY SCHOOL"
+  },
+  {
+    "address": "307 BEDOK NORTH ROAD",
+    "latitude": 1.32980598760785,
+    "level": "PRIMARY",
+    "longitude": 103.9317102930578,
+    "school_name": "FENGSHAN PRIMARY SCHOOL"
+  },
+  {
+    "address": "70 Fernvale Link   Fern Green Primary School",
+    "latitude": 1.397269660504794,
+    "level": "PRIMARY",
+    "longitude": 103.8803303056833,
+    "school_name": "FERN GREEN PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 Fernvale Lane",
+    "latitude": 1.390302279637964,
+    "level": "PRIMARY",
+    "longitude": 103.874445458032,
+    "school_name": "FERNVALE PRIMARY SCHOOL"
+  },
+  {
+    "address": "7 LORONG 8 TOA PAYOH",
+    "latitude": 1.34032299499939,
+    "level": "PRIMARY",
+    "longitude": 103.8555299061816,
+    "school_name": "FIRST TOA PAYOH PRIMARY SCHOOL"
+  },
+  {
+    "address": "20 Jurong West Street 61",
+    "latitude": 1.336412987432344,
+    "level": "PRIMARY",
+    "longitude": 103.6997017393095,
+    "school_name": "FRONTIER PRIMARY SCHOOL"
+  },
+  {
+    "address": "23 WOODLANDS AVENUE 1",
+    "latitude": 1.430479908101254,
+    "level": "PRIMARY",
+    "longitude": 103.7781929442981,
+    "school_name": "FUCHUN PRIMARY SCHOOL"
+  },
+  {
+    "address": "65 JURONG EAST STREET 13",
+    "latitude": 1.33650394789626,
+    "level": "PRIMARY",
+    "longitude": 103.7361037457481,
+    "school_name": "FUHUA PRIMARY SCHOOL"
+  },
+  {
+    "address": "5 JURONG WEST STREET 41",
+    "latitude": 1.347014089137569,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7265208983193,
+    "school_name": "FUHUA SECONDARY SCHOOL"
+  },
+  {
+    "address": "100 REDHILL CLOSE",
+    "latitude": 1.285595164949621,
+    "level": "PRIMARY",
+    "longitude": 103.8155474100632,
+    "school_name": "GAN ENG SENG PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 HENDERSON ROAD",
+    "latitude": 1.289071144857723,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8237336730892,
+    "school_name": "GAN ENG SENG SCHOOL"
+  },
+  {
+    "address": "4 Geylang East Central",
+    "latitude": 1.317591267572844,
+    "level": "PRIMARY",
+    "longitude": 103.883845744916,
+    "school_name": "GEYLANG METHODIST SCHOOL (PRIMARY)"
+  },
+  {
+    "address": "2 GEYLANG EAST CENTRAL",
+    "latitude": 1.31764900474602,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8826611293028,
+    "school_name": "GEYLANG METHODIST SCHOOL (SECONDARY)"
+  },
+  {
+    "address": "1 TAMPINES STREET 42",
+    "latitude": 1.357237213932984,
+    "level": "PRIMARY",
+    "longitude": 103.9491153201717,
+    "school_name": "GONGSHANG PRIMARY SCHOOL"
+  },
+  {
+    "address": "50 Edgedale Plains",
+    "latitude": 1.39648195114255,
+    "level": "PRIMARY",
+    "longitude": 103.9123346207095,
+    "school_name": "GREENDALE PRIMARY SCHOOL"
+  },
+  {
+    "address": "51 EDGEDALE PLAINS",
+    "latitude": 1.396960199368946,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9117001408394,
+    "school_name": "GREENDALE SECONDARY SCHOOL"
+  },
+  {
+    "address": "11 JELAPANG ROAD",
+    "latitude": 1.385889219369218,
+    "level": "PRIMARY",
+    "longitude": 103.7677944692579,
+    "school_name": "GREENRIDGE PRIMARY SCHOOL"
+  },
+  {
+    "address": "31 Gangsa Road",
+    "latitude": 1.375600053443009,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7639989140813,
+    "school_name": "GREENRIDGE SECONDARY SCHOOL"
+  },
+  {
+    "address": "11 WOODLANDS  DR  62",
+    "latitude": 1.439899583317834,
+    "level": "PRIMARY",
+    "longitude": 103.8047255873839,
+    "school_name": "GREENWOOD PRIMARY SCHOOL"
+  },
+  {
+    "address": "8 BISHAN STREET 12",
+    "latitude": 1.344409435256954,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8502121630782,
+    "school_name": "GUANGYANG SECONDARY SCHOOL"
+  },
+  {
+    "address": "9 Pasir Ris Drive 6",
+    "latitude": 1.374337170747808,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9545445489052,
+    "school_name": "HAI SING CATHOLIC SCHOOL"
+  },
+  {
+    "address": "51 Koon Seng Road",
+    "latitude": 1.311943442713839,
+    "level": "PRIMARY",
+    "longitude": 103.9029025571947,
+    "school_name": "HAIG GIRLS' SCHOOL"
+  },
+  {
+    "address": "1 HOLLAND GROVE ROAD",
+    "latitude": 1.316676461783479,
+    "level": "PRIMARY",
+    "longitude": 103.7842962277468,
+    "school_name": "HENRY PARK PRIMARY SCHOOL"
+  },
+  {
+    "address": "10 BUKIT BATOK STREET 52",
+    "latitude": 1.352735766159136,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7529864883989,
+    "school_name": "HILLGROVE SECONDARY SCHOOL"
+  },
+  {
+    "address": "1191 UPPER SERANGOON ROAD",
+    "latitude": 1.371545088222631,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8963988142639,
+    "school_name": "HOLY INNOCENTS' HIGH SCHOOL"
+  },
+  {
+    "address": "5 Lorong Low Koon",
+    "latitude": 1.366938308773486,
+    "level": "PRIMARY",
+    "longitude": 103.8941148997942,
+    "school_name": "HOLY INNOCENTS' PRIMARY SCHOOL"
+  },
+  {
+    "address": "30 TOWNER ROAD",
+    "latitude": 1.321759999645534,
+    "level": "PRIMARY",
+    "longitude": 103.8576284688807,
+    "school_name": "HONG WEN SCHOOL"
+  },
+  {
+    "address": "61 Edgedale Plains",
+    "latitude": 1.399550034492005,
+    "level": "PRIMARY",
+    "longitude": 103.9134048556651,
+    "school_name": "HORIZON PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 HOUGANG ST 93",
+    "latitude": 1.377382452314626,
+    "level": "PRIMARY",
+    "longitude": 103.8808052745566,
+    "school_name": "HOUGANG PRIMARY SCHOOL"
+  },
+  {
+    "address": "2 HOUGANG STREET 93",
+    "latitude": 1.377628795531905,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8825391089642,
+    "school_name": "HOUGANG SECONDARY SCHOOL"
+  },
+  {
+    "address": "60 JURONG WEST ST 42",
+    "latitude": 1.352343654883408,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7218323201689,
+    "school_name": "HUA YI SECONDARY SCHOOL"
+  },
+  {
+    "address": "21 YISHUN AVENUE 11",
+    "latitude": 1.426972845129362,
+    "level": "PRIMARY",
+    "longitude": 103.8442402265639,
+    "school_name": "HUAMIN PRIMARY SCHOOL"
+  },
+  {
+    "address": "661 BUKIT TIMAH ROAD",
+    "latitude": 1.326358062214406,
+    "level": "MIXED LEVEL (S1-JC2)",
+    "longitude": 103.8032903650219,
+    "school_name": "HWA CHONG INSTITUTION"
+  },
+  {
+    "address": "80 Woodlands Drive 17",
+    "latitude": 1.42896700684852,
+    "level": "PRIMARY",
+    "longitude": 103.7906075391852,
+    "school_name": "INNOVA PRIMARY SCHOOL"
+  },
+  {
+    "address": "2 YISHUN STREET 71",
+    "latitude": 1.427688476652264,
+    "level": "PRIMARY",
+    "longitude": 103.8304254900925,
+    "school_name": "JIEMIN PRIMARY SCHOOL"
+  },
+  {
+    "address": "5 ANG MO KIO ST 52",
+    "latitude": 1.372232909834984,
+    "level": "PRIMARY",
+    "longitude": 103.852132214306,
+    "school_name": "JING SHAN PRIMARY SCHOOL"
+  },
+  {
+    "address": "2 Tampines Street 91",
+    "latitude": 1.347870747667462,
+    "level": "PRIMARY",
+    "longitude": 103.9392217090732,
+    "school_name": "JUNYUAN PRIMARY SCHOOL"
+  },
+  {
+    "address": "11 TAMPINES STREET 84",
+    "latitude": 1.353613152635378,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9338861658239,
+    "school_name": "JUNYUAN SECONDARY SCHOOL"
+  },
+  {
+    "address": "21 Teck Whye Walk",
+    "latitude": 1.384374064107325,
+    "level": "JUNIOR COLLEGE",
+    "longitude": 103.7543746151894,
+    "school_name": "JURONG PIONEER JUNIOR COLLEGE"
+  },
+  {
+    "address": "320 JURONG EAST Street 32",
+    "latitude": 1.348438596989479,
+    "level": "PRIMARY",
+    "longitude": 103.7331565668572,
+    "school_name": "JURONG PRIMARY SCHOOL"
+  },
+  {
+    "address": "31 YUAN CHING ROAD",
+    "latitude": 1.33002032220943,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7239529616472,
+    "school_name": "JURONG SECONDARY SCHOOL"
+  },
+  {
+    "address": "30 JURONG WEST ST 61",
+    "latitude": 1.33917519796104,
+    "level": "PRIMARY",
+    "longitude": 103.6988037322437,
+    "school_name": "JURONG WEST PRIMARY SCHOOL"
+  },
+  {
+    "address": "61 JURONG WEST STREET 65",
+    "latitude": 1.335256346883231,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7020989044422,
+    "school_name": "JURONG WEST SECONDARY SCHOOL"
+  },
+  {
+    "address": "202 JURONG EAST AVENUE 1",
+    "latitude": 1.351288627702855,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7289077100888,
+    "school_name": "JURONGVILLE SECONDARY SCHOOL"
+  },
+  {
+    "address": "33 JURONG WEST STREET 91",
+    "latitude": 1.338722773413297,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.6873102645743,
+    "school_name": "JUYING SECONDARY SCHOOL"
+  },
+  {
+    "address": "90 BUKIT BATOK EAST AVENUE 6",
+    "latitude": 1.345528499608757,
+    "level": "PRIMARY",
+    "longitude": 103.7564493993506,
+    "school_name": "KEMING PRIMARY SCHOOL"
+  },
+  {
+    "address": "147 WEST COAST ROAD",
+    "latitude": 1.301227734260989,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7648896175657,
+    "school_name": "KENT RIDGE SECONDARY SCHOOL"
+  },
+  {
+    "address": "15 LORONG 3 TOA PAYOH",
+    "latitude": 1.337338193563907,
+    "level": "PRIMARY",
+    "longitude": 103.8471485018234,
+    "school_name": "KHENG CHENG SCHOOL"
+  },
+  {
+    "address": "350 GUILLEMARD ROAD",
+    "latitude": 1.310996740091935,
+    "level": "PRIMARY",
+    "longitude": 103.8883520290672,
+    "school_name": "KONG HWA SCHOOL"
+  },
+  {
+    "address": "11 CHOA CHU KANG STREET 54",
+    "latitude": 1.393560504971042,
+    "level": "PRIMARY",
+    "longitude": 103.7473627209389,
+    "school_name": "KRANJI PRIMARY SCHOOL"
+  },
+  {
+    "address": "61 CHOA CHU KANG STREET 51",
+    "latitude": 1.390051098713108,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7411906648444,
+    "school_name": "KRANJI SECONDARY SCHOOL"
+  },
+  {
+    "address": "8 BISHAN STREET 13",
+    "latitude": 1.349398136695366,
+    "level": "PRIMARY",
+    "longitude": 103.8550182333104,
+    "school_name": "KUO CHUAN PRESBYTERIAN PRIMARY SCHOOL"
+  },
+  {
+    "address": "10 BISHAN STREET 13",
+    "latitude": 1.350171299303138,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8549837464155,
+    "school_name": "KUO CHUAN PRESBYTERIAN SECONDARY SCHOOL"
+  },
+  {
+    "address": "161 Corporation Walk",
+    "latitude": 1.338203977042863,
+    "level": "PRIMARY",
+    "longitude": 103.718089546664,
+    "school_name": "LAKESIDE PRIMARY SCHOOL"
+  },
+  {
+    "address": "2 BUKIT BATOK STREET 52",
+    "latitude": 1.354241911272948,
+    "level": "PRIMARY",
+    "longitude": 103.7541658287112,
+    "school_name": "LIANHUA PRIMARY SCHOOL"
+  },
+  {
+    "address": "12 PASIR RIS STREET 11",
+    "latitude": 1.366584171672383,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9569445857245,
+    "school_name": "LOYANG VIEW SECONDARY SCHOOL"
+  },
+  {
+    "address": "10 UBI AVENUE 1",
+    "latitude": 1.328470866583848,
+    "level": "PRIMARY",
+    "longitude": 103.9012987373137,
+    "school_name": "MAHA BODHI SCHOOL"
+  },
+  {
+    "address": "20 UBI AVENUE 1",
+    "latitude": 1.32747123084847,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9017199638308,
+    "school_name": "MANJUSRI SECONDARY SCHOOL"
+  },
+  {
+    "address": "25 MOUNT VERNON ROAD",
+    "latitude": 1.341394733236683,
+    "level": "MIXED LEVEL (P1-S4)",
+    "longitude": 103.8778524844351,
+    "school_name": "MARIS STELLA HIGH SCHOOL"
+  },
+  {
+    "address": "31 WOODLANDS CENTRE ROAD",
+    "latitude": 1.43383904037059,
+    "level": "PRIMARY",
+    "longitude": 103.7736430138458,
+    "school_name": "MARSILING PRIMARY SCHOOL"
+  },
+  {
+    "address": "12 MARSILING ROAD",
+    "latitude": 1.436644247699553,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7760080904535,
+    "school_name": "MARSILING SECONDARY SCHOOL"
+  },
+  {
+    "address": "20 Marymount Road",
+    "latitude": 1.340366769873745,
+    "level": "PRIMARY",
+    "longitude": 103.8400210644257,
+    "school_name": "MARYMOUNT CONVENT SCHOOL"
+  },
+  {
+    "address": "200 Ang Mo Kio Avenue 5",
+    "latitude": 1.376376835476832,
+    "level": "PRIMARY",
+    "longitude": 103.8432528037418,
+    "school_name": "MAYFLOWER PRIMARY SCHOOL"
+  },
+  {
+    "address": "2 ANG MO KIO STREET 21",
+    "latitude": 1.368272662097225,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8353607268625,
+    "school_name": "MAYFLOWER SECONDARY SCHOOL"
+  },
+  {
+    "address": "21 EDGEDALE PLAINS",
+    "latitude": 1.394618453859209,
+    "level": "PRIMARY",
+    "longitude": 103.9085894942275,
+    "school_name": "MEE TOH SCHOOL"
+  },
+  {
+    "address": "20 PASIR RIS ST 71",
+    "latitude": 1.375528316584852,
+    "level": "PRIMARY",
+    "longitude": 103.9348890785176,
+    "school_name": "MERIDIAN PRIMARY SCHOOL"
+  },
+  {
+    "address": "31 PASIR RIS STREET 51",
+    "latitude": 1.367246849201311,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9489724836285,
+    "school_name": "MERIDIAN SECONDARY SCHOOL"
+  },
+  {
+    "address": "11 Blackmore Drive",
+    "latitude": 1.332948009357135,
+    "level": "PRIMARY",
+    "longitude": 103.7833930098286,
+    "school_name": "METHODIST GIRLS' SCHOOL (PRIMARY)"
+  },
+  {
+    "address": "11 BLACKMORE DRIVE",
+    "latitude": 1.332948009357135,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.7833930098286,
+    "school_name": "METHODIST GIRLS' SCHOOL (SECONDARY)"
+  },
+  {
+    "address": "60 Bukit Batok West Avenue 8",
+    "latitude": 1.350319392009867,
+    "level": "CENTRALISED INSTITUTE",
+    "longitude": 103.7415935776833,
+    "school_name": "MILLENNIA INSTITUTE"
+  },
+  {
+    "address": "52 HOUGANG AVENUE 8",
+    "latitude": 1.373824440759788,
+    "level": "PRIMARY",
+    "longitude": 103.889307782925,
+    "school_name": "MONTFORT JUNIOR SCHOOL"
+  },
+  {
+    "address": "50 HOUGANG AVENUE 8",
+    "latitude": 1.373961316569128,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8889283725771,
+    "school_name": "MONTFORT SECONDARY SCHOOL"
+  },
+  {
+    "address": "20 ANCHORVALE LINK",
+    "latitude": 1.388795824983993,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8900044237636,
+    "school_name": "NAN CHIAU HIGH SCHOOL"
+  },
+  {
+    "address": "50 ANCHORVALE LINK",
+    "latitude": 1.392211499065922,
+    "level": "PRIMARY",
+    "longitude": 103.8911809281854,
+    "school_name": "NAN CHIAU PRIMARY SCHOOL"
+  },
+  {
+    "address": "41 CLEMENTI AVENUE 1",
+    "latitude": 1.308095295186052,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7685614467247,
+    "school_name": "NAN HUA HIGH SCHOOL"
+  },
+  {
+    "address": "30 Jalan Lempeng",
+    "latitude": 1.319201599563877,
+    "level": "PRIMARY",
+    "longitude": 103.7610950657604,
+    "school_name": "NAN HUA PRIMARY SCHOOL"
+  },
+  {
+    "address": "2 LINDEN DRIVE",
+    "latitude": 1.330583266664794,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.8024209799424,
+    "school_name": "NANYANG GIRLS' HIGH SCHOOL"
+  },
+  {
+    "address": "128 SERANGOON AVENUE 3",
+    "latitude": 1.35028314949236,
+    "level": "JUNIOR COLLEGE",
+    "longitude": 103.8664987219115,
+    "school_name": "NANYANG JUNIOR COLLEGE"
+  },
+  {
+    "address": "52 KING'S ROAD",
+    "latitude": 1.320847499045325,
+    "level": "PRIMARY",
+    "longitude": 103.8077501552959,
+    "school_name": "NANYANG PRIMARY SCHOOL"
+  },
+  {
+    "address": "37 HILLCREST ROAD",
+    "latitude": 1.330292910721726,
+    "level": "MIXED LEVEL (S1-JC2)",
+    "longitude": 103.804110905425,
+    "school_name": "NATIONAL JUNIOR COLLEGE"
+  },
+  {
+    "address": "7 YISHUN AVE 4",
+    "latitude": 1.416306631593873,
+    "level": "PRIMARY",
+    "longitude": 103.8387940772327,
+    "school_name": "NAVAL BASE PRIMARY SCHOOL"
+  },
+  {
+    "address": "901 YISHUN RING ROAD",
+    "latitude": 1.419378816204425,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8310503902469,
+    "school_name": "NAVAL BASE SECONDARY SCHOOL"
+  },
+  {
+    "address": "300 Tanglin Halt Road",
+    "latitude": 1.299641881810217,
+    "level": "PRIMARY",
+    "longitude": 103.8001021630402,
+    "school_name": "NEW TOWN PRIMARY SCHOOL"
+  },
+  {
+    "address": "1020 DOVER ROAD",
+    "latitude": 1.309775900113593,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7731886342096,
+    "school_name": "NEW TOWN SECONDARY SCHOOL"
+  },
+  {
+    "address": "344 MARINE TERRACE",
+    "latitude": 1.305525059104983,
+    "level": "PRIMARY",
+    "longitude": 103.9174630174967,
+    "school_name": "NGEE ANN PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 TAMPINES STREET 32",
+    "latitude": 1.354475257558064,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9567472624953,
+    "school_name": "NGEE ANN SECONDARY SCHOOL"
+  },
+  {
+    "address": "1 RIVERVALE STREET",
+    "latitude": 1.387061464948597,
+    "level": "PRIMARY",
+    "longitude": 103.9032026830277,
+    "school_name": "NORTH SPRING PRIMARY SCHOOL"
+  },
+  {
+    "address": "210 YISHUN AVENUE 6",
+    "latitude": 1.427523271937279,
+    "level": "PRIMARY",
+    "longitude": 103.8481907878688,
+    "school_name": "NORTH VIEW PRIMARY SCHOOL"
+  },
+  {
+    "address": "20 Compassvale Link",
+    "latitude": 1.382822430162999,
+    "level": "PRIMARY",
+    "longitude": 103.8959618779278,
+    "school_name": "NORTH VISTA PRIMARY SCHOOL"
+  },
+  {
+    "address": "11 RIVERVALE LINK",
+    "latitude": 1.381131285358019,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8991888138857,
+    "school_name": "NORTH VISTA SECONDARY SCHOOL"
+  },
+  {
+    "address": "585 YISHUN RING ROAD",
+    "latitude": 1.420812850206535,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8451473325277,
+    "school_name": "NORTHBROOKS SECONDARY SCHOOL"
+  },
+  {
+    "address": "15 YISHUN AVENUE 4",
+    "latitude": 1.420969899189534,
+    "level": "PRIMARY",
+    "longitude": 103.840928424929,
+    "school_name": "NORTHLAND PRIMARY SCHOOL"
+  },
+  {
+    "address": "3 YISHUN STREET 22",
+    "latitude": 1.435801833626377,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8401046877841,
+    "school_name": "NORTHLAND SECONDARY SCHOOL"
+  },
+  {
+    "address": "151 Towner Road",
+    "latitude": 1.319100215816715,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.8557595535299,
+    "school_name": "NORTHLIGHT SCHOOL"
+  },
+  {
+    "address": "61 Sembawang Drive",
+    "latitude": 1.45660782030104,
+    "level": "PRIMARY",
+    "longitude": 103.814196981329,
+    "school_name": "NORTHOAKS PRIMARY SCHOOL"
+  },
+  {
+    "address": "30 Northshore Drive",
+    "latitude": 1.418138033366677,
+    "level": "PRIMARY",
+    "longitude": 103.9044169097418,
+    "school_name": "NORTHSHORE PRIMARY SCHOOL"
+  },
+  {
+    "address": "20 Clementi Avenue 1",
+    "latitude": 1.306006780962482,
+    "level": "MIXED LEVEL (S1-JC2)",
+    "longitude": 103.7701528077369,
+    "school_name": "NUS HIGH SCHOOL OF MATHEMATICS AND SCIENCE"
+  },
+  {
+    "address": "71 Edgefield Plains",
+    "latitude": 1.404624132007935,
+    "level": "PRIMARY",
+    "longitude": 103.9111206006377,
+    "school_name": "OASIS PRIMARY SCHOOL"
+  },
+  {
+    "address": "48 FIDELIO STREET",
+    "latitude": 1.319319144362567,
+    "level": "PRIMARY",
+    "longitude": 103.923788259248,
+    "school_name": "OPERA ESTATE PRIMARY SCHOOL"
+  },
+  {
+    "address": "10 YISHUN STREET 81",
+    "latitude": 1.415320327796348,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8378592413427,
+    "school_name": "ORCHID PARK SECONDARY SCHOOL"
+  },
+  {
+    "address": "48 Anchorvale Crescent",
+    "latitude": 1.397750204283463,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8912304263114,
+    "school_name": "OUTRAM SECONDARY SCHOOL"
+  },
+  {
+    "address": "150 Compassvale Bow",
+    "latitude": 1.383769230221237,
+    "level": "PRIMARY",
+    "longitude": 103.891354675017,
+    "school_name": "PALM VIEW PRIMARY SCHOOL"
+  },
+  {
+    "address": "60 PASIR RIS DRIVE 1",
+    "latitude": 1.377380698542497,
+    "level": "PRIMARY",
+    "longitude": 103.9395416956535,
+    "school_name": "PARK VIEW PRIMARY SCHOOL"
+  },
+  {
+    "address": "11 PASIR RIS STREET 41",
+    "latitude": 1.372840601022477,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9597282029184,
+    "school_name": "PASIR RIS CREST SECONDARY SCHOOL"
+  },
+  {
+    "address": "5 PASIR RIS STREET 21",
+    "latitude": 1.372418702455316,
+    "level": "PRIMARY",
+    "longitude": 103.9628072121161,
+    "school_name": "PASIR RIS PRIMARY SCHOOL"
+  },
+  {
+    "address": "390 TAMPINES STREET 21",
+    "latitude": 1.354227326533977,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9489626262035,
+    "school_name": "PASIR RIS SECONDARY SCHOOL"
+  },
+  {
+    "address": "298 LORONG AH SOO",
+    "latitude": 1.349472762683966,
+    "level": "PRIMARY",
+    "longitude": 103.8849713431423,
+    "school_name": "PAYA LEBAR METHODIST GIRLS' SCHOOL (PRIMARY)"
+  },
+  {
+    "address": "296 LOR AH SOO",
+    "latitude": 1.35096755912522,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8851200505879,
+    "school_name": "PAYA LEBAR METHODIST GIRLS' SCHOOL (SECONDARY)"
+  },
+  {
+    "address": "16 LORONG 7 TOA PAYOH",
+    "latitude": 1.33737358725953,
+    "level": "PRIMARY",
+    "longitude": 103.8555855780611,
+    "school_name": "PEI CHUN PUBLIC SCHOOL"
+  },
+  {
+    "address": "7 PEI WAH AVENUE",
+    "latitude": 1.338056346130476,
+    "level": "PRIMARY",
+    "longitude": 103.7761064486133,
+    "school_name": "PEI HWA PRESBYTERIAN PRIMARY SCHOOL"
+  },
+  {
+    "address": "21 FERNVALE LINK",
+    "latitude": 1.390375049932347,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8784617453386,
+    "school_name": "PEI HWA SECONDARY SCHOOL"
+  },
+  {
+    "address": "15 CLEMENTI AVENUE 5",
+    "latitude": 1.31619786415977,
+    "level": "PRIMARY",
+    "longitude": 103.7675998188441,
+    "school_name": "PEI TONG PRIMARY SCHOOL"
+  },
+  {
+    "address": "10 SERANGOON AVENUE 4",
+    "latitude": 1.359515832222158,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8700107490543,
+    "school_name": "PEICAI SECONDARY SCHOOL"
+  },
+  {
+    "address": "10 SIN MING WALK",
+    "latitude": 1.366659446538121,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.83021606804,
+    "school_name": "PEIRCE SECONDARY SCHOOL"
+  },
+  {
+    "address": "651 YISHUN RING ROAD",
+    "latitude": 1.417233396959044,
+    "level": "PRIMARY",
+    "longitude": 103.8304170906976,
+    "school_name": "PEIYING PRIMARY SCHOOL"
+  },
+  {
+    "address": "80 TENGAH GARDEN AVENUE",
+    "latitude": 1.354425929307369,
+    "level": "PRIMARY",
+    "longitude": 103.7327909201966,
+    "school_name": "PIONEER PRIMARY SCHOOL"
+  },
+  {
+    "address": "21 TAMPINES STREET 71",
+    "latitude": 1.35765122315688,
+    "level": "PRIMARY",
+    "longitude": 103.9352464771987,
+    "school_name": "POI CHING SCHOOL"
+  },
+  {
+    "address": "5209 ANG MO KIO AVENUE 6",
+    "latitude": 1.382011942502223,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8431493828232,
+    "school_name": "PRESBYTERIAN HIGH SCHOOL"
+  },
+  {
+    "address": "30 BUKIT BATOK WEST AVENUE 3",
+    "latitude": 1.349203512653009,
+    "level": "PRIMARY",
+    "longitude": 103.7410196447094,
+    "school_name": "PRINCESS ELIZABETH PRIMARY SCHOOL"
+  },
+  {
+    "address": "52 Sumang Walk",
+    "latitude": 1.411599232730683,
+    "level": "PRIMARY",
+    "longitude": 103.8988039211635,
+    "school_name": "PUNGGOL COVE PRIMARY SCHOOL"
+  },
+  {
+    "address": "98 Punggol Walk",
+    "latitude": 1.401872206432952,
+    "level": "PRIMARY",
+    "longitude": 103.8988013303018,
+    "school_name": "PUNGGOL GREEN PRIMARY SCHOOL"
+  },
+  {
+    "address": "61 HOUGANG AVENUE 8",
+    "latitude": 1.377794511910953,
+    "level": "PRIMARY",
+    "longitude": 103.8945069336673,
+    "school_name": "PUNGGOL PRIMARY SCHOOL"
+  },
+  {
+    "address": "51 EDGEFIELD PLAINS",
+    "latitude": 1.402057384213998,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9092137064815,
+    "school_name": "PUNGGOL SECONDARY SCHOOL"
+  },
+  {
+    "address": "9 Punggol Place",
+    "latitude": 1.405145826479627,
+    "level": "PRIMARY",
+    "longitude": 103.9051563713755,
+    "school_name": "PUNGGOL VIEW PRIMARY SCHOOL"
+  },
+  {
+    "address": "50 WEST COAST AVENUE",
+    "latitude": 1.313251138672717,
+    "level": "PRIMARY",
+    "longitude": 103.7567432619578,
+    "school_name": "QIFA PRIMARY SCHOOL"
+  },
+  {
+    "address": "5 WOODLANDS STREET 81",
+    "latitude": 1.4420359661233,
+    "level": "PRIMARY",
+    "longitude": 103.7883397568976,
+    "school_name": "QIHUA PRIMARY SCHOOL"
+  },
+  {
+    "address": "310 MARGARET DR",
+    "latitude": 1.295593650090142,
+    "level": "PRIMARY",
+    "longitude": 103.8075486173318,
+    "school_name": "QUEENSTOWN PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 STRATHMORE ROAD",
+    "latitude": 1.293521267746537,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8131909800548,
+    "school_name": "QUEENSTOWN SECONDARY SCHOOL"
+  },
+  {
+    "address": "2A MARGARET DRIVE",
+    "latitude": 1.300222715921892,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8022072916252,
+    "school_name": "QUEENSWAY SECONDARY SCHOOL"
+  },
+  {
+    "address": "1 BUKIT PURMEI AVENUE",
+    "latitude": 1.274958236226361,
+    "level": "PRIMARY",
+    "longitude": 103.8241882703726,
+    "school_name": "RADIN MAS PRIMARY SCHOOL"
+  },
+  {
+    "address": "21 Hillcrest Road",
+    "latitude": 1.329404260001214,
+    "level": "PRIMARY",
+    "longitude": 103.806442915912,
+    "school_name": "RAFFLES GIRLS' PRIMARY SCHOOL"
+  },
+  {
+    "address": "2 BRADDELL RISE",
+    "latitude": 1.342174799322947,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.8431340472698,
+    "school_name": "RAFFLES GIRLS' SCHOOL (SECONDARY)"
+  },
+  {
+    "address": "1 RAFFLES INSTITUTION LANE",
+    "latitude": 1.346290450133583,
+    "level": "MIXED LEVEL (S1-JC2)",
+    "longitude": 103.8436202472306,
+    "school_name": "RAFFLES INSTITUTION"
+  },
+  {
+    "address": "350 BEDOK NORTH AVENUE 3",
+    "latitude": 1.333242978477317,
+    "level": "PRIMARY",
+    "longitude": 103.9343323144038,
+    "school_name": "RED SWASTIKA SCHOOL"
+  },
+  {
+    "address": "50 CHOA CHU KANG NORTH 5",
+    "latitude": 1.393279083356832,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7510344115285,
+    "school_name": "REGENT SECONDARY SCHOOL"
+  },
+  {
+    "address": "6 BOON LAY AVENUE",
+    "latitude": 1.344595842237198,
+    "level": "MIXED LEVEL (S1-JC2)",
+    "longitude": 103.708190688947,
+    "school_name": "RIVER VALLEY HIGH SCHOOL"
+  },
+  {
+    "address": "2 RIVER VALLEY GREEN",
+    "latitude": 1.294223284616904,
+    "level": "PRIMARY",
+    "longitude": 103.8358151658283,
+    "school_name": "RIVER VALLEY PRIMARY SCHOOL"
+  },
+  {
+    "address": "110 Woodlands Crescent",
+    "latitude": 1.447047342537201,
+    "level": "PRIMARY",
+    "longitude": 103.801831963297,
+    "school_name": "RIVERSIDE PRIMARY SCHOOL"
+  },
+  {
+    "address": "3 WOODLANDS STREET 81",
+    "latitude": 1.441101571391271,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7883082364092,
+    "school_name": "RIVERSIDE SECONDARY SCHOOL"
+  },
+  {
+    "address": "80 RIVERVALE DRIVE",
+    "latitude": 1.393409977677617,
+    "level": "PRIMARY",
+    "longitude": 103.9045595119971,
+    "school_name": "RIVERVALE PRIMARY SCHOOL"
+  },
+  {
+    "address": "21 Serangoon North Avenue 4",
+    "latitude": 1.372890674990646,
+    "level": "PRIMARY",
+    "longitude": 103.8750015491733,
+    "school_name": "ROSYTH SCHOOL"
+  },
+  {
+    "address": "6 JURONG WEST STREET 52",
+    "latitude": 1.346738688890966,
+    "level": "PRIMARY",
+    "longitude": 103.7184579554868,
+    "school_name": "RULANG PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 Technology Drive",
+    "latitude": 1.312928106002766,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.7740115293219,
+    "school_name": "SCHOOL OF SCIENCE AND TECHNOLOGY, SINGAPORE"
+  },
+  {
+    "address": "1 Zubir Said Drive 05 01",
+    "latitude": 1.299364804113185,
+    "level": "MIXED LEVEL (S1-JC2)",
+    "longitude": 103.8486874193626,
+    "school_name": "SCHOOL OF THE ARTS, SINGAPORE"
+  },
+  {
+    "address": "10 SEMBAWANG DRIVE",
+    "latitude": 1.445046762056599,
+    "level": "PRIMARY",
+    "longitude": 103.82102212387,
+    "school_name": "SEMBAWANG PRIMARY SCHOOL"
+  },
+  {
+    "address": "30 SEMBAWANG CRESCENT",
+    "latitude": 1.445315021313872,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8168432581173,
+    "school_name": "SEMBAWANG SECONDARY SCHOOL"
+  },
+  {
+    "address": "21 COMPASSVALE WALK",
+    "latitude": 1.389497404224623,
+    "level": "PRIMARY",
+    "longitude": 103.8997671120465,
+    "school_name": "SENG KANG PRIMARY SCHOOL"
+  },
+  {
+    "address": "10 COMPASSVALE LANE",
+    "latitude": 1.38659683143747,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.898365036709,
+    "school_name": "SENG KANG SECONDARY SCHOOL"
+  },
+  {
+    "address": "15 Fernvale Road",
+    "latitude": 1.39284606680478,
+    "level": "PRIMARY",
+    "longitude": 103.8752176664857,
+    "school_name": "SENGKANG GREEN PRIMARY SCHOOL"
+  },
+  {
+    "address": "21 SERANGOON NORTH AVENUE 1",
+    "latitude": 1.369325704909471,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8692703014753,
+    "school_name": "SERANGOON GARDEN SECONDARY SCHOOL"
+  },
+  {
+    "address": "11 UPPER SERANGOON VIEW",
+    "latitude": 1.374655388274423,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.902138740699,
+    "school_name": "SERANGOON SECONDARY SCHOOL"
+  },
+  {
+    "address": "8 JURONG WEST STREET 51",
+    "latitude": 1.347653114316325,
+    "level": "PRIMARY",
+    "longitude": 103.7215237133784,
+    "school_name": "SHUQUN PRIMARY SCHOOL"
+  },
+  {
+    "address": "61 WOODLANDS AVENUE 1",
+    "latitude": 1.432409357325257,
+    "level": "PRIMARY",
+    "longitude": 103.786035065192,
+    "school_name": "SI LING PRIMARY SCHOOL"
+  },
+  {
+    "address": "190 DUNEARN ROAD",
+    "latitude": 1.320634083518409,
+    "level": "PRIMARY",
+    "longitude": 103.8281649669527,
+    "school_name": "SINGAPORE CHINESE GIRLS' PRIMARY SCHOOL"
+  },
+  {
+    "address": "190 DUNEARN ROAD",
+    "latitude": 1.320634083518409,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.8281649669527,
+    "school_name": "SINGAPORE CHINESE GIRLS' SCHOOL"
+  },
+  {
+    "address": "1 Champions Way",
+    "latitude": 1.426411405563434,
+    "level": "MIXED LEVEL (S1-S5, JC1-JC2)",
+    "longitude": 103.7894447939508,
+    "school_name": "SINGAPORE SPORTS SCHOOL"
+  },
+  {
+    "address": "6 Choa Chu Kang Central",
+    "latitude": 1.381666643897507,
+    "level": "PRIMARY",
+    "longitude": 103.7462758460104,
+    "school_name": "SOUTH VIEW PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 WOODLANDS DRIVE 64",
+    "latitude": 1.4370375078996,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.8041004674866,
+    "school_name": "SPECTRA SECONDARY SCHOOL"
+  },
+  {
+    "address": "71 Anchorvale Link",
+    "latitude": 1.394670102992936,
+    "level": "PRIMARY",
+    "longitude": 103.8899262212472,
+    "school_name": "SPRINGDALE PRIMARY SCHOOL"
+  },
+  {
+    "address": "30 TAMPINES AVENUE 8",
+    "latitude": 1.349573034714754,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9303544606924,
+    "school_name": "SPRINGFIELD SECONDARY SCHOOL"
+  },
+  {
+    "address": "5 Sorby Adams Drive",
+    "latitude": 1.333065157409554,
+    "level": "JUNIOR COLLEGE",
+    "longitude": 103.8635763770552,
+    "school_name": "ST ANDREW'S JUNIOR COLLEGE"
+  },
+  {
+    "address": "2 FRANCIS THOMAS DRIVE",
+    "latitude": 1.331402553088687,
+    "level": "PRIMARY",
+    "longitude": 103.8651171343843,
+    "school_name": "ST ANDREW'S SCHOOL (JUNIOR)"
+  },
+  {
+    "address": "15 FRANCIS THOMAS DRIVE",
+    "latitude": 1.330693609680754,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8662491385613,
+    "school_name": "ST ANDREW'S SCHOOL (SECONDARY)"
+  },
+  {
+    "address": "1602 BEDOK NORTH AVE 4",
+    "latitude": 1.33472537301891,
+    "level": "PRIMARY",
+    "longitude": 103.9412348682017,
+    "school_name": "ST. ANTHONY'S CANOSSIAN PRIMARY SCHOOL"
+  },
+  {
+    "address": "1600 BEDOK NORTH AVENUE 4",
+    "latitude": 1.334663134988562,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9419771669314,
+    "school_name": "ST. ANTHONY'S CANOSSIAN SECONDARY SCHOOL"
+  },
+  {
+    "address": "30 Bukit Batok St 32",
+    "latitude": 1.364119484758337,
+    "level": "PRIMARY",
+    "longitude": 103.7492519190488,
+    "school_name": "ST. ANTHONY'S PRIMARY SCHOOL"
+  },
+  {
+    "address": "220 Lorong Chuan",
+    "latitude": 1.349471926538616,
+    "level": "PRIMARY",
+    "longitude": 103.8625610377067,
+    "school_name": "ST. GABRIEL'S PRIMARY SCHOOL"
+  },
+  {
+    "address": "24 SERANGOON AVENUE 1",
+    "latitude": 1.346487987321781,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.876094163287,
+    "school_name": "ST. GABRIEL'S SECONDARY SCHOOL"
+  },
+  {
+    "address": "2 Tampines Ave 3",
+    "latitude": 1.349385650363364,
+    "level": "PRIMARY",
+    "longitude": 103.9370071336614,
+    "school_name": "ST. HILDA'S PRIMARY SCHOOL"
+  },
+  {
+    "address": "2 TAMPINES STREET 82",
+    "latitude": 1.349739223853801,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9376080321475,
+    "school_name": "ST. HILDA'S SECONDARY SCHOOL"
+  },
+  {
+    "address": "38 MALCOLM ROAD",
+    "latitude": 1.323653134901521,
+    "level": "MIXED LEVEL (S1-JC2)",
+    "longitude": 103.8284989749843,
+    "school_name": "ST. JOSEPH'S INSTITUTION"
+  },
+  {
+    "address": "3 ESSEX ROAD",
+    "latitude": 1.317728609869134,
+    "level": "PRIMARY",
+    "longitude": 103.8456119352347,
+    "school_name": "ST. JOSEPH'S INSTITUTION JUNIOR"
+  },
+  {
+    "address": "136 Sophia Road",
+    "latitude": 1.30390355715255,
+    "level": "PRIMARY",
+    "longitude": 103.8459553156046,
+    "school_name": "ST. MARGARET'S SCHOOL (PRIMARY)"
+  },
+  {
+    "address": "111 FARRER ROAD",
+    "latitude": 1.320068213633615,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8099511400599,
+    "school_name": "ST. MARGARET'S SCHOOL (SECONDARY)"
+  },
+  {
+    "address": "490 EAST COAST ROAD",
+    "latitude": 1.307883418718001,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9176381937125,
+    "school_name": "ST. PATRICK'S SCHOOL"
+  },
+  {
+    "address": "20 SIGLAP VIEW",
+    "latitude": 1.318789972951361,
+    "level": "PRIMARY",
+    "longitude": 103.9172581295975,
+    "school_name": "ST. STEPHEN'S SCHOOL"
+  },
+  {
+    "address": "3 BUKIT BATOK STREET 34",
+    "latitude": 1.364717426974759,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.750396136688,
+    "school_name": "SWISS COTTAGE SECONDARY SCHOOL"
+  },
+  {
+    "address": "21 Pasir Ris Street 71",
+    "latitude": 1.376333469096834,
+    "level": "JUNIOR COLLEGE",
+    "longitude": 103.9369907234404,
+    "school_name": "TAMPINES MERIDIAN JUNIOR COLLEGE"
+  },
+  {
+    "address": "30 TAMPINES AVENUE 9",
+    "latitude": 1.360476414846836,
+    "level": "PRIMARY",
+    "longitude": 103.9487257828322,
+    "school_name": "TAMPINES NORTH PRIMARY SCHOOL"
+  },
+  {
+    "address": "250 TAMPINES STREET 12",
+    "latitude": 1.349778708059279,
+    "level": "PRIMARY",
+    "longitude": 103.9440046849856,
+    "school_name": "TAMPINES PRIMARY SCHOOL"
+  },
+  {
+    "address": "252 TAMPINES ST 12",
+    "latitude": 1.34926094811197,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9442637095066,
+    "school_name": "TAMPINES SECONDARY SCHOOL"
+  },
+  {
+    "address": "20 Dunman Lane",
+    "latitude": 1.308212746272852,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.8958200942289,
+    "school_name": "TANJONG KATONG GIRLS' SCHOOL"
+  },
+  {
+    "address": "10 Seraya Road",
+    "latitude": 1.305257832462434,
+    "level": "PRIMARY",
+    "longitude": 103.9001626530914,
+    "school_name": "TANJONG KATONG PRIMARY SCHOOL"
+  },
+  {
+    "address": "130 HAIG ROAD",
+    "latitude": 1.308735159553417,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.8972251961986,
+    "school_name": "TANJONG KATONG SECONDARY SCHOOL"
+  },
+  {
+    "address": "49 MARINE CRESCENT",
+    "latitude": 1.305285286873217,
+    "level": "PRIMARY",
+    "longitude": 103.9115531523253,
+    "school_name": "TAO NAN SCHOOL"
+  },
+  {
+    "address": "1 ANG MO KIO STREET 32",
+    "latitude": 1.365587820759683,
+    "level": "PRIMARY",
+    "longitude": 103.8509571269816,
+    "school_name": "TECK GHEE PRIMARY SCHOOL"
+  },
+  {
+    "address": "11 TECK WHYE WALK",
+    "latitude": 1.383649968344577,
+    "level": "PRIMARY",
+    "longitude": 103.7532918570159,
+    "school_name": "TECK WHYE PRIMARY SCHOOL"
+  },
+  {
+    "address": "50 BEDOK RESERVOIR RD",
+    "latitude": 1.331045854413487,
+    "level": "PRIMARY",
+    "longitude": 103.9109340113368,
+    "school_name": "TELOK KURAU PRIMARY SCHOOL"
+  },
+  {
+    "address": "2 Tampines Avenue 9   Temasek Junior College",
+    "latitude": 1.357280172558621,
+    "level": "MIXED LEVEL (S1-JC2)",
+    "longitude": 103.9561859363937,
+    "school_name": "TEMASEK JUNIOR COLLEGE"
+  },
+  {
+    "address": "501 BEDOK SOUTH AVE 3",
+    "latitude": 1.317706775513332,
+    "level": "PRIMARY",
+    "longitude": 103.9455906691627,
+    "school_name": "TEMASEK PRIMARY SCHOOL"
+  },
+  {
+    "address": "600 UPPER EAST COAST ROAD",
+    "latitude": 1.315916731506153,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.9475641120216,
+    "school_name": "TEMASEK SECONDARY SCHOOL"
+  },
+  {
+    "address": "3 ANG MO KIO AVE 10",
+    "latitude": 1.36003263746623,
+    "level": "PRIMARY",
+    "longitude": 103.8538260483272,
+    "school_name": "TOWNSVILLE PRIMARY SCHOOL"
+  },
+  {
+    "address": "21 CHOA CHU KANG CRESCENT",
+    "latitude": 1.402854818772471,
+    "level": "PRIMARY",
+    "longitude": 103.746822625758,
+    "school_name": "UNITY PRIMARY SCHOOL"
+  },
+  {
+    "address": "20 CHOA CHU KANG STREET 62",
+    "latitude": 1.400015241194411,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7460209148292,
+    "school_name": "UNITY SECONDARY SCHOOL"
+  },
+  {
+    "address": "49 Punggol Central",
+    "latitude": 1.406835702153197,
+    "level": "PRIMARY",
+    "longitude": 103.899078139493,
+    "school_name": "VALOUR PRIMARY SCHOOL"
+  },
+  {
+    "address": "20 MARINE VISTA",
+    "latitude": 1.306701741774799,
+    "level": "JUNIOR COLLEGE",
+    "longitude": 103.9199827041485,
+    "school_name": "VICTORIA JUNIOR COLLEGE"
+  },
+  {
+    "address": "2 SIGLAP LINK",
+    "latitude": 1.308713027075099,
+    "level": "SECONDARY (S1-S4)",
+    "longitude": 103.9279809666388,
+    "school_name": "VICTORIA SCHOOL"
+  },
+  {
+    "address": "70 Punggol Drive",
+    "latitude": 1.398828006265785,
+    "level": "PRIMARY",
+    "longitude": 103.9186215815555,
+    "school_name": "WATERWAY PRIMARY SCHOOL"
+  },
+  {
+    "address": "10 WELLINGTON CIRCLE",
+    "latitude": 1.451920191554766,
+    "level": "PRIMARY",
+    "longitude": 103.8223037190938,
+    "school_name": "WELLINGTON PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 JURONG WEST ST 72",
+    "latitude": 1.344879056001406,
+    "level": "PRIMARY",
+    "longitude": 103.6992863605808,
+    "school_name": "WEST GROVE PRIMARY SCHOOL"
+  },
+  {
+    "address": "60 Bukit Panjang Ring Road",
+    "latitude": 1.389441458989443,
+    "level": "PRIMARY",
+    "longitude": 103.7661957118344,
+    "school_name": "WEST SPRING PRIMARY SCHOOL"
+  },
+  {
+    "address": "61 SENJA  ROAD",
+    "latitude": 1.387822833037825,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7601288401548,
+    "school_name": "WEST SPRING SECONDARY SCHOOL"
+  },
+  {
+    "address": "31 SENJA ROAD",
+    "latitude": 1.3836758200336,
+    "level": "PRIMARY",
+    "longitude": 103.7602404343173,
+    "school_name": "WEST VIEW PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 Jurong West Street 73",
+    "latitude": 1.347184566063761,
+    "level": "PRIMARY",
+    "longitude": 103.7005342097801,
+    "school_name": "WESTWOOD PRIMARY SCHOOL"
+  },
+  {
+    "address": "11 JURONG WEST STREET 25",
+    "latitude": 1.353736985109939,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7017721021389,
+    "school_name": "WESTWOOD SECONDARY SCHOOL"
+  },
+  {
+    "address": "2 PASIR RIS ST 11",
+    "latitude": 1.365557146685551,
+    "level": "PRIMARY",
+    "longitude": 103.9609188693188,
+    "school_name": "WHITE SANDS PRIMARY SCHOOL"
+  },
+  {
+    "address": "30 BISHAN STREET 24",
+    "latitude": 1.355052084806503,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8425523781361,
+    "school_name": "WHITLEY SECONDARY SCHOOL"
+  },
+  {
+    "address": "2 WOODLANDS DRIVE 14",
+    "latitude": 1.433103401689676,
+    "level": "PRIMARY",
+    "longitude": 103.7906044376122,
+    "school_name": "WOODGROVE PRIMARY SCHOOL"
+  },
+  {
+    "address": "3 WOODLANDS AVENUE 6",
+    "latitude": 1.428318281370131,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7960475853894,
+    "school_name": "WOODGROVE SECONDARY SCHOOL"
+  },
+  {
+    "address": "10 WOODLANDS DRIVE 50",
+    "latitude": 1.436551085942318,
+    "level": "PRIMARY",
+    "longitude": 103.7915705465082,
+    "school_name": "WOODLANDS PRIMARY SCHOOL"
+  },
+  {
+    "address": "11 WOODLANDS RING ROAD",
+    "latitude": 1.434952293158581,
+    "level": "PRIMARY",
+    "longitude": 103.7974357331442,
+    "school_name": "WOODLANDS RING PRIMARY SCHOOL"
+  },
+  {
+    "address": "21 WOODLANDS AVENUE 1",
+    "latitude": 1.43070452883799,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7776257485383,
+    "school_name": "WOODLANDS RING SECONDARY SCHOOL"
+  },
+  {
+    "address": "11 MARSILING ROAD",
+    "latitude": 1.439121223055122,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7745864105408,
+    "school_name": "WOODLANDS SECONDARY SCHOOL"
+  },
+  {
+    "address": "45 HOUGANG AVENUE 1",
+    "latitude": 1.357908935895362,
+    "level": "PRIMARY",
+    "longitude": 103.8904728879052,
+    "school_name": "XINGHUA PRIMARY SCHOOL"
+  },
+  {
+    "address": "5 JURONG WEST STREET 91",
+    "latitude": 1.342547448776947,
+    "level": "PRIMARY",
+    "longitude": 103.6879502521022,
+    "school_name": "XINGNAN PRIMARY SCHOOL"
+  },
+  {
+    "address": "9 HOUGANG AVENUE 8",
+    "latitude": 1.371395489419313,
+    "level": "PRIMARY",
+    "longitude": 103.883080767491,
+    "school_name": "XINMIN PRIMARY SCHOOL"
+  },
+  {
+    "address": "11 HOUGANG AVENUE 8",
+    "latitude": 1.372558847000039,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8830516138498,
+    "school_name": "XINMIN SECONDARY SCHOOL"
+  },
+  {
+    "address": "8 YISHUN STREET 21",
+    "latitude": 1.433471869250645,
+    "level": "PRIMARY",
+    "longitude": 103.8377553194475,
+    "school_name": "XISHAN PRIMARY SCHOOL"
+  },
+  {
+    "address": "15 SERANGOON AVENUE 3",
+    "latitude": 1.348645758409243,
+    "level": "PRIMARY",
+    "longitude": 103.868595527042,
+    "school_name": "YANGZHENG PRIMARY SCHOOL"
+  },
+  {
+    "address": "10 CHOA CHU KANG ST 64",
+    "latitude": 1.396766009050365,
+    "level": "PRIMARY",
+    "longitude": 103.7509859673458,
+    "school_name": "YEW TEE PRIMARY SCHOOL"
+  },
+  {
+    "address": "1 HOUGANG STREET 51",
+    "latitude": 1.37793264345277,
+    "level": "PRIMARY",
+    "longitude": 103.885643682171,
+    "school_name": "YIO CHU KANG PRIMARY SCHOOL"
+  },
+  {
+    "address": "3063 ANG MO KIO AVENUE 5",
+    "latitude": 1.377975977409265,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8421369635195,
+    "school_name": "YIO CHU KANG SECONDARY SCHOOL"
+  },
+  {
+    "address": "3 YISHUN RING ROAD",
+    "latitude": 1.424266925723368,
+    "level": "JUNIOR COLLEGE",
+    "longitude": 103.8300317114899,
+    "school_name": "YISHUN INNOVA JUNIOR COLLEGE"
+  },
+  {
+    "address": "500 YISHUN RING ROAD",
+    "latitude": 1.433386029756746,
+    "level": "PRIMARY",
+    "longitude": 103.8340871159143,
+    "school_name": "YISHUN PRIMARY SCHOOL"
+  },
+  {
+    "address": "4 YISHUN STREET 71",
+    "latitude": 1.428133242760868,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8287643166788,
+    "school_name": "YISHUN SECONDARY SCHOOL"
+  },
+  {
+    "address": "6 YISHUN STREET 21",
+    "latitude": 1.432321567173857,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8380942263609,
+    "school_name": "YISHUN TOWN SECONDARY SCHOOL"
+  },
+  {
+    "address": "56 BEDOK NORTH ST 3",
+    "latitude": 1.333889303440688,
+    "level": "PRIMARY",
+    "longitude": 103.9321448573552,
+    "school_name": "YU NENG PRIMARY SCHOOL"
+  },
+  {
+    "address": "103 YUAN CHING ROAD",
+    "latitude": 1.342006357644682,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7208987043702,
+    "school_name": "YUAN CHING SECONDARY SCHOOL"
+  },
+  {
+    "address": "158 JURONG EAST STREET 24",
+    "latitude": 1.34280230475034,
+    "level": "PRIMARY",
+    "longitude": 103.7411057726437,
+    "school_name": "YUHUA PRIMARY SCHOOL"
+  },
+  {
+    "address": "35 JURONG WEST STREET 41",
+    "latitude": 1.347186268769677,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7226872358383,
+    "school_name": "YUHUA SECONDARY SCHOOL"
+  },
+  {
+    "address": "3 TAMPINES STREET 21",
+    "latitude": 1.351291776569808,
+    "level": "PRIMARY",
+    "longitude": 103.9504619270873,
+    "school_name": "YUMIN PRIMARY SCHOOL"
+  },
+  {
+    "address": "8 SUMANG WALK",
+    "latitude": 1.406937024581786,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8962751495709,
+    "school_name": "YUSOF ISHAK SECONDARY SCHOOL"
+  },
+  {
+    "address": "47 HOUGANG AVENUE 1",
+    "latitude": 1.35713595302468,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.8901947552866,
+    "school_name": "YUYING SECONDARY SCHOOL"
+  },
+  {
+    "address": "51 Jalan Membina",
+    "latitude": 1.284211533353803,
+    "level": "PRIMARY",
+    "longitude": 103.8259518756613,
+    "school_name": "ZHANGDE PRIMARY SCHOOL"
+  },
+  {
+    "address": "9 Fajar Road",
+    "latitude": 1.379548875122303,
+    "level": "PRIMARY",
+    "longitude": 103.7693135217514,
+    "school_name": "ZHENGHUA PRIMARY SCHOOL"
+  },
+  {
+    "address": "62 Bukit Panjang Ring Road",
+    "latitude": 1.388365834153536,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.7655106385263,
+    "school_name": "ZHENGHUA SECONDARY SCHOOL"
+  },
+  {
+    "address": "12 SERANGOON AVENUE 4",
+    "latitude": 1.360203297050483,
+    "level": "PRIMARY",
+    "longitude": 103.8697624380833,
+    "school_name": "ZHONGHUA PRIMARY SCHOOL"
+  },
+  {
+    "address": "13 SERANGOON AVENUE 3",
+    "latitude": 1.348407208462093,
+    "level": "SECONDARY (S1-S5)",
+    "longitude": 103.869430481414,
+    "school_name": "ZHONGHUA SECONDARY SCHOOL"
+  }
 ]

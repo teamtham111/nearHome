@@ -1,37 +1,13 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useState } from "react";
+import { Car, ClipboardPaste, Layers, ReceiptText, Repeat, GraduationCap, SlidersHorizontal, TrainFront, ListChecks, Globe } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
 import { createSession } from "@/lib/api";
-
-const assessments = [
-  {
-    title: "Public transport strength",
-    supportingLine: "Go beyond the nearest MRT station or bus stop.",
-    description: "NearHome evaluates walking access, bus-route coverage, MRT network reach and alternative travel options to assess the strength of the wider public transport network around each flat.",
-    outcome: "This helps distinguish between a flat that is merely close to one transport node and one that offers stronger overall connectivity.",
-  },
-  {
-    title: "Driving connectivity",
-    supportingLine: "Go beyond the distance to the nearest major road.",
-    description: "NearHome considers major-road access, traffic-aware journey times, route connectivity and nearby HDB parking availability to assess how convenient each location may be for regular drivers.",
-    outcome: "This provides a broader picture of driving convenience than a list of nearby roads or estimated journey times alone.",
-  },
-  {
-    title: "Fair-price estimate",
-    supportingLine: "Go beyond viewing recent transactions individually.",
-    description: "NearHome analyses relevant HDB resale data together with property characteristics such as location, flat type, floor area and remaining lease to produce an estimated value range.",
-    outcome: "The estimate is compared directly with the listing’s asking price, helping you identify whether the flat appears reasonably priced based on the available market evidence.",
-  },
-  {
-    title: "School access",
-    supportingLine: "Go beyond a list of nearby schools.",
-    description: "NearHome calculates property-to-school distances, organises schools into commonly used distance bands and compares school access consistently across your shortlisted flats.",
-    outcome: "Location-based results are clearly separated from admission eligibility or guaranteed placement.",
-  },
-];
+import { InlineDemo } from "@/components/inline-demo";
 
 export default function HomePage() {
   const router = useRouter();
@@ -43,7 +19,9 @@ export default function HomePage() {
     onMutate: () => setCreateError(null),
     onSuccess: (data) => {
       setSessionId(data.session_id);
-      localStorage.setItem("nearhome_session_id", data.session_id);
+      if (new URLSearchParams(window.location.search).get("demo") !== "1" && document.body.dataset.demoActive !== "true") {
+        localStorage.setItem("nearhome_session_id", data.session_id);
+      }
       router.push(`/session/${data.session_id}`);
     },
     onError: (error) => setCreateError(error instanceof Error ? error.message : "Could not create a comparison."),
@@ -55,50 +33,128 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="space-y-12">
-      <section className="nh-card">
-        <p className="nh-section-kicker">Evidence-led shortlist review</p>
-        <h2 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">Compare your shortlisted HDB flats</h2>
-        <p className="mt-2 max-w-2xl text-slate-600">NearHome helps you compare 2–5 actual listings with explainable evidence. It is not a listing search portal — bring flats you have already shortlisted.</p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button type="button" className="nh-primary" onClick={() => create.mutate()} disabled={create.isPending}>{create.isPending ? "Creating…" : "Start new comparison"}</button>
-          {sessionId && <Link href={`/session/${sessionId}`} className="nh-secondary">Continue previous session</Link>}
+    <div className="nh-landing">
+      <section className="nh-landing-shell nh-landing-hero">
+        <div className="nh-landing-hero-grid">
+          <div className="nh-landing-copy">
+            <p className="nh-landing-eyebrow">A FIELD GUIDE FOR YOUR HDB SHORTLIST</p>
+            <h1>
+              A home is more
+              <span>than its asking price.</span>
+            </h1>
+            <p className="nh-landing-hero-copy">
+              Compare HDB flats by what truly matters — your route, room and lease, so you can find a home that fits your life, not just your budget.
+            </p>
+            <div className="nh-landing-actions">
+              <button id="start-comparison" type="button" data-demo-id="start-comparison" className="nh-landing-button nh-landing-button-primary" onClick={() => create.mutate()} disabled={create.isPending}>
+                {create.isPending ? "Preparing your shortlist…" : "Start a comparison"} <span aria-hidden="true">↗</span>
+              </button>
+              <a className="nh-landing-button nh-landing-button-secondary" href="#why-nearhome">Why NearHome <span aria-hidden="true">↘</span></a>
+            </div>
+            <p className="nh-landing-microcopy">Bring 2-5 flats you already have in mind.</p>
+            {sessionId && <p className="nh-landing-session"><Link href={`/session/${sessionId}`}>Continue your previous comparison →</Link></p>}
+            {createError && <p className="nh-landing-error" role="alert">{createError}</p>}
+          </div>
+          <figure className="nh-landing-hero-art">
+            <Image
+              src="/nearhome-hero-artwork-v2.png"
+              alt="HDB homes among trees, with Singapore's skyline beyond"
+              fill
+              priority
+              sizes="(max-width: 850px) 100vw, 48vw"
+            />
+          </figure>
         </div>
-        {create.isSuccess && create.data && <p className="mt-4 text-sm text-teal-700">Session created. <Link href={`/session/${create.data.session_id}`} className="underline">Open comparison workspace →</Link></p>}
-        {createError && <p className="mt-4 text-sm text-red-700" role="alert">{createError}</p>}
       </section>
 
-      <section aria-label="How NearHome works" className="grid gap-4 md:grid-cols-3">
-        {[
-          ["1. Set context", "Budget, transport, priorities and important locations"],
-          ["2. Add flats", "Manual entry or Smart Paste, then review the extracted details"],
-          ["3. Compare", "See the recommendation, scores and supporting evidence"],
-        ].map(([title, desc]) => <div key={title} className="rounded-xl border border-slate-200 bg-white p-4"><p className="text-sm font-semibold text-slate-900">{title}</p><p className="mt-1 text-sm text-slate-600">{desc}</p></div>)}
-      </section>
-
-
-      <section aria-labelledby="how-nearhome-helps" className="pt-2 sm:pt-4">
-        <div className="max-w-3xl">
-          <p className="nh-section-kicker">HOW NEARHOME HELPS</p>
-          <h2 id="how-nearhome-helps" className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">From property search to property decision</h2>
-          <p className="mt-4 leading-7 text-slate-600">Traditional property portals are designed to help you discover available homes. NearHome is designed for the next step: deciding which of your shortlisted flats fits you best.</p>
-          <p className="mt-4 leading-7 text-slate-600">Instead of presenting isolated facts such as the nearest MRT station, nearby schools or recent transactions, NearHome processes property, transport and location data through purpose-built models. The results are compared consistently across every flat and organised around the factors that matter to you.</p>
+      <section className="nh-landing-shell nh-landing-why" id="why-nearhome">
+        <p className="nh-landing-eyebrow nh-landing-eyebrow-left">WHY NEARHOME</p>
+        <div className="nh-landing-heading-row">
+          <h2>Less checking across tabs.<br />More of the picture.</h2>
+          <p>Paste the listings you already have. NearHome does the checking and shows what each flat means for your life.</p>
         </div>
 
-        <div className="mt-8 grid items-stretch gap-4 md:grid-cols-2">
-          {assessments.map((assessment) => <article key={assessment.title} className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5"><h3 className="text-lg font-semibold text-slate-900">{assessment.title}</h3><p className="mt-2 text-sm font-medium leading-6 text-teal-700">{assessment.supportingLine}</p><p className="mt-3 text-sm leading-6 text-slate-600">{assessment.description}</p><div className="mt-5 rounded-lg bg-slate-50 p-3"><p className="text-xs font-semibold uppercase tracking-wide text-slate-700">Why it matters</p><p className="mt-1 text-sm leading-6 text-slate-600">{assessment.outcome}</p></div></article>)}
+        <div className="nh-why-contrast">
+          <div className="nh-why-diy">
+            <p className="nh-why-label">COMPARING IT YOURSELF</p>
+            <ul>
+              <li><Globe size={16} aria-hidden="true" /> A transport map in one tab</li>
+              <li><Globe size={16} aria-hidden="true" /> Recent resale prices in another</li>
+              <li><Globe size={16} aria-hidden="true" /> School maps and road routes elsewhere</li>
+              <li><Repeat size={16} aria-hidden="true" /> Then repeat for every flat</li>
+            </ul>
+          </div>
+          <div className="nh-why-with">
+            <p className="nh-why-label nh-why-label-teal">WITH NEARHOME</p>
+            <ul>
+              <li><ClipboardPaste size={16} aria-hidden="true" /> Paste each listing</li>
+              <li><SlidersHorizontal size={16} aria-hidden="true" /> Rank what matters to you</li>
+              <li><Layers size={16} aria-hidden="true" /> Get one side-by-side comparison</li>
+              <li><ListChecks size={16} aria-hidden="true" /> See the evidence behind every result</li>
+            </ul>
+          </div>
+        </div>
+
+        <p className="nh-why-subhead">WHAT YOU GET FOR EACH FLAT <span>Sample results for an illustrative flat</span></p>
+        <div className="nh-why-cards">
+          <article className="nh-why-card">
+            <h3><TrainFront size={20} aria-hidden="true" /> Public transport</h3>
+            <p>How well can you get around without a car?</p>
+            <dl>
+              <div><dt>Walk to nearest MRT</dt><dd>8 min</dd></div>
+              <div><dt>Direct bus corridors</dt><dd>8</dd></div>
+              <div><dt>One-transfer corridors</dt><dd>14</dd></div>
+            </dl>
+          </article>
+          <article className="nh-why-card">
+            <h3><Car size={20} aria-hidden="true" /> Driving</h3>
+            <p>How easily can you get onto the major roads?</p>
+            <dl>
+              <div><dt>Drive to the PIE</dt><dd>8 min at peak</dd></div>
+              <div><dt>Extra time versus off-peak</dt><dd>+3 min</dd></div>
+              <div><dt>Home carpark</dt><dd>4 min walk</dd></div>
+            </dl>
+          </article>
+          <article className="nh-why-card">
+            <h3><ReceiptText size={20} aria-hidden="true" /> Fair price</h3>
+            <p>Is the asking price in line with recent sales?</p>
+            <dl>
+              <div><dt>Asking price</dt><dd>$838,000</dd></div>
+              <div><dt>Average of 5 nearby sales</dt><dd>$832,600</dd></div>
+              <div><dt>Difference</dt><dd>+0.6%</dd></div>
+            </dl>
+          </article>
+          <article className="nh-why-card">
+            <h3><GraduationCap size={20} aria-hidden="true" /> Schools</h3>
+            <p>How close are the schools you care about?</p>
+            <dl>
+              <div><dt>Schools within 1 km</dt><dd>1</dd></div>
+              <div><dt>Schools within 2 km</dt><dd>5</dd></div>
+              <div><dt>Ang Mo Kio Primary</dt><dd className="nh-why-pill">1.3 km · within 2 km</dd></div>
+            </dl>
+          </article>
+        </div>
+
+        <div className="nh-why-principles">
+          <div><h3>Built on your priorities</h3><p>You rank what matters. The comparison follows your order.</p></div>
+          <div><h3>Fixed rules, not AI scores</h3><p>Every result comes from published rules and real data.</p></div>
+          <div><h3>Gaps shown, never guessed</h3><p>Missing data is marked unavailable instead of filled in.</p></div>
+        </div>
+
+        <div className="nh-why-cta">
+          <button type="button" className="nh-landing-button nh-landing-button-primary" onClick={() => create.mutate()} disabled={create.isPending}>
+            {create.isPending ? "Preparing your shortlist…" : "Start a comparison"} <span aria-hidden="true">↗</span>
+          </button>
+          <Link href="/how-flats-are-evaluated">See exactly how each result is calculated →</Link>
         </div>
       </section>
 
-      <section aria-labelledby="comparison-around-you" className="border-t border-slate-200 pt-10">
-        <p className="nh-section-kicker">COMPARED AROUND YOUR PRIORITIES</p>
-        <h2 id="comparison-around-you" className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">One comparison built around you</h2>
-        <p className="mt-4 max-w-3xl leading-7 text-slate-600">NearHome brings these assessments together in one place and compares your shortlisted flats according to the factors you selected, such as affordability, space, transport and proximity to important locations.</p>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          {["Where each flat performs strongly", "Which flat has the advantage for each priority", "What trade-offs you would be accepting", "The evidence supporting every assessment"].map((item) => <p key={item} className="flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"><span className="mt-0.5 text-teal-700" aria-hidden="true">✓</span>{item}</p>)}
-        </div>
-        <p className="mt-6 text-sm leading-6 text-slate-600">No unexplained overall ranking. NearHome shows the priorities, evidence and trade-offs behind each comparison.</p>
-      </section>
+      <InlineDemo />
+
+      <footer className="nh-landing-shell nh-landing-footer">
+        <Link className="nh-landing-brand" href="/">nearhome<span>.</span></Link>
+        <p>Compare the flat. Understand the trade-offs.</p>
+      </footer>
     </div>
   );
 }

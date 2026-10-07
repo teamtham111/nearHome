@@ -17,14 +17,24 @@ service "117" direction 2 are different keys, never merged.
 
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from pydantic import TypeAdapter
+
+from app.adapters.provider_schemas.reference import (
+    LtaBusRouteSnapshotRow,
+    LtaBusServiceSnapshotRow,
+    LtaBusStopSnapshotRow,
+)
+
 ROOT = Path(__file__).resolve().parents[5]
 FIXTURES = ROOT / "data_pipeline" / "fixtures"
+_BUS_STOP_ROWS_ADAPTER = TypeAdapter(list[LtaBusStopSnapshotRow])
+_BUS_ROUTE_ROWS_ADAPTER = TypeAdapter(list[LtaBusRouteSnapshotRow])
+_BUS_SERVICE_ROWS_ADAPTER = TypeAdapter(list[LtaBusServiceSnapshotRow])
 
 ServiceDirectionKey = tuple[str, int]
 
@@ -163,9 +173,16 @@ class LtaBusDataStore:
         routes_path = FIXTURES / "lta_bus_routes.json"
         services_path = FIXTURES / "lta_bus_services.json"
 
-        stops_raw = json.loads(stops_path.read_text()) if stops_path.exists() else []
-        routes_raw = json.loads(routes_path.read_text()) if routes_path.exists() else []
-        services_raw = json.loads(services_path.read_text()) if services_path.exists() else []
+        stops_models = _BUS_STOP_ROWS_ADAPTER.validate_json(stops_path.read_text()) if stops_path.exists() else []
+        routes_models = _BUS_ROUTE_ROWS_ADAPTER.validate_json(routes_path.read_text()) if routes_path.exists() else []
+        services_models = (
+            _BUS_SERVICE_ROWS_ADAPTER.validate_json(services_path.read_text()) if services_path.exists() else []
+        )
+        # DataQualityReport operates across all three datasets. Keep plain
+        # dictionaries for that relational analysis only after row validation.
+        stops_raw = [row.model_dump() for row in stops_models]
+        routes_raw = [row.model_dump() for row in routes_models]
+        services_raw = [row.model_dump() for row in services_models]
 
         cls._stop_codes = {r["stop_code"] for r in stops_raw}
 

@@ -14,7 +14,14 @@ from time import perf_counter
 from typing import Any
 
 import httpx
+from pydantic import TypeAdapter, ValidationError
 
+from app.adapters.provider_schemas.google_routes import (
+    GoogleRoute,
+    GoogleRouteMatrixRow,
+    GoogleRoutesResponse,
+    parse_google_duration_seconds,
+)
 from app.adapters.routing.base import (
     RouteMatrixEntry,
     RouteMatrixResponse,
@@ -55,19 +62,13 @@ _MODE_MAP: dict[RouteMode, str] = {"WALK": "WALK", "DRIVE": "DRIVE", "TRANSIT": 
 def _parse_duration_seconds(value: Any) -> float | None:
     if value is None:
         return None
-    if isinstance(value, str) and value.endswith("s"):
-        try:
-            seconds = float(value[:-1])
-        except ValueError:
-            return None
-        return seconds if seconds >= 0 else None
-    if isinstance(value, dict):
-        try:
-            seconds = float(value["seconds"])
-        except (KeyError, TypeError, ValueError):
-            return None
-        return seconds if seconds >= 0 else None
-    return None
+    try:
+        return parse_google_duration_seconds(value)
+    except ValueError:
+        return None
+
+
+_MATRIX_ROWS_ADAPTER = TypeAdapter(list[GoogleRouteMatrixRow])
 
 
 def _waypoint(coord: tuple[float, float]) -> dict[str, Any]:
@@ -223,7 +224,7 @@ class GoogleRoutingProvider(RoutingProvider):
         traffic_aware: bool,
         high_quality_polyline: bool = False,
         include_polyline: bool = True,
-    ) -> list[dict[str, Any]]:
+    ) -> list[GoogleRoute]:
         body: dict[str, Any] = {
             "origin": _waypoint(origin),
             "destination": _waypoint(destination),
@@ -244,7 +245,7 @@ class GoogleRoutingProvider(RoutingProvider):
         field_mask = _ROUTES_FIELD_MASK if include_polyline else _ROUTES_SUMMARY_FIELD_MASK
         resp = self._post_json(_COMPUTE_ROUTES_URL, body, field_mask, timeout=20.0)
         try:
-            data: dict[str, Any] = resp.json()
+            raw_data = resp.json()
         except (TypeError, ValueError) as exc:
             self._log_diagnostic(
                 endpoint=_COMPUTE_ROUTES_URL,
@@ -257,14 +258,30 @@ class GoogleRoutingProvider(RoutingProvider):
             raise RoutingProviderError(
                 "Google Routes returned invalid JSON", self.provider_name, response_body=resp.text
             ) from exc
-        routes: list[dict[str, Any]] = data.get("routes", [])
-        if not routes:
+        try:
+            data = GoogleRoutesResponse.model_validate(raw_data)
+        except ValidationError as exc:
+            self._log_diagnostic(
+                endpoint=_COMPUTE_ROUTES_URL,
+                body=body,
+                field_mask=field_mask,
+                response=resp,
+                response_body=resp.text,
+                exc_info=True,
+            )
+            raise RoutingProviderError(
+                "Google Routes returned a malformed success response",
+                self.provider_name,
+                error_code="invalid_output",
+                response_body=resp.text,
+            ) from exc
+        if not data.routes:
             raise RoutingUnavailableError("Google Routes returned no usable route", self.provider_name)
-        return routes
+        return data.routes
 
     def _route_to_result(
         self,
-        route: dict[str, Any],
+        route: GoogleRoute | dict[str, Any],
         provider_mode: str,
         departure_time: datetime | None,
         traffic_aware: bool,
@@ -272,41 +289,37 @@ class GoogleRoutingProvider(RoutingProvider):
     ) -> RouteResult:
         from app.adapters.routing.base import RouteStep
 
-        duration_s = _parse_duration_seconds(route.get("duration"))
-        if duration_s is None:
-            # A successful transport response without a duration is not a
-            # usable route. Treating it as zero minutes would let a malformed
-            # provider payload win every route comparison and cache a false
-            # success.
-            raise RoutingUnavailableError("Google Routes response omitted a valid route duration", self.provider_name)
-        try:
-            distance_m = int(route["distanceMeters"])
-        except (KeyError, TypeError, ValueError) as exc:
-            raise RoutingUnavailableError(
-                "Google Routes response omitted a valid route distance", self.provider_name
-            ) from exc
-        if distance_m < 0:
-            raise RoutingUnavailableError(
-                "Google Routes response contained a negative route distance", self.provider_name
-            )
+        if isinstance(route, dict):
+            try:
+                route = GoogleRoute.model_validate(route)
+            except ValidationError as exc:
+                # Treat a malformed successful route as unavailable rather
+                # than allowing missing values to become zero-duration data.
+                raise RoutingUnavailableError(
+                    "Google Routes response omitted a valid route duration or distance",
+                    self.provider_name,
+                ) from exc
+        duration_s = route.duration_seconds
+        distance_m = route.distance_metres
         steps: list[RouteStep] = []
         walking_seconds = 0.0
         transit_seconds = 0.0
         transfers = 0
         last_transit_line: str | None = None
-        for leg in route.get("legs", []):
-            for step in leg.get("steps", []):
-                step_mode = step.get("travelMode", provider_mode)
-                step_duration = _parse_duration_seconds(step.get("staticDuration")) or 0.0
-                step_distance = int(step.get("distanceMeters", 0))
-                instruction = (step.get("navigationInstruction") or {}).get("instruction", "")
-                transit = step.get("transitDetails")
+        for leg in route.legs:
+            for step in leg.steps:
+                step_mode = step.travel_mode or provider_mode
+                step_duration = step.duration_seconds or 0.0
+                step_distance = step.distance_metres
+                instruction = step.navigation_instruction.instruction if step.navigation_instruction else ""
+                transit = step.transit_details
                 transit_line = None
                 transit_service = None
                 if transit:
-                    line_info = transit.get("transitLine", {})
-                    transit_line = line_info.get("name") or line_info.get("nameShort")
-                    transit_service = line_info.get("nameShort")
+                    line_info = transit.transit_line
+                    if line_info:
+                        transit_line = line_info.name or line_info.short_name
+                        transit_service = line_info.short_name
                     line_changed = last_transit_line is not None and transit_line != last_transit_line
                     if line_changed:
                         transfers += 1
@@ -332,7 +345,7 @@ class GoogleRoutingProvider(RoutingProvider):
 
             arrival_time = departure_time + timedelta(seconds=duration_s)
 
-        labels = route.get("routeLabels", [])
+        labels = route.route_labels
         return RouteResult(
             duration_minutes=round(duration_s / 60, 1),
             distance_metres=distance_m,
@@ -343,11 +356,11 @@ class GoogleRoutingProvider(RoutingProvider):
             departure_time=departure_time,
             arrival_time=arrival_time,
             traffic_aware=traffic_aware and provider_mode == "DRIVE",
-            warnings=list(route.get("warnings", [])),
+            warnings=route.warnings,
             raw_reference=None,
             is_alternative=is_alternative,
             route_label=labels[0] if labels else None,
-            encoded_polyline=(route.get("polyline") or {}).get("encodedPolyline"),
+            encoded_polyline=route.polyline.encoded_polyline if route.polyline else None,
             transit_minutes=round(transit_seconds / 60, 1) if provider_mode == "TRANSIT" else None,
         )
 
@@ -508,15 +521,21 @@ class GoogleRoutingProvider(RoutingProvider):
             raise RoutingProviderError(
                 "Google Route Matrix returned invalid JSON", self.provider_name, response_body=resp.text
             ) from exc
-        rows = data if isinstance(data, list) else []
+        try:
+            rows = _MATRIX_ROWS_ADAPTER.validate_python(data)
+        except ValidationError as exc:
+            raise RoutingProviderError(
+                "Google Route Matrix returned a malformed success response",
+                self.provider_name,
+                error_code="invalid_output",
+                response_body=resp.text,
+            ) from exc
         entries = [
             RouteMatrixEntry(
-                origin_index=row.get("originIndex", 0),
-                duration_minutes=(
-                    round(d / 60, 1) if (d := _parse_duration_seconds(row.get("duration"))) is not None else None
-                ),
-                distance_metres=row.get("distanceMeters"),
-                status=row.get("condition", "OK"),
+                origin_index=row.origin_index,
+                duration_minutes=round(row.duration_seconds / 60, 1) if row.duration_seconds is not None else None,
+                distance_metres=row.distance_metres,
+                status=row.condition,
             )
             for row in rows
         ]

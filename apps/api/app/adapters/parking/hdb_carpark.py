@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import json
-import math
 import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
+from pydantic import TypeAdapter
+
+from app.adapters.provider_schemas.hdb import HdbCarparkSnapshotRow
 from app.adapters.reference_data import haversine_m
 
 ROOT = Path(__file__).resolve().parents[5]
@@ -17,18 +17,7 @@ FIXTURE = ROOT / "data_pipeline" / "fixtures" / "hdb_carparks.json"
 SOURCE_NAME = "data.gov.sg HDB Carpark Information"
 
 
-def _optional_int(value: Any) -> int | None:
-    try:
-        return int(float(value)) if value not in (None, "") else None
-    except (TypeError, ValueError):
-        return None
-
-
-def _optional_float(value: Any) -> float | None:
-    try:
-        return float(value) if value not in (None, "") else None
-    except (TypeError, ValueError):
-        return None
+_CARPARK_ROWS_ADAPTER = TypeAdapter(list[HdbCarparkSnapshotRow])
 
 
 def normalize_carpark_type(value: str | None) -> str | None:
@@ -93,41 +82,32 @@ class HdbCarparkStore:
     def load(cls) -> list[HdbCarpark]:
         if cls._carparks is not None:
             return cls._carparks
-        rows = json.loads(FIXTURE.read_text()) if FIXTURE.exists() else []
+        rows = _CARPARK_ROWS_ADAPTER.validate_json(FIXTURE.read_text()) if FIXTURE.exists() else []
         result: list[HdbCarpark] = []
         seen: set[str] = set()
         for row in rows:
-            carpark_no = str(row.get("carpark_no") or row.get("car_park_no") or "").strip()
-            address = str(row.get("address") or "").strip()
-            if not carpark_no or not address or carpark_no in seen:
-                continue
-            try:
-                latitude = float(row["latitude"])
-                longitude = float(row["longitude"])
-            except (KeyError, TypeError, ValueError):
-                continue
-            if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
-                continue
-            if not (math.isfinite(latitude) and math.isfinite(longitude)):
+            carpark_no = row.carpark_no.strip()
+            address = row.address.strip()
+            if carpark_no in seen:
                 continue
             seen.add(carpark_no)
             result.append(
                 HdbCarpark(
                     carpark_no=carpark_no,
                     address=address,
-                    latitude=latitude,
-                    longitude=longitude,
-                    carpark_type=normalize_carpark_type(row.get("carpark_type")),
-                    source_carpark_type=row.get("source_carpark_type") or row.get("carpark_type"),
-                    parking_system_type=row.get("parking_system_type") or None,
-                    short_term_parking=row.get("short_term_parking") or None,
-                    free_parking=row.get("free_parking") or None,
-                    night_parking=row.get("night_parking") or None,
-                    carpark_decks=_optional_int(row.get("carpark_decks")),
-                    gantry_height_m=_optional_float(row.get("gantry_height_m")),
-                    basement_indicator=row.get("basement_indicator") or None,
-                    source=row.get("source", SOURCE_NAME),
-                    source_updated_at=_parse_datetime(row.get("source_updated_at")),
+                    latitude=row.latitude,
+                    longitude=row.longitude,
+                    carpark_type=normalize_carpark_type(row.carpark_type),
+                    source_carpark_type=row.source_carpark_type or row.carpark_type,
+                    parking_system_type=row.parking_system_type or None,
+                    short_term_parking=row.short_term_parking or None,
+                    free_parking=row.free_parking or None,
+                    night_parking=row.night_parking or None,
+                    carpark_decks=row.carpark_decks,
+                    gantry_height_m=row.gantry_height_m,
+                    basement_indicator=row.basement_indicator or None,
+                    source=row.source or SOURCE_NAME,
+                    source_updated_at=row.source_updated_at,
                 )
             )
         cls._carparks = result
@@ -179,12 +159,3 @@ class HdbCarparkStore:
 
 def _address_tokens(value: str) -> set[str]:
     return {token for token in re.findall(r"[A-Z0-9]+", value.upper()) if len(token) >= 2}
-
-
-def _parse_datetime(value: Any) -> datetime | None:
-    if not value:
-        return None
-    try:
-        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-    except ValueError:
-        return None

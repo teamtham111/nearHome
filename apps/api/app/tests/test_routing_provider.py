@@ -212,7 +212,9 @@ class TestGoogleRoutingProvider:
             alternatives=False,
             traffic_aware=False,
         )
-        assert routes == route_body["routes"]
+        assert len(routes) == 1
+        assert routes[0].duration_seconds == 123
+        assert routes[0].distance_metres == 456
 
     def test_driving_alternatives_request_and_cache_high_quality_polyline(
         self, monkeypatch: pytest.MonkeyPatch

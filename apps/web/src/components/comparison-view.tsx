@@ -145,11 +145,13 @@ function NearbySchoolsPanel({
   listingNames,
   byListing,
   selectedSchools,
+  isDemo = false,
 }: {
   listingIds: string[];
   listingNames: Record<string, string>;
   byListing: Record<string, SchoolAssessment>;
   selectedSchools: string[];
+  isDemo?: boolean;
 }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const winner = schoolsComparisonWinner(listingIds, byListing);
@@ -164,9 +166,9 @@ function NearbySchoolsPanel({
   );
 
   return (
-    <section className="nh-card" aria-labelledby="schools-heading">
+    <section data-demo-id="comparison-schools" className="nh-card" aria-labelledby="schools-heading">
       <h3 id="schools-heading" className="text-lg font-semibold">Nearby schools</h3>
-      <p className="mt-1 text-xs text-slate-500">Approximate distances based on the current MOE reference snapshot. Distance does not guarantee admission, registration priority or eligibility.</p>
+      <p className="mt-1 text-xs text-slate-500">{isDemo ? "Illustrative school counts and distances for this walkthrough; these are not live location results." : "Approximate distances based on the current MOE reference snapshot. Distance does not guarantee admission, registration priority or eligibility."}</p>
       <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3" aria-live="polite">
         {winner ? (
           <>
@@ -212,11 +214,35 @@ function NearbySchoolsPanel({
                 {isWinner && <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">Stronger</span>}
               </div>
               <p className={`mt-2 inline-flex rounded-full px-2 py-1 text-sm font-medium ${rating.className}`}>{rating.label}</p>
+              {assessment.score != null && <p className="mt-2 text-sm font-medium text-slate-700">{isDemo ? "Illustrative access score" : "Access score"}: {Math.round(assessment.score)}/100</p>}
               <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <dt className="text-slate-600">Within 1 km</dt><dd className="font-semibold text-slate-900">{assessment.schools_within_1km ?? 0}</dd>
                 <dt className="text-slate-600">Within 2 km</dt><dd className="font-semibold text-slate-900">{assessment.schools_within_2km ?? 0} total</dd>
                 {assessment.nearest_school_distance_km != null && <><dt className="text-slate-600">Nearest</dt><dd className="font-semibold text-slate-900">{formatSchoolDistance(assessment.nearest_school_distance_km)}</dd></>}
               </dl>
+              {selectedSchools.length > 0 && (
+                <div className="mt-4 rounded-lg border border-teal-100 bg-teal-50/60 p-3" data-demo-id={id === listingIds[0] ? "comparison-named-schools" : undefined}>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-teal-800">Schools you chose</p>
+                  <ul className="mt-2 space-y-2 text-sm">
+                    {selectedSchools.map((school) => {
+                      const distance = assessment.named_school_distances_km?.[school];
+                      const within = distance != null && distance <= 2;
+                      return (
+                        <li key={school} className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="font-medium text-slate-900">{school}</span>
+                          {distance == null ? (
+                            <span className="text-slate-600">Distance unavailable</span>
+                          ) : (
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${within ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>
+                              {formatSchoolDistance(distance)} · {within ? "Within 2 km" : "Beyond 2 km"}
+                            </span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
               {nearbySchools.length === 0 ? (
                 <p className="mt-4 text-sm text-slate-600">No nearby schools found</p>
               ) : (
@@ -414,18 +440,22 @@ function FairPricePanel({
                 </div>
               </section>
 
-              <section aria-labelledby={`comparables-${id}`}>
+              <section data-demo-id="comparison-fair-price-comparables" aria-labelledby={`comparables-${id}`}>
                 <h5 id={`comparables-${id}`} className="text-base font-semibold">Similar recent transactions</h5>
                 {strongestComparables.length > 0 ? (
                   <>
                     <p className="mt-1 text-sm text-slate-600">
-                      {strongestComparables.length} closest match{strongestComparables.length === 1 ? "" : "es"} shown from {eligibleComparableCount(fp)?.toLocaleString("en-SG") ?? "the eligible"} eligible record{eligibleComparableCount(fp) === 1 ? "" : "s"}. These examples provide market context; the estimate is not calculated by averaging only these {strongestComparables.length} transactions.
+                      {fp.method === "FIVE_TRANSACTION_AVERAGE"
+                        ? `Average resale price across these ${strongestComparables.length} recent nearby transactions.`
+                        : `${strongestComparables.length} closest match${strongestComparables.length === 1 ? "" : "es"} shown from ${eligibleComparableCount(fp)?.toLocaleString("en-SG") ?? "the eligible"} eligible record${eligibleComparableCount(fp) === 1 ? "" : "s"}. These examples provide market context; the estimate is not calculated by averaging only these ${strongestComparables.length} transactions.`}
                     </p>
                     <ComparableTable comparables={strongestComparables} listing={listing} />
                     <details className="mt-3">
                       <summary className="cursor-pointer text-sm text-teal-700">How these were selected · How the estimate works</summary>
                       <p className="mt-2 text-sm text-slate-600">
-                        {fairPriceModelDisplayName(fp) ? `This ${fairPriceModelDisplayName(fp)} estimate is generated from patterns in historical HDB resale transactions.` : "This estimate is generated from patterns in historical HDB resale transactions."} The transactions shown here are the {strongestComparables.length} closest recent matches and are provided to help you judge whether the estimate appears reasonable. They are not the only records considered by the valuation system, and the estimate is not calculated by simply averaging these transactions.
+                        {fp.method === "FIVE_TRANSACTION_AVERAGE"
+                          ? "The comparison value is the arithmetic average of the five recent nearby sales shown above. It is a reference point, not an official valuation, and does not adjust for floor, renovation or other property-specific differences."
+                          : `${fairPriceModelDisplayName(fp) ? `This ${fairPriceModelDisplayName(fp)} estimate is generated from patterns in historical HDB resale transactions.` : "This estimate is generated from patterns in historical HDB resale transactions."} The transactions shown here are the ${strongestComparables.length} closest recent matches and are provided to help you judge whether the estimate appears reasonable. They are not the only records considered by the valuation system, and the estimate is not calculated by simply averaging these transactions.`}
                       </p>
                     </details>
                   </>
@@ -700,7 +730,7 @@ function PublicTransportDetails({ rollup }: { rollup: ModelRollupData }) {
 function PublicTransportPanel({ listingIds, listingNames, byListing }: { listingIds: string[]; listingNames: Record<string, string>; byListing: Record<string, ModelRollupData> }) {
   return <div className="mt-3 space-y-3">{listingIds.map((id) => {
     const rollup = byListing[id];
-    if (!rollup || !rollup.components?.length) return <div key={id} className="rounded-lg border border-amber-200 bg-amber-50 p-3"><h4 className="font-medium">{listingNames[id]}</h4><p className="mt-1 text-sm text-amber-800">Public transport is not assessed yet.</p></div>;
+    if (!rollup || !rollup.components?.length) return <div key={id} className="rounded-lg border border-slate-200 bg-slate-50 p-3"><h4 className="font-medium">{listingNames[id]}</h4><p className="mt-1 text-sm text-slate-700">Not assessed — verified route data is unavailable for this listing.</p></div>;
     const overall = displayScore(rollup.display_score);
     return <article key={id} className="rounded-lg border border-slate-200 bg-white p-4" aria-labelledby={`transport-${id}`}>
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -825,7 +855,7 @@ function DrivingConnectivityComparison({ listingIds, listingNames, byListing }: 
 function DrivingPanel({ listingIds, listingNames, byListing, hasDestination }: { listingIds: string[]; listingNames: Record<string, string>; byListing: Record<string, ModelRollupData>; hasDestination: boolean }) {
   return <div className="mt-3 space-y-3">{listingIds.map((id) => {
     const rollup = byListing[id];
-    if (!rollup || !rollup.components?.length) return <article key={id} className="rounded-lg border border-amber-200 bg-amber-50 p-3"><h4 className="font-medium">{listingNames[id]}</h4><p className="mt-1 text-sm text-amber-900">Driving connectivity: Unavailable</p><p className="mt-1 text-sm text-amber-800">Run enrichment to calculate this.</p></article>;
+    if (!rollup || !rollup.components?.length) return <article key={id} className="rounded-lg border border-slate-200 bg-slate-50 p-3"><h4 className="font-medium">{listingNames[id]}</h4><p className="mt-1 text-sm text-slate-700">Not assessed — verified road and location data is unavailable for this listing.</p></article>;
     const status = drivingStatus(rollup);
     const score = displayDrivingScore(rollup.unrounded_score ?? rollup.display_score);
     return <article key={id} className="rounded-lg border border-slate-200 bg-white p-4" aria-labelledby={`driving-${id}`}>
@@ -868,7 +898,7 @@ function RegularDestinationJourneyPanel({
               {available ? (
                 <>
                   <p className="mt-1 text-lg font-semibold">Estimated {journey.duration_minutes} min drive</p>
-                  {rank != null && <p className="mt-1 text-slate-600">{rank === 1 ? "Fastest" : `${rank}th fastest`} among {peers.length} shortlisted homes</p>}
+                  {rank != null && <p className="mt-1 text-slate-600">{rank === 1 ? "Fastest" : `${rank}${rank === 2 ? "nd" : rank === 3 ? "rd" : "th"} fastest`} among {peers.length} shortlisted homes</p>}
                 </>
               ) : (
                 <p className="mt-1 rounded bg-amber-50 p-2 text-amber-800">This destination journey could not be confirmed. Driving Connectivity remains independent of this failure.</p>
@@ -969,13 +999,14 @@ export function ComparisonView({ data, session }: Props) {
   const recommendationId = rec?.recommended_listing_id;
 
   return (
-    <div className="space-y-6">
-      <section className="nh-card border-blue-200 bg-gradient-to-br from-white to-blue-50/70" aria-labelledby="decision-overview-heading">
+    <div className="space-y-7">
+      <section data-demo-id="comparison-results" className="nh-card border-blue-200 bg-gradient-to-br from-white to-blue-50/70" aria-labelledby="decision-overview-heading">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="nh-section-kicker">Comparison overview</p>
             <h3 id="decision-overview-heading" className="mt-1 text-2xl font-bold tracking-tight text-blue-950">Your comparison is ready</h3>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">Review the factor-level evidence and the trade-offs most relevant to your selected priorities.</p>
+            {data.demo_mode && <p className="mt-2 max-w-3xl text-xs text-slate-500">Connectivity, school and priority-fit scores are illustrative walkthrough data. Listing details and nearby transaction prices are used for the price comparisons.</p>}
           </div>
           {rec?.is_provisional && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">Provisional recommendation</span>}
         </div>
@@ -986,6 +1017,7 @@ export function ComparisonView({ data, session }: Props) {
               <article key={id} className={`rounded-xl border p-4 ${isRecommended ? "border-emerald-500 bg-white shadow-sm ring-1 ring-emerald-200" : "border-slate-200 bg-white"}`}>
                 <div className="min-w-0">
                   <h4 className="truncate font-semibold text-slate-900">{listingNames[id] ?? id.slice(0, 8)}</h4>
+                  {data.preference_scores.find((score) => score.listing_id === id)?.overall_fit_score != null && <p className="mt-2 text-sm font-semibold text-teal-800">Priority fit: {Math.round(data.preference_scores.find((score) => score.listing_id === id)?.overall_fit_score ?? 0)}/100</p>}
                   {isRecommended && <span className="mt-2 inline-flex rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800">Leading option</span>}
                 </div>
                 {isRecommended && rec?.one_sentence_summary && <p className="mt-3 text-sm text-slate-700">{rec.one_sentence_summary}</p>}
@@ -1007,7 +1039,7 @@ export function ComparisonView({ data, session }: Props) {
         </section>
       )}
 
-      <section className="nh-expanded-panel" aria-labelledby="price-heading">
+      <section data-demo-id="comparison-price" className="nh-expanded-panel" aria-labelledby="price-heading">
         <p className="nh-section-kicker">Quick comparison</p>
         <h3 id="price-heading" className="mt-1 text-lg font-semibold">Price and affordability</h3>
         <p className="mt-1 text-sm text-slate-600">Start with the asking price, budget position, space and remaining lease.</p>
@@ -1072,7 +1104,7 @@ export function ComparisonView({ data, session }: Props) {
         </div>
       </section>
 
-      <section className="nh-expanded-panel" aria-labelledby="fair-price-heading">
+      <section data-demo-id="comparison-fair-price" className="nh-expanded-panel" aria-labelledby="fair-price-heading">
         <p className="nh-section-kicker">Market evidence</p>
         <h3 id="fair-price-heading" className="mt-1 text-lg font-semibold">Fair-price estimate</h3>
         <p className="mt-1 text-sm text-slate-600">An analytical estimate based on comparable HDB transactions, not an official valuation.</p>
@@ -1086,7 +1118,7 @@ export function ComparisonView({ data, session }: Props) {
       </section>
 
       {showTransport && (
-        <section className="nh-card" aria-labelledby="pt-heading">
+        <section data-demo-id="comparison-transport" className="nh-card" aria-labelledby="pt-heading">
           <p className="nh-section-kicker">General connectivity</p>
           <h3 id="pt-heading" className="mt-1 text-lg font-semibold">Public transport strength</h3>
           <p className="text-xs text-slate-500">General connectivity — excludes personalised journey duration</p>
@@ -1112,7 +1144,7 @@ export function ComparisonView({ data, session }: Props) {
       )}
 
       {showDriving && (
-        <section className="nh-card" aria-labelledby="driving-heading">
+        <section data-demo-id="comparison-driving" className="nh-card" aria-labelledby="driving-heading">
           <p className="nh-section-kicker">General connectivity</p>
           <h3 id="driving-heading" className="mt-1 text-lg font-semibold">Driving Connectivity</h3>
           <p className="text-xs text-slate-500">How convenient, flexible and reliable driving is from each home generally. Regular destination journeys are assessed separately.</p>
@@ -1162,6 +1194,7 @@ export function ComparisonView({ data, session }: Props) {
           listingNames={listingNames}
           byListing={data.schools_by_listing ?? {}}
           selectedSchools={session?.buyer_profile?.named_schools?.length ? session.buyer_profile.named_schools : session?.buyer_profile?.named_school ? [session.buyer_profile.named_school] : []}
+          isDemo={data.demo_mode}
         />
       )}
 

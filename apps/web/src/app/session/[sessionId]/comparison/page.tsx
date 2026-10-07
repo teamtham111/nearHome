@@ -8,6 +8,8 @@ import { ComparisonView } from "@/components/comparison-view";
 import { EnrichmentProgress } from "@/components/enrichment-progress";
 import { WorkflowStepper } from "@/components/workflow-stepper";
 import { getComparison, getSession, startEnrichment } from "@/lib/api";
+import { startDemoEnrichmentFixture } from "@/demo/fixtures";
+import { DEMO_STEPS } from "@/demo/script";
 
 type TerminalEnrichmentStatus = "completed" | "failed" | "cancelled";
 
@@ -18,6 +20,11 @@ export default function SessionComparisonPage() {
   const searchParams = useSearchParams();
   const qc = useQueryClient();
   const runRequested = searchParams.get("run") === "1";
+  const isDemo = searchParams.get("demo") === "1";
+  const demoStep = Number(searchParams.get("demoStep") ?? "-1");
+  const activeDemoStep = DEMO_STEPS[demoStep];
+  const holdDemoLoading = isDemo && activeDemoStep?.id === "results-loading";
+  const demoResultsStep = isDemo && activeDemoStep?.stage === 5 && activeDemoStep.id !== "results-loading";
   const enrichmentStorageKey = `nearhome:enrichment-job:${sessionId}`;
   const autoRunTriggered = useRef(false);
   const [activeEnrichmentJobId, setActiveEnrichmentJobId] = useState<string | null>(null);
@@ -40,7 +47,7 @@ export default function SessionComparisonPage() {
       window.sessionStorage.setItem(enrichmentStorageKey, result.job_id);
       setActiveEnrichmentJobId(result.job_id);
     },
-    onError: () => setComparisonReady(true),
+    onError: () => { setActiveEnrichmentJobId(null); setComparisonReady(true); },
   });
 
   useEffect(() => {
@@ -62,13 +69,25 @@ export default function SessionComparisonPage() {
       return;
     }
     autoRunTriggered.current = true;
-    setComparisonReady(false);
-    enrich.mutate();
-    router.replace(`/session/${sessionId}/comparison`, { scroll: false });
-  }, [enrich, router, runRequested, sessionId, sessionQuery.data]);
+    const demoRun = isDemo || document.body.dataset.demoActive === "true";
+    if (demoRun) {
+      // The demo's progress and comparison are local fixtures. Do not start
+      // enrichment through the normal mutation path, even if interception is late.
+      startDemoEnrichmentFixture();
+      startTransition(() => {
+        setComparisonReady(false);
+        setActiveEnrichmentJobId("demo-job");
+      });
+    } else {
+      startTransition(() => setComparisonReady(false));
+      enrich.mutate();
+    }
+    router.replace(demoRun ? `/session/${sessionId}/comparison?demo=1&demoStep=${demoStep}` : `/session/${sessionId}/comparison`, { scroll: false });
+  }, [demoStep, enrich, isDemo, router, runRequested, sessionId, sessionQuery.data]);
 
   const handleEnrichmentTerminal = useCallback(
     (jobStatus: TerminalEnrichmentStatus, jobId: string) => {
+      if (holdDemoLoading && jobId === "demo-job") return;
       window.sessionStorage.removeItem(enrichmentStorageKey);
       setActiveEnrichmentJobId(null);
       void Promise.all([
@@ -76,8 +95,18 @@ export default function SessionComparisonPage() {
         qc.refetchQueries({ queryKey: ["session", sessionId] }),
       ]).finally(() => setComparisonReady(true));
     },
-    [enrichmentStorageKey, qc, sessionId],
+    [enrichmentStorageKey, holdDemoLoading, qc, sessionId],
   );
+
+  useEffect(() => {
+    if (demoResultsStep) {
+      window.sessionStorage.removeItem(enrichmentStorageKey);
+      startTransition(() => {
+        setActiveEnrichmentJobId(null);
+        setComparisonReady(true);
+      });
+    }
+  }, [activeEnrichmentJobId, demoResultsStep, enrichmentStorageKey]);
 
   if (sessionQuery.isPending) {
     return <div className="nh-card text-sm text-slate-600" role="status">Loading comparison…</div>;
@@ -95,7 +124,9 @@ export default function SessionComparisonPage() {
   }
 
   const session = sessionQuery.data;
-  const isEnriching = enrich.isPending || Boolean(activeEnrichmentJobId);
+  const isEnriching = isDemo
+    ? !demoResultsStep && Boolean(activeEnrichmentJobId)
+    : enrich.isPending || Boolean(activeEnrichmentJobId);
 
   return (
     <div className="nh-workflow-grid space-y-7 py-8 sm:py-10">
@@ -119,7 +150,7 @@ export default function SessionComparisonPage() {
         <section className="nh-card">
           <p className="text-sm text-slate-600">Add one more confirmed listing to see the comparison.</p>
         </section>
-      ) : isEnriching ? (
+      ) : !demoResultsStep && isEnriching ? (
         <>
           {enrich.isPending && !activeEnrichmentJobId ? (
             <section className="nh-card text-sm text-slate-600" role="status">Starting analysis…</section>
@@ -133,7 +164,7 @@ export default function SessionComparisonPage() {
             />
           ) : null}
         </>
-      ) : enrich.isError ? (
+      ) : !demoResultsStep && enrich.isError ? (
         <section className="nh-card space-y-3">
           <p className="text-sm text-red-600" role="alert">{String(enrich.error.message)}</p>
           <button type="button" className="nh-primary" onClick={() => enrich.mutate()}>

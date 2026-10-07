@@ -178,27 +178,32 @@ For live driving requests, Google requires a traffic-aware routing preference
 when a departure timestamp is supplied. Non-traffic-aware driving requests
 omit the timestamp.
 
-### 3. Groq (Smart Paste)
+### 3. LLM provider (Smart Paste)
 
-1. Get an API key from the Groq console
-2. Add to `.env`:
-   ```
-   GROQ_API_KEY=...
-   GROQ_MODEL=openai/gpt-oss-20b
-   ```
+The Smart Paste pipeline uses a normalized extraction result, so supported providers can be switched through server-side configuration without changing its validation or UI. Groq is the default. Gemini uses Google's native structured-output API with a default model; configure:
+
+```env
+LLM_PROVIDER=gemini
+LLM_API_KEY=<Gemini API key>
+# Optional overrides:
+# LLM_MODEL=gemini-3.8-flash
+```
+
+For another OpenAI-compatible API, set `LLM_PROVIDER=openai_compatible` with its `LLM_API_KEY`, `LLM_MODEL`, and `LLM_BASE_URL`. Keep the key on the API server; never expose it through a `NEXT_PUBLIC_*` variable. Groq can continue using the legacy `GROQ_API_KEY` and `GROQ_MODEL` variables. To use Gemini on Cloud Run, set `LLM_PROVIDER=gemini` and point `LLM_API_KEY_SECRET_NAME` at the Secret Manager secret containing the Gemini API key before running both deployment scripts.
 
 Smart Paste also accepts PropertyGuru and 99.co Singapore listing URLs. NearHome retrieves and
-sanitises the public page on the API server before sending bounded listing evidence to Groq. An
+sanitises the public page on the API server before sending bounded listing evidence to the
+configured LLM provider. An
 access-denied, CAPTCHA or JavaScript-shell response triggers a bounded headless-browser retry when
 appropriate; an unusable page still returns a copy-and-paste fallback. Normal Cloudflare CSP
 references on a successfully rendered listing are not treated as a block, and no CAPTCHA or
 access-control bypass is attempted.
 
 The web app allows Smart Paste up to two minutes to complete because URL retrieval and a bounded
-headless-browser fallback can run before Groq extraction. Other interactive API calls keep their
+headless-browser fallback can run before LLM extraction. Other interactive API calls keep their
 shorter timeout, so a slow Smart Paste request does not change ordinary form behaviour.
 
-If Groq rejects a generated object for omitting required JSON-schema fields, NearHome makes
+If a provider rejects a generated object for omitting required JSON-schema fields, NearHome makes
 one bounded retry with an explicit schema-repair instruction. In development, any remaining
 provider failure includes the provider HTTP status and safe provider message under
 `detail.providerMessage`; the web UI includes that message so schema, quota or authentication

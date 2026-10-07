@@ -5,12 +5,16 @@ into typed dataclasses for `app.networks.rail_graph`.
 from __future__ import annotations
 
 import csv
-import json
 from dataclasses import dataclass
 from pathlib import Path
 
+from pydantic import TypeAdapter
+
+from app.adapters.provider_schemas.reference import RailEdgeSnapshotRow, RailStationSnapshot
+
 ROOT = Path(__file__).resolve().parents[5]
 RAIL_DIR = ROOT / "data_pipeline" / "fixtures" / "rail"
+_RAIL_EDGE_ROWS_ADAPTER = TypeAdapter(list[RailEdgeSnapshotRow])
 
 
 @dataclass(frozen=True)
@@ -69,33 +73,34 @@ class RailDataStore:
         source = "no rail data loaded"
         version = "unknown"
         if stations_path.exists():
-            payload = json.loads(stations_path.read_text())
-            source = payload.get("source", source)
-            version = payload.get("version", version)
-            for row in payload.get("stations", []):
+            payload = RailStationSnapshot.model_validate_json(stations_path.read_text())
+            source = payload.source
+            version = payload.version
+            for station_row in payload.stations:
                 stations.append(
                     RailStation(
-                        station_name=row["station_name"],
-                        codes=tuple(row["codes"]),
-                        lines=tuple(row["lines"]),
-                        is_interchange=row["is_interchange"],
-                        latitude=row.get("latitude"),
-                        longitude=row.get("longitude"),
-                        active=row.get("active", True),
+                        station_name=station_row.station_name,
+                        codes=tuple(station_row.codes),
+                        lines=tuple(station_row.lines),
+                        is_interchange=station_row.is_interchange,
+                        latitude=station_row.latitude,
+                        longitude=station_row.longitude,
+                        active=station_row.active,
                     )
                 )
 
         edges: list[RailEdge] = []
         if edges_path.exists():
             with edges_path.open() as fh:
-                for row in csv.DictReader(fh):
+                rows = _RAIL_EDGE_ROWS_ADAPTER.validate_python(list(csv.DictReader(fh)))
+                for edge_row in rows:
                     edges.append(
                         RailEdge(
-                            from_node=row["from_node"],
-                            to_node=row["to_node"],
-                            line=row["line"],
-                            edge_type=row["edge_type"],
-                            estimated_minutes=float(row["estimated_minutes"]),
+                            from_node=edge_row.from_node,
+                            to_node=edge_row.to_node,
+                            line=edge_row.line,
+                            edge_type=edge_row.edge_type,
+                            estimated_minutes=edge_row.estimated_minutes,
                         )
                     )
 

@@ -7,7 +7,7 @@ does not establish the others.
 | --- | --- | --- |
 | Algorithm correctness | Deterministic unit and golden cases for graph traversal, bus direction/sequence handling, access thresholds, comparable filtering, score/recommendation rules | That the external source data is complete or current |
 | Dataset correctness | Fixture invariants: reference IDs resolve, rail edges use valid station/line relationships, bus routes reference known stops and retain unique ordered sequences | Independent confirmation that every LTA/SLA/OSM/rail source fact is current |
-| External-provider correctness | Mocked OneMap/Google request and response validation: coordinate order, Singapore bounds, HDB block/street conflicts, route request parameters, malformed route payloads | A live provider's routing/geocoding result at a particular time |
+| External-provider correctness | Provider-specific Pydantic contracts plus mocked adapter tests for OneMap, Google Places/Routes, HDB payloads/snapshots, LTA/MOE/rail rows and versioned artifacts; semantic checks cover coordinate order/bounds, HDB identity, route parameters and malformed payloads | A live provider's result at a particular time or the independent real-world completeness of a snapshot |
 | End-to-end integration correctness | API/integration tests for persistence, scoped job IDs, JSON-safe comparison data, score scale and frontend request/render contracts | Production database contents or an external provider response not represented by a fixture/mock |
 
 ## Golden and invariant tests
@@ -20,6 +20,10 @@ does not establish the others.
 - `test_routing_provider.py` validates Google Routes payload construction,
   cache distinctions, alternatives and malformed response handling without a
   live paid request.
+- `test_provider_schemas.py` validates the exact consumed subset of OneMap,
+  Google Places/Routes, HDB, LTA/MOE/rail and artifact structures, including
+  nested and top-level-array failures, and verifies live adapters translate
+  malformed success responses into safe provider errors.
 - `test_geocoding_accuracy.py` and `test_hdb_address_accuracy.py` validate
   OneMap-coordinate safety and canonical HDB identity handling.
 
@@ -36,6 +40,9 @@ never described as independently verified solely because these tests pass.
 - A Google Routes HTTP success without a valid duration/distance is treated as
   unavailable. It cannot become a zero-minute route or populate the route
   cache.
+- Raw external data is structurally validated before canonical dataclasses are
+  created. Additive provider fields are ignored, while malformed fields
+  NearHome consumes fail closed.
 - A OneMap result with out-of-Singapore/reversed coordinates or a conflicting
   HDB block/street is rejected. The canonical HDB address identity removes a
   trailing `Singapore` country suffix before exact comparison.

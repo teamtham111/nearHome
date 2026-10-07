@@ -31,7 +31,6 @@ Output:
 from __future__ import annotations
 
 import csv
-import json
 import re
 import sys
 import time
@@ -61,75 +60,198 @@ EDGES_CSV = FIXTURES_DIR / "rail_edges.csv"
 # ---------------------------------------------------------------------------
 STATIONS: dict[str, list[str]] = {
     # North-South Line
-    "Jurong East": ["NS1", "EW24"], "Bukit Batok": ["NS2"], "Bukit Gombak": ["NS3"],
-    "Choa Chu Kang": ["NS4", "BP1"], "Yew Tee": ["NS5"], "Kranji": ["NS7"],
-    "Marsiling": ["NS8"], "Woodlands": ["NS9", "TE2"], "Admiralty": ["NS10"],
-    "Sembawang": ["NS11"], "Canberra": ["NS12"], "Yishun": ["NS13"], "Khatib": ["NS14"],
-    "Yio Chu Kang": ["NS15"], "Ang Mo Kio": ["NS16"], "Bishan": ["NS17", "CC15"],
-    "Braddell": ["NS18"], "Toa Payoh": ["NS19"], "Novena": ["NS20"],
-    "Newton": ["NS21", "DT11"], "Orchard": ["NS22", "TE14"], "Somerset": ["NS23"],
-    "Dhoby Ghaut": ["NS24", "NE6", "CC1"], "City Hall": ["NS25", "EW13"],
-    "Raffles Place": ["NS26", "EW14"], "Marina Bay": ["NS27", "CC33", "TE20"],
+    "Jurong East": ["NS1", "EW24"],
+    "Bukit Batok": ["NS2"],
+    "Bukit Gombak": ["NS3"],
+    "Choa Chu Kang": ["NS4", "BP1"],
+    "Yew Tee": ["NS5"],
+    "Kranji": ["NS7"],
+    "Marsiling": ["NS8"],
+    "Woodlands": ["NS9", "TE2"],
+    "Admiralty": ["NS10"],
+    "Sembawang": ["NS11"],
+    "Canberra": ["NS12"],
+    "Yishun": ["NS13"],
+    "Khatib": ["NS14"],
+    "Yio Chu Kang": ["NS15"],
+    "Ang Mo Kio": ["NS16"],
+    "Bishan": ["NS17", "CC15"],
+    "Braddell": ["NS18"],
+    "Toa Payoh": ["NS19"],
+    "Novena": ["NS20"],
+    "Newton": ["NS21", "DT11"],
+    "Orchard": ["NS22", "TE14"],
+    "Somerset": ["NS23"],
+    "Dhoby Ghaut": ["NS24", "NE6", "CC1"],
+    "City Hall": ["NS25", "EW13"],
+    "Raffles Place": ["NS26", "EW14"],
+    "Marina Bay": ["NS27", "CC33", "TE20"],
     "Marina South Pier": ["NS28"],
     # East-West Line (+ Changi Airport branch)
-    "Pasir Ris": ["EW1"], "Tampines": ["EW2", "DT32"], "Simei": ["EW3"],
-    "Tanah Merah": ["EW4"], "Bedok": ["EW5"], "Kembangan": ["EW6"], "Eunos": ["EW7"],
-    "Paya Lebar": ["EW8", "CC9"], "Aljunied": ["EW9"], "Kallang": ["EW10"],
-    "Lavender": ["EW11"], "Bugis": ["EW12", "DT14"], "Tanjong Pagar": ["EW15"],
-    "Outram Park": ["EW16", "NE3", "TE17"], "Tiong Bahru": ["EW17"], "Redhill": ["EW18"],
-    "Queenstown": ["EW19"], "Commonwealth": ["EW20"], "Buona Vista": ["EW21", "CC22"],
-    "Dover": ["EW22"], "Clementi": ["EW23"], "Chinese Garden": ["EW25"],
-    "Lakeside": ["EW26"], "Boon Lay": ["EW27"], "Pioneer": ["EW28"], "Joo Koon": ["EW29"],
-    "Gul Circle": ["EW30"], "Tuas Crescent": ["EW31"], "Tuas West Road": ["EW32"],
-    "Tuas Link": ["EW33"], "Expo": ["CG1", "DT35"], "Changi Airport": ["CG2"],
+    "Pasir Ris": ["EW1"],
+    "Tampines": ["EW2", "DT32"],
+    "Simei": ["EW3"],
+    "Tanah Merah": ["EW4"],
+    "Bedok": ["EW5"],
+    "Kembangan": ["EW6"],
+    "Eunos": ["EW7"],
+    "Paya Lebar": ["EW8", "CC9"],
+    "Aljunied": ["EW9"],
+    "Kallang": ["EW10"],
+    "Lavender": ["EW11"],
+    "Bugis": ["EW12", "DT14"],
+    "Tanjong Pagar": ["EW15"],
+    "Outram Park": ["EW16", "NE3", "TE17"],
+    "Tiong Bahru": ["EW17"],
+    "Redhill": ["EW18"],
+    "Queenstown": ["EW19"],
+    "Commonwealth": ["EW20"],
+    "Buona Vista": ["EW21", "CC22"],
+    "Dover": ["EW22"],
+    "Clementi": ["EW23"],
+    "Chinese Garden": ["EW25"],
+    "Lakeside": ["EW26"],
+    "Boon Lay": ["EW27"],
+    "Pioneer": ["EW28"],
+    "Joo Koon": ["EW29"],
+    "Gul Circle": ["EW30"],
+    "Tuas Crescent": ["EW31"],
+    "Tuas West Road": ["EW32"],
+    "Tuas Link": ["EW33"],
+    "Expo": ["CG1", "DT35"],
+    "Changi Airport": ["CG2"],
     # North East Line
-    "HarbourFront": ["NE1", "CC29"], "Chinatown": ["NE4", "DT19"], "Clarke Quay": ["NE5"],
-    "Little India": ["NE7", "DT12"], "Farrer Park": ["NE8"], "Boon Keng": ["NE9"],
-    "Potong Pasir": ["NE10"], "Woodleigh": ["NE11"], "Serangoon": ["NE12", "CC13"],
-    "Kovan": ["NE13"], "Hougang": ["NE14"], "Buangkok": ["NE15"],
-    "Sengkang": ["NE16", "STC"], "Punggol": ["NE17", "PTC"], "Punggol Coast": ["NE18"],
+    "HarbourFront": ["NE1", "CC29"],
+    "Chinatown": ["NE4", "DT19"],
+    "Clarke Quay": ["NE5"],
+    "Little India": ["NE7", "DT12"],
+    "Farrer Park": ["NE8"],
+    "Boon Keng": ["NE9"],
+    "Potong Pasir": ["NE10"],
+    "Woodleigh": ["NE11"],
+    "Serangoon": ["NE12", "CC13"],
+    "Kovan": ["NE13"],
+    "Hougang": ["NE14"],
+    "Buangkok": ["NE15"],
+    "Sengkang": ["NE16", "STC"],
+    "Punggol": ["NE17", "PTC"],
+    "Punggol Coast": ["NE18"],
     # Circle Line
-    "Bras Basah": ["CC2"], "Esplanade": ["CC3"], "Promenade": ["CC4", "DT15"],
-    "Nicoll Highway": ["CC5"], "Stadium": ["CC6"], "Mountbatten": ["CC7"],
-    "Dakota": ["CC8"], "MacPherson": ["CC10", "DT26"], "Tai Seng": ["CC11"],
-    "Bartley": ["CC12"], "Lorong Chuan": ["CC14"], "Marymount": ["CC16"],
-    "Caldecott": ["CC17", "TE9"], "Botanic Gardens": ["CC19", "DT9"],
-    "Farrer Road": ["CC20"], "Holland Village": ["CC21"], "one-north": ["CC23"],
-    "Kent Ridge": ["CC24"], "Haw Par Villa": ["CC25"], "Pasir Panjang": ["CC26"],
-    "Labrador Park": ["CC27"], "Telok Blangah": ["CC28"], "Keppel": ["CC30"],
-    "Cantonment": ["CC31"], "Prince Edward Road": ["CC32"], "Bayfront": ["CC34", "DT16"],
+    "Bras Basah": ["CC2"],
+    "Esplanade": ["CC3"],
+    "Promenade": ["CC4", "DT15"],
+    "Nicoll Highway": ["CC5"],
+    "Stadium": ["CC6"],
+    "Mountbatten": ["CC7"],
+    "Dakota": ["CC8"],
+    "MacPherson": ["CC10", "DT26"],
+    "Tai Seng": ["CC11"],
+    "Bartley": ["CC12"],
+    "Lorong Chuan": ["CC14"],
+    "Marymount": ["CC16"],
+    "Caldecott": ["CC17", "TE9"],
+    "Botanic Gardens": ["CC19", "DT9"],
+    "Farrer Road": ["CC20"],
+    "Holland Village": ["CC21"],
+    "one-north": ["CC23"],
+    "Kent Ridge": ["CC24"],
+    "Haw Par Villa": ["CC25"],
+    "Pasir Panjang": ["CC26"],
+    "Labrador Park": ["CC27"],
+    "Telok Blangah": ["CC28"],
+    "Keppel": ["CC30"],
+    "Cantonment": ["CC31"],
+    "Prince Edward Road": ["CC32"],
+    "Bayfront": ["CC34", "DT16"],
     # Downtown Line
-    "Bukit Panjang": ["BP6", "DT1"], "Cashew": ["DT2"], "Hillview": ["DT3"],
-    "Hume": ["DT4"], "Beauty World": ["DT5"], "King Albert Park": ["DT6"],
-    "Sixth Avenue": ["DT7"], "Tan Kah Kee": ["DT8"], "Rochor": ["DT13"],
-    "Downtown": ["DT17"], "Telok Ayer": ["DT18"], "Fort Canning": ["DT20"],
-    "Bencoolen": ["DT21"], "Jalan Besar": ["DT22"], "Bendemeer": ["DT23"],
-    "Geylang Bahru": ["DT24"], "Mattar": ["DT25"], "Ubi": ["DT27"],
-    "Kaki Bukit": ["DT28"], "Bedok North": ["DT29"], "Bedok Reservoir": ["DT30"],
-    "Tampines West": ["DT31"], "Tampines East": ["DT33"], "Upper Changi": ["DT34"],
+    "Bukit Panjang": ["BP6", "DT1"],
+    "Cashew": ["DT2"],
+    "Hillview": ["DT3"],
+    "Hume": ["DT4"],
+    "Beauty World": ["DT5"],
+    "King Albert Park": ["DT6"],
+    "Sixth Avenue": ["DT7"],
+    "Tan Kah Kee": ["DT8"],
+    "Rochor": ["DT13"],
+    "Downtown": ["DT17"],
+    "Telok Ayer": ["DT18"],
+    "Fort Canning": ["DT20"],
+    "Bencoolen": ["DT21"],
+    "Jalan Besar": ["DT22"],
+    "Bendemeer": ["DT23"],
+    "Geylang Bahru": ["DT24"],
+    "Mattar": ["DT25"],
+    "Ubi": ["DT27"],
+    "Kaki Bukit": ["DT28"],
+    "Bedok North": ["DT29"],
+    "Bedok Reservoir": ["DT30"],
+    "Tampines West": ["DT31"],
+    "Tampines East": ["DT33"],
+    "Upper Changi": ["DT34"],
     # Thomson-East Coast Line
-    "Woodlands North": ["TE1"], "Woodlands South": ["TE3"], "Springleaf": ["TE4"],
-    "Lentor": ["TE5"], "Mayflower": ["TE6"], "Bright Hill": ["TE7"],
-    "Upper Thomson": ["TE8"], "Stevens": ["TE11", "DT10"], "Napier": ["TE12"],
-    "Orchard Boulevard": ["TE13"], "Great World": ["TE15"], "Havelock": ["TE16"],
-    "Maxwell": ["TE18"], "Shenton Way": ["TE19"], "Gardens by the Bay": ["TE22"],
-    "Tanjong Rhu": ["TE23"], "Katong Park": ["TE24"], "Tanjong Katong": ["TE25"],
-    "Marine Parade": ["TE26"], "Marine Terrace": ["TE27"], "Siglap": ["TE28"],
+    "Woodlands North": ["TE1"],
+    "Woodlands South": ["TE3"],
+    "Springleaf": ["TE4"],
+    "Lentor": ["TE5"],
+    "Mayflower": ["TE6"],
+    "Bright Hill": ["TE7"],
+    "Upper Thomson": ["TE8"],
+    "Stevens": ["TE11", "DT10"],
+    "Napier": ["TE12"],
+    "Orchard Boulevard": ["TE13"],
+    "Great World": ["TE15"],
+    "Havelock": ["TE16"],
+    "Maxwell": ["TE18"],
+    "Shenton Way": ["TE19"],
+    "Gardens by the Bay": ["TE22"],
+    "Tanjong Rhu": ["TE23"],
+    "Katong Park": ["TE24"],
+    "Tanjong Katong": ["TE25"],
+    "Marine Parade": ["TE26"],
+    "Marine Terrace": ["TE27"],
+    "Siglap": ["TE28"],
     "Bayshore": ["TE29"],
     # Bukit Panjang LRT
-    "South View": ["BP2"], "Keat Hong": ["BP3"], "Teck Whye": ["BP4"],
-    "Phoenix": ["BP5"], "Petir": ["BP7"], "Pending": ["BP8"], "Bangkit": ["BP9"],
-    "Fajar": ["BP10"], "Segar": ["BP11"], "Jelapang": ["BP12"], "Senja": ["BP13"],
+    "South View": ["BP2"],
+    "Keat Hong": ["BP3"],
+    "Teck Whye": ["BP4"],
+    "Phoenix": ["BP5"],
+    "Petir": ["BP7"],
+    "Pending": ["BP8"],
+    "Bangkit": ["BP9"],
+    "Fajar": ["BP10"],
+    "Segar": ["BP11"],
+    "Jelapang": ["BP12"],
+    "Senja": ["BP13"],
     # Sengkang LRT
-    "Compassvale": ["SE1"], "Rumbia": ["SE2"], "Bakau": ["SE3"], "Kangkar": ["SE4"],
-    "Ranggung": ["SE5"], "Cheng Lim": ["SW1"], "Farmway": ["SW2"], "Kupang": ["SW3"],
-    "Thanggam": ["SW4"], "Fernvale": ["SW5"], "Layar": ["SW6"], "Tongkang": ["SW7"],
+    "Compassvale": ["SE1"],
+    "Rumbia": ["SE2"],
+    "Bakau": ["SE3"],
+    "Kangkar": ["SE4"],
+    "Ranggung": ["SE5"],
+    "Cheng Lim": ["SW1"],
+    "Farmway": ["SW2"],
+    "Kupang": ["SW3"],
+    "Thanggam": ["SW4"],
+    "Fernvale": ["SW5"],
+    "Layar": ["SW6"],
+    "Tongkang": ["SW7"],
     "Renjong": ["SW8"],
     # Punggol LRT
-    "Cove": ["PE1"], "Meridian": ["PE2"], "Coral Edge": ["PE3"], "Riviera": ["PE4"],
-    "Kadaloor": ["PE5"], "Oasis": ["PE6"], "Damai": ["PE7"], "Sam Kee": ["PW1"],
-    "Teck Lee": ["PW2"], "Punggol Point": ["PW3"], "Samudera": ["PW4"],
-    "Nibong": ["PW5"], "Sumang": ["PW6"], "Soo Teck": ["PW7"],
+    "Cove": ["PE1"],
+    "Meridian": ["PE2"],
+    "Coral Edge": ["PE3"],
+    "Riviera": ["PE4"],
+    "Kadaloor": ["PE5"],
+    "Oasis": ["PE6"],
+    "Damai": ["PE7"],
+    "Sam Kee": ["PW1"],
+    "Teck Lee": ["PW2"],
+    "Punggol Point": ["PW3"],
+    "Samudera": ["PW4"],
+    "Nibong": ["PW5"],
+    "Sumang": ["PW6"],
+    "Soo Teck": ["PW7"],
 }
 
 # Dash-style "tap-out transfer" pairs (exit and re-enter the paid area) —
@@ -140,12 +262,23 @@ TAP_OUT_PAIRS: set[frozenset[str]] = {
 }
 
 _LINE_NAMES = {
-    "NS": "NSL", "EW": "EWL", "CG": "EWL", "NE": "NEL", "CC": "CCL", "DT": "DTL",
-    "TE": "TEL", "BP": "BPLRT", "SE": "SKLRT", "SW": "SKLRT", "PE": "PGLRT",
+    "NS": "NSL",
+    "EW": "EWL",
+    "CG": "EWL",
+    "NE": "NEL",
+    "CC": "CCL",
+    "DT": "DTL",
+    "TE": "TEL",
+    "BP": "BPLRT",
+    "SE": "SKLRT",
+    "SW": "SKLRT",
+    "PE": "PGLRT",
     # STC/PTC are the Sengkang/Punggol LRT-centre nodes. They share a
     # physical interchange with NE16/NE17 respectively, but their ride edges
     # belong to the LRT systems—not the North-East Line.
-    "PW": "PGLRT", "STC": "SKLRT", "PTC": "PGLRT",
+    "PW": "PGLRT",
+    "STC": "SKLRT",
+    "PTC": "PGLRT",
 }
 
 
@@ -180,9 +313,19 @@ LINE_SEQUENCES: dict[str, list[str]] = {
 EWL_CHANGI_BRANCH = ["EW4", "CG1", "CG2"]
 
 RIDE_MINUTES_BY_LINE_GROUP = {
-    "NSL": 2.5, "EWL": 2.5, "NEL": 2.5, "CCL_BRANCH": 2.0, "CCL_LOOP": 2.0,
-    "DTL": 2.5, "TEL": 2.5, "BPLRT_TRUNK": 1.5, "BPLRT_LOOP": 1.5,
-    "SKLRT_EAST": 1.5, "SKLRT_WEST": 1.5, "PGLRT_EAST": 1.5, "PGLRT_WEST": 1.5,
+    "NSL": 2.5,
+    "EWL": 2.5,
+    "NEL": 2.5,
+    "CCL_BRANCH": 2.0,
+    "CCL_LOOP": 2.0,
+    "DTL": 2.5,
+    "TEL": 2.5,
+    "BPLRT_TRUNK": 1.5,
+    "BPLRT_LOOP": 1.5,
+    "SKLRT_EAST": 1.5,
+    "SKLRT_WEST": 1.5,
+    "PGLRT_EAST": 1.5,
+    "PGLRT_WEST": 1.5,
 }
 TRANSFER_MINUTES = 5.0
 TAP_OUT_TRANSFER_MINUTES = 6.0
@@ -210,18 +353,20 @@ def build_edges() -> list[dict]:
     for group, sequence in LINE_SEQUENCES.items():
         minutes = RIDE_MINUTES_BY_LINE_GROUP[group]
         line_label = _line_for_code(sequence[0])
-        for a, b in zip(sequence, sequence[1:]):
+        for a, b in zip(sequence, sequence[1:], strict=False):
             key = frozenset({a, b})
             if key in seen_ride:
                 continue
             seen_ride.add(key)
-            edges.append({"from_node": a, "to_node": b, "line": line_label, "edge_type": "ride", "estimated_minutes": minutes})
+            edges.append(
+                {"from_node": a, "to_node": b, "line": line_label, "edge_type": "ride", "estimated_minutes": minutes}
+            )
 
-    for a, b in zip(EWL_CHANGI_BRANCH, EWL_CHANGI_BRANCH[1:]):
+    for a, b in zip(EWL_CHANGI_BRANCH, EWL_CHANGI_BRANCH[1:], strict=False):
         edges.append({"from_node": a, "to_node": b, "line": "EWL", "edge_type": "ride", "estimated_minutes": 2.5})
 
     # Transfer edges: every pair of codes sharing a physical station.
-    for name, codes in STATIONS.items():
+    for _name, codes in STATIONS.items():
         if len(codes) < 2:
             continue
         for i in range(len(codes)):
@@ -270,6 +415,10 @@ def geocode_stations() -> dict[str, dict]:
 
 
 def main() -> int:
+    from pydantic import TypeAdapter
+
+    from app.adapters.provider_schemas.reference import RailEdgeSnapshotRow, RailStationSnapshot
+
     FIXTURES_DIR.mkdir(parents=True, exist_ok=True)
 
     structure_rows = build_structure_rows()
@@ -296,20 +445,19 @@ def main() -> int:
                 "active": True,
             }
         )
-    STATIONS_JSON.write_text(
-        json.dumps(
-            {"source": RAIL_DATA_SOURCE, "version": RAIL_DATA_VERSION, "stations": stations_out},
-            indent=2,
-        )
+    station_snapshot = RailStationSnapshot.model_validate(
+        {"source": RAIL_DATA_SOURCE, "version": RAIL_DATA_VERSION, "stations": stations_out}
     )
+    STATIONS_JSON.write_text(station_snapshot.model_dump_json(indent=2))
     print(f"Wrote {len(stations_out)} geocoded stations to {STATIONS_JSON}")
 
     edges = build_edges()
+    validated_edges = TypeAdapter(list[RailEdgeSnapshotRow]).validate_python(edges)
     with EDGES_CSV.open("w", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=["from_node", "to_node", "line", "edge_type", "estimated_minutes"])
         writer.writeheader()
-        writer.writerows(edges)
-    print(f"Wrote {len(edges)} edges to {EDGES_CSV}")
+        writer.writerows(edge.model_dump(mode="json") for edge in validated_edges)
+    print(f"Wrote {len(validated_edges)} edges to {EDGES_CSV}")
 
     missing_coords = [s["station_name"] for s in stations_out if s["latitude"] is None]
     if missing_coords:

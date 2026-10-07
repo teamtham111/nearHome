@@ -1,3 +1,5 @@
+import { getDemoGeocode, mockDemoApi } from "@/demo/fixtures";
+
 type ApiFetchInit = RequestInit & { timeoutMs?: number };
 
 // Keep ordinary interactions responsive, while allowing operations that deliberately
@@ -31,6 +33,13 @@ function getApiUrl(): string {
 
 const API_URL = getApiUrl();
 
+function isDemoContext() {
+  return typeof window !== "undefined" && (
+    new URLSearchParams(window.location.search).get("demo") === "1"
+    || document.body.dataset.demoActive === "true"
+  );
+}
+
 export function parseApiError(detail: string): string {
   try {
     const parsed = JSON.parse(detail) as { detail?: unknown; message?: unknown };
@@ -55,6 +64,11 @@ export function parseApiError(detail: string): string {
 }
 
 export async function apiFetch<T>(path: string, init?: ApiFetchInit): Promise<T> {
+  const demoResponse = mockDemoApi<T>(path, init);
+  if (demoResponse !== undefined) return demoResponse;
+  if (isDemoContext()) {
+    throw new Error(`Demo fixture unavailable for ${init?.method ?? "GET"} ${path}`);
+  }
   const controller = new AbortController();
   let timedOut = false;
   const timeoutMs = init?.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
@@ -458,6 +472,9 @@ export interface GeocodeSuggestion {
 }
 
 export async function geocodeAddress(query: string, signal?: AbortSignal) {
+  if (isDemoContext()) {
+    return getDemoGeocode(query);
+  }
   let response: Response;
   try {
     response = await fetch("/api/geocode", {

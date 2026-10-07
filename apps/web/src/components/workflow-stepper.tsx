@@ -47,7 +47,7 @@ export function WorkflowStepper({ current, profileSaved, listingCount, sessionId
           return (
             <li key={step.key} className="flex min-w-0 flex-1 items-center last:flex-none">
               {canNavigate ? <Link href={target} className="flex items-center gap-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-600">{content}</Link> : <div className="flex items-center gap-2" aria-current={isCurrent ? "step" : undefined}>{content}</div>}
-              {index < steps.length - 1 && <span className={`mx-2 h-px flex-1 ${index < currentIndex ? "bg-teal-600" : "bg-slate-200"}`} aria-hidden="true" />}
+              {index < steps.length - 1 && <span className={`mx-2 h-px flex-1 ${index < currentIndex ? "nh-step-connector-complete" : "bg-slate-200"}`} aria-hidden="true" />}
             </li>
           );
         })}

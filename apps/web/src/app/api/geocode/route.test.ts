@@ -54,7 +54,12 @@ describe("POST /api/geocode", () => {
               LATITUDE: "1.3048",
               LONGITUDE: "103.8318",
             },
-            { SEARCHVAL: "invalid result", LATITUDE: "not-a-number" },
+            {
+              SEARCHVAL: { malformed: "provider text" },
+              ADDRESS: "This row must not survive structural validation",
+              LATITUDE: "1.31",
+              LONGITUDE: "103.81",
+            },
           ],
         }),
       );
@@ -90,6 +95,22 @@ describe("POST /api/geocode", () => {
     expect(await response.json()).toEqual({
       code: "GEOCODING_UNAVAILABLE",
       message: "The Singapore address service could not complete authentication (403).",
+    });
+  });
+
+  it("rejects a malformed OneMap success envelope", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ access_token: "token" }))
+      .mockResolvedValueOnce(jsonResponse({ results: "not-an-array" }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await postGeocode({ query: "Orchard Road" });
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({
+      code: "GEOCODING_UNAVAILABLE",
+      message: "The Singapore address service returned malformed address results.",
     });
   });
 });

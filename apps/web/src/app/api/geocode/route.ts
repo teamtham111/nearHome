@@ -8,26 +8,39 @@ const requestSchema = z.object({
   query: z.string().trim().min(2, "Enter at least two characters").max(200, "Address is too long"),
 });
 
+const providerCoordinateSchema = z.union([z.number(), z.string()]).transform((value, ctx) => {
+  const coordinate = Number(value);
+  if (!Number.isFinite(coordinate)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Coordinate must be finite" });
+    return z.NEVER;
+  }
+  return coordinate;
+});
+
+const oneMapTokenResponseSchema = z
+  .object({ access_token: z.string().trim().min(1) })
+  .passthrough();
+
+const oneMapResultSchema = z
+  .object({
+    SEARCHVAL: z.string().nullish(),
+    ADDRESS: z.string().nullish(),
+    POSTAL: z.string().nullish(),
+    LATITUDE: providerCoordinateSchema,
+    LONGITUDE: providerCoordinateSchema,
+  })
+  .passthrough();
+
+const oneMapSearchResponseSchema = z
+  .object({ results: z.array(z.unknown()) })
+  .passthrough();
+
 const ONEMAP_AUTH_URL = "https://www.onemap.gov.sg/api/auth/post/getToken";
 const ONEMAP_SEARCH_URL = "https://www.onemap.gov.sg/api/common/elastic/search";
 const REQUEST_TIMEOUT_MS = 10_000;
 const TOKEN_TTL_MS = 5 * 60 * 1000;
 
-type OneMapResult = {
-  SEARCHVAL?: unknown;
-  ADDRESS?: unknown;
-  POSTAL?: unknown;
-  LATITUDE?: unknown;
-  LONGITUDE?: unknown;
-};
-
-type OneMapTokenResponse = {
-  access_token?: unknown;
-};
-
-type OneMapSearchResponse = {
-  results?: unknown;
-};
+type OneMapResult = z.infer<typeof oneMapResultSchema>;
 
 type CachedToken = {
   value: string;
@@ -53,7 +66,7 @@ function jsonResponse(body: Record<string, unknown>, status: number) {
   });
 }
 
-async function readJson<T>(response: Response, providerStep: string): Promise<T> {
+async function readJson(response: Response, providerStep: string): Promise<unknown> {
   const contentType = response.headers.get("content-type") ?? "";
   const rawBody = await response.text();
 
@@ -70,7 +83,7 @@ async function readJson<T>(response: Response, providerStep: string): Promise<T>
   }
 
   try {
-    return JSON.parse(rawBody) as T;
+    return JSON.parse(rawBody) as unknown;
   } catch {
     throw new GeocodeProviderError(
       `The Singapore address service returned malformed data during ${providerStep}.`,
@@ -112,11 +125,11 @@ async function getOneMapToken(forceRefresh = false): Promise<string> {
     );
   }
 
-  const data = await readJson<OneMapTokenResponse>(response, "authentication");
-  const token = typeof data.access_token === "string" ? data.access_token.trim() : "";
-  if (!token) {
+  const parsedToken = oneMapTokenResponseSchema.safeParse(await readJson(response, "authentication"));
+  if (!parsedToken.success) {
     throw new GeocodeProviderError("The Singapore address service did not return an access token.");
   }
+  const token = parsedToken.data.access_token;
 
   cachedToken = { value: token, expiresAt: Date.now() + TOKEN_TTL_MS };
   return token;
@@ -126,18 +139,13 @@ function asText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function asCoordinate(value: unknown) {
-  const coordinate = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(coordinate) ? coordinate : null;
-}
-
 function normalizeSuggestion(result: OneMapResult, index: number) {
-  const latitude = asCoordinate(result.LATITUDE);
-  const longitude = asCoordinate(result.LONGITUDE);
+  const latitude = result.LATITUDE;
+  const longitude = result.LONGITUDE;
   const formattedAddress = asText(result.ADDRESS) || asText(result.SEARCHVAL);
   const mainText = asText(result.SEARCHVAL) || formattedAddress;
 
-  if (latitude === null || longitude === null || !formattedAddress) return null;
+  if (!formattedAddress) return null;
 
   const postal = asText(result.POSTAL);
   return {
@@ -188,11 +196,16 @@ async function searchOneMap(query: string) {
     }
   }
 
-  const data = await readJson<OneMapSearchResponse>(response, "address search");
-  const results = Array.isArray(data.results) ? data.results : [];
-  const suggestions = results
+  const parsedResponse = oneMapSearchResponseSchema.safeParse(await readJson(response, "address search"));
+  if (!parsedResponse.success) {
+    throw new GeocodeProviderError("The Singapore address service returned malformed address results.");
+  }
+  const suggestions = parsedResponse.data.results
     .slice(0, 8)
-    .map((result, index) => normalizeSuggestion(result as OneMapResult, index))
+    .map((result, index) => {
+      const parsedResult = oneMapResultSchema.safeParse(result);
+      return parsedResult.success ? normalizeSuggestion(parsedResult.data, index) : null;
+    })
     .filter((result): result is NonNullable<typeof result> => result !== null);
 
   return { suggestions };
@@ -238,4 +251,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

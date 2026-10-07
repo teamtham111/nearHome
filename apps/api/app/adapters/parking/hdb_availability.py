@@ -8,7 +8,9 @@ from threading import Lock
 from zoneinfo import ZoneInfo
 
 import httpx
+from pydantic import ValidationError
 
+from app.adapters.provider_schemas.hdb import HdbAvailabilityResponse
 from app.core.config import settings
 
 
@@ -49,13 +51,15 @@ class CarparkAvailabilityProvider:
                     else:
                         response = httpx.get(settings.hdb_carpark_availability_url, headers=headers, timeout=15)
                     response.raise_for_status()
-                    payload = response.json()
+                    payload = HdbAvailabilityResponse.model_validate(response.json())
                     break
                 except httpx.HTTPError:
                     if attempt == 1:
                         raise
-            records = _parse_response(payload or {}, now)
-        except (httpx.HTTPError, ValueError, TypeError, KeyError) as exc:
+            if payload is None:  # pragma: no cover - the retry loop either succeeds or raises
+                raise ValueError("HDB availability request produced no response")
+            records = _parse_response(payload, now)
+        except (httpx.HTTPError, ValidationError, ValueError, TypeError, KeyError) as exc:
             raise AvailabilityProviderError(f"Official HDB availability is temporarily unavailable: {exc}") from exc
 
         with self._lock:
@@ -79,25 +83,25 @@ class AvailabilityProviderError(RuntimeError):
     pass
 
 
-def _parse_response(payload: dict, retrieved_at: datetime) -> list[AvailabilityRecord]:
-    items = payload.get("items") or []
+def _parse_response(
+    payload: HdbAvailabilityResponse | dict[str, object], retrieved_at: datetime
+) -> list[AvailabilityRecord]:
+    if isinstance(payload, dict):
+        payload = HdbAvailabilityResponse.model_validate(payload)
+    items = payload.items
     if not items:
         return []
-    observed_at = _parse_datetime(items[0].get("timestamp"))
+    observed_at = _parse_datetime(items[0].timestamp)
     records: list[AvailabilityRecord] = []
-    for carpark in items[0].get("carpark_data") or []:
-        carpark_no = str(carpark.get("carpark_number") or "").strip()
-        if not carpark_no:
-            continue
-        update_at = _parse_datetime(carpark.get("update_datetime")) or observed_at
+    for carpark in items[0].carpark_data:
+        carpark_no = carpark.carpark_number.strip()
+        update_at = _parse_datetime(carpark.update_datetime) or observed_at
         timestamp_valid = update_at is not None
         stored_at = update_at or retrieved_at
-        for info in carpark.get("carpark_info") or []:
-            lot_type = str(info.get("lot_type") or "").strip().upper()
-            if not lot_type:
-                continue
-            total = _optional_int(info.get("total_lots"))
-            available = _optional_int(info.get("lots_available"))
+        for info in carpark.carpark_info:
+            lot_type = info.lot_type.strip().upper()
+            total = info.total_lots
+            available = info.lots_available
             pct = round(available / total * 100, 1) if total and available is not None and total > 0 else None
             stale = timestamp_valid and retrieved_at - stored_at > timedelta(
                 minutes=settings.hdb_carpark_availability_stale_minutes
@@ -116,13 +120,6 @@ def _parse_response(payload: dict, retrieved_at: datetime) -> list[AvailabilityR
                 )
             )
     return records
-
-
-def _optional_int(value: object) -> int | None:
-    try:
-        return int(value) if value not in (None, "") else None
-    except (TypeError, ValueError):
-        return None
 
 
 def _parse_datetime(value: object) -> datetime | None:

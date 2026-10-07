@@ -7,7 +7,7 @@ NearHome is **not** a property search portal, grant calculator, mortgage adviser
 ## Product purpose
 
 1. Create a buyer decision profile (budget, up to three priorities, supported hard requirements and optional named schools).
-2. Add listings through one shared **Add a flat** panel with Manual entry or LLM-first Smart Paste confirmation. Smart Paste accepts copied listing text or a PropertyGuru Singapore listing URL; URL pages are retrieved server-side before Groq extraction.
+2. Add listings through one shared **Add a flat** panel with Manual entry or LLM-first Smart Paste confirmation. Smart Paste accepts copied listing text or a PropertyGuru or 99.co Singapore listing URL; URL pages are retrieved server-side before Groq extraction.
 3. Remove any confirmed flat from the shortlist using its stable listing ID; listing-specific evidence is removed while the buyer profile and other flats remain.
 4. See immediate factual comparison after two confirmed listings.
 4. Progressively enrich with official and provider data.
@@ -104,6 +104,11 @@ read-only production smoke test.
 | HDB carpark data ingest | `python data_pipeline/ingest_hdb_carparks.py --live` |
 | Enrichment performance operations | [docs/ENRICHMENT_PERFORMANCE.md](docs/ENRICHMENT_PERFORMANCE.md) |
 | HDB transaction ingest | `python data_pipeline/ingest_hdb_transactions.py path/to.csv` |
+| Complete data source inventory | `apps/api/.venv/bin/python data_pipeline/run_pipeline.py --list-sources` |
+| Validate every data artifact | `apps/api/.venv/bin/python data_pipeline/run_pipeline.py --profile validate` |
+| Refresh core HDB/MOE/LTA/rail/model data | `apps/api/.venv/bin/python data_pipeline/run_pipeline.py --profile core` |
+| Refresh SLA/OSM road artifacts | `apps/api/.venv/bin/python data_pipeline/run_pipeline.py --profile roads` |
+| Full reference refresh | `apps/api/.venv/bin/python data_pipeline/run_pipeline.py --profile all` |
 | Web tests | `cd apps/web && npm test` |
 | E2E (Playwright) | `cd tests/e2e && npm install && npx playwright test` |
 
@@ -125,9 +130,44 @@ fallback instead of opening an empty review form. Normal Cloudflare CSP referenc
 rendered listing page are not treated as a block. Live URL imports require `DEMO_MODE=false` and
 `GROQ_API_KEY`.
 
+For copied listing text, the recommended input tab now places a **How to paste listing text**
+button directly above the textarea. Its accessible four-step dialog illustrates selecting the
+whole listing page, copying it, pasting messy content into NearHome, and reviewing the neatly
+formatted extracted fields; it supports keyboard navigation,
+responsive mobile presentation, focus restoration and a **View the complete guide →** link to
+`/how-it-works#copy-and-paste`. Opening or closing it preserves unsubmitted listing text. The guide uses local browser screenshots:
+a sanitized representative listing for selection/copy and the actual NearHome form for paste. See the
+[Smart Paste specification](docs/nearhome-spec.md#contextual-paste-guide) for the implemented UI,
+assets and test coverage.
+
+## How NearHome Works experience
+
+The main navigation links to `/how-it-works`, a responsive visual product guide that explains the
+complete four-step workflow: set buyer priorities, copy/paste a supported listing, review and add
+2–5 homes, then compare factor-level trade-offs. It also records supported input methods, the
+categories implemented by the current comparison UI, data limitations, FAQs and the canonical
+`/` comparison-start route.
+
+Actual NearHome screenshots are stored in `apps/web/public/how-it-works/`; the paste walkthrough
+captures are in `apps/web/public/paste-guide/`. Regenerate both sets from the running app with:
+
+```bash
+cd tests/e2e
+NEARHOME_CAPTURE_URL=http://localhost:3000 node capture-paste-guide.cjs
+```
+
+The hero currently uses `comparison-nearhome.jpg` as a clearly labelled demo-video placeholder.
+To add the final demo, place an optimised 30–60 second WebM/MP4 and poster in
+`apps/web/public/how-it-works/`, then replace the placeholder in
+`apps/web/src/app/how-it-works/page.tsx` with an accessible `<video controls preload="metadata">`.
+Do not autoplay sound, and keep the static poster/fallback so reduced-motion users receive the same
+information.
+
 ## Documentation
 
 - [Architecture](docs/architecture.md)
+- [E2E data pipeline](docs/data-pipeline.md)
+- [Complete data-source inventory](docs/data-sources.md)
 - [Implementation plan](docs/implementation-plan.md)
 - [Implementation status](docs/implementation-status.md)
 - [Product specification](docs/nearhome-spec.md)

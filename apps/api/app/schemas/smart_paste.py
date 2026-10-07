@@ -30,7 +30,7 @@ class AgentClaimSchema(BaseModel):
 
 
 class SmartPasteExtractionSchema(BaseModel):
-    """The response schema sent to Groq and validated again on the server."""
+    """The response schema sent to the configured provider and validated server-side."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -40,13 +40,12 @@ class SmartPasteExtractionSchema(BaseModel):
     # A compact subtype such as 4A may be the only type evidence; the API
     # derives flat_type from it after validation.
     flat_type: SmartPasteFieldSchema | None
-    # These are nullable but required in the provider schema. Groq's strict JSON
-    # schema implementation requires every declared property to appear in
-    # `required`; a missing optional fact is represented as JSON null.
+    # These are nullable but required in the provider schema; a missing optional
+    # fact is represented as JSON null.
     listing_flat_subtype: SmartPasteFieldSchema | None
     flat_model: SmartPasteFieldSchema | None
     # Missing lease facts are represented as JSON null. These remain required
-    # properties so Groq's strict schema accepts the complete object shape.
+    # properties so strict-schema providers accept the complete object shape.
     remaining_lease_years: SmartPasteFieldSchema | None
     lease_commencement_year: SmartPasteFieldSchema | None
     property_category: Literal["HDB", "NON_HDB", "UNKNOWN"]

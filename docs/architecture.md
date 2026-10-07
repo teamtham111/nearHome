@@ -42,8 +42,9 @@ flowchart TB
 | `services/` | Workflows orchestrating repositories and engines |
 | `repositories/` | Database access |
 | `adapters/` | OneMap, Google, LTA, MOE, HDB, LLM |
+| `adapters/provider_schemas/` | Pydantic contracts for external JSON, normalized snapshots and artifact metadata |
 | `jobs/` | Enrichment orchestration |
-| `schemas/` | Pydantic API contracts |
+| `schemas/` | Pydantic contracts for NearHome's public API |
 
 ## Key architectural decisions
 
@@ -54,6 +55,7 @@ flowchart TB
 | ADR-003 | `DEMO_MODE` with mock adapters | Real interfaces, no fake-as-official data |
 | ADR-004 | LLM never selects recommendation | Enforced in engine layer, not UI |
 | ADR-005 | Immediate comparison has zero external deps | Spec rule: useful results appear early |
+| ADR-006 | Validate external data before canonical mapping | Provider-specific Pydantic models reject malformed consumed fields; semantic and cross-record validation remains explicit |
 
 ## End-to-end sequence (manual two-listing flow)
 
@@ -101,3 +103,14 @@ nearhomev2/
 - CORS restricted to configured origins
 
 See [security-and-privacy.md](security-and-privacy.md).
+
+## Reference-data plane
+
+All scheduled/offline reference ingestion is orchestrated by
+`data_pipeline/run_pipeline.py`. It downloads immutable raw snapshots, validates provider schemas,
+builds joined/derived artifacts, applies cross-dataset quality gates and writes a hash-bearing run
+manifest. Runtime API/worker processes consume the published local artifacts and never issue a
+per-listing OSM or SLA download.
+
+See [the E2E data-pipeline runbook](data-pipeline.md) and
+[the complete source inventory](data-sources.md).

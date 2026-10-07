@@ -23,6 +23,7 @@ import { useId, useState } from "react";
 export type PriorityOption = {
   value: string;
   label: string;
+  description: string;
 };
 
 type PriorityRankingProps = {
@@ -46,7 +47,7 @@ function PrioritySelect({
   id: string;
   label: string;
   value: string;
-  options: PriorityOption[];
+  options: readonly PriorityOption[];
   onChange: (value: string) => void;
   placeholder?: string;
 }) {
@@ -55,6 +56,7 @@ function PrioritySelect({
       <select
         id={id}
         aria-label={label}
+        aria-describedby={`${id}-description`}
         className="nh-priority-select"
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -85,6 +87,7 @@ function SortablePriorityRow({
   rowOptions,
   label,
   selectId,
+  description,
   canRemove,
   onReplace,
   onRemove,
@@ -95,6 +98,7 @@ function SortablePriorityRow({
   rowOptions: PriorityOption[];
   label: string;
   selectId: string;
+  description: string;
   canRemove: boolean;
   onReplace: (value: string) => void;
   onRemove: () => void;
@@ -127,13 +131,18 @@ function SortablePriorityRow({
       >
         {index + 1}
       </span>
-      <PrioritySelect
-        id={selectId}
-        label={`Priority ${index + 1} factor`}
-        value={priority}
-        options={rowOptions}
-        onChange={onReplace}
-      />
+      <div className="min-w-0 flex-1">
+        <PrioritySelect
+          id={selectId}
+          label={`Priority ${index + 1} factor`}
+          value={priority}
+          options={[...rowOptions]}
+          onChange={onReplace}
+        />
+        <p id={`${selectId}-description`} className="mt-1 px-1 text-xs leading-5 text-slate-600">
+          {description}
+        </p>
+      </div>
       <button
         type="button"
         className="nh-ghost-icon-button text-slate-400 hover:text-red-600"
@@ -201,6 +210,7 @@ export function PriorityRanking({
                   rowOptions={rowOptions}
                   label={label}
                   selectId={`${baseId}-priority-${index}`}
+                  description={options.find((option) => option.value === priority)?.description ?? ""}
                   canRemove={priorities.length > 1}
                   onReplace={(value) => onReplace(index, value)}
                   onRemove={() => onRemove(index)}
@@ -218,6 +228,7 @@ export function PriorityRanking({
                 <button
                   id={`${baseId}-add-priority`}
                   type="button"
+                  data-demo-id="priority-picker"
                   aria-label="Choose a priority to add"
                   aria-haspopup="listbox"
                   aria-expanded={addMenuOpen}
@@ -242,12 +253,16 @@ export function PriorityRanking({
                       <button
                         key={option.value}
                         type="button"
+                        data-demo-id={option.value === "AFFORDABILITY" ? "priority-option-affordability" : option.value === "SPACE" ? "priority-option-space" : option.value === "PUBLIC_TRANSPORT" ? "priority-option-transport" : undefined}
                         role="option"
                         aria-selected="false"
                         className="block w-full px-3 py-2 text-left text-sm font-medium text-slate-900 transition hover:bg-teal-50 focus:bg-teal-50 focus:outline-none"
                         onClick={() => handleAdd(option.value)}
                       >
-                        {option.label}
+                        <span className="block">{option.label}</span>
+                        <span className="mt-0.5 block text-xs font-normal leading-5 text-slate-600">
+                          {option.description}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -260,6 +275,7 @@ export function PriorityRanking({
           ) : (
             <button
               type="button"
+              data-demo-id="priority-add"
               className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:border-teal-400 hover:bg-teal-50/40 hover:text-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600/20"
               onClick={() => setAddPickerOpen(true)}
             >

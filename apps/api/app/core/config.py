@@ -69,8 +69,35 @@ class Settings(BaseSettings):
     singapore_drive_graph_path: str = ""
     sla_osm_major_road_mapping_path: str = ""
     lta_account_key: str = ""
+    # The legacy Groq settings stay available so existing deployments continue to work.
+    llm_provider: str = "groq"
+    llm_api_key: str = ""
+    llm_model: str = ""
+    llm_base_url: str = ""
     groq_api_key: str = ""
     groq_model: str = "openai/gpt-oss-20b"
+
+    @property
+    def effective_llm_api_key(self) -> str:
+        if self.llm_api_key:
+            return self.llm_api_key
+        return self.groq_api_key if self.llm_provider.casefold() == "groq" else ""
+
+    @property
+    def effective_llm_model(self) -> str:
+        if self.llm_model:
+            return self.llm_model
+        if self.llm_provider.casefold() == "gemini":
+            return "gemini-3.8-flash"
+        return self.groq_model
+
+    @property
+    def effective_llm_base_url(self) -> str:
+        if self.llm_base_url:
+            return self.llm_base_url
+        if self.llm_provider.casefold() == "gemini":
+            return "https://generativelanguage.googleapis.com/v1beta/openai/"
+        return "https://api.groq.com/openai/v1"
 
     # Official HDB/data.gov.sg carpark sources. The availability feed is
     # public, but an optional data.gov.sg key raises production rate limits.
@@ -165,8 +192,8 @@ class Settings(BaseSettings):
             problems.append("GOOGLE_MAPS_API_KEY is required when APP_ENV=production")
         if not self.onemap_email or not self.onemap_password:
             problems.append("ONEMAP_EMAIL and ONEMAP_PASSWORD are required when APP_ENV=production")
-        if not self.groq_api_key:
-            problems.append("GROQ_API_KEY is required when APP_ENV=production")
+        if not self.effective_llm_api_key:
+            problems.append("LLM_API_KEY (or legacy GROQ_API_KEY) is required when APP_ENV=production")
         if self.job_execution_mode != "cloud_tasks":
             problems.append("JOB_EXECUTION_MODE must be cloud_tasks when APP_ENV=production")
         required_task_settings = {

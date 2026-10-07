@@ -6,13 +6,16 @@ import json
 from datetime import UTC, datetime
 
 import httpx
+from pydantic import TypeAdapter, ValidationError
 
 from app.adapters.base import RouteMatrixElement, RouteMatrixResult
+from app.adapters.provider_schemas.google_routes import GoogleRouteMatrixRow
 from app.adapters.routing.base import RoutingProviderError
 from app.core.config import settings
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
+_MATRIX_ROWS_ADAPTER = TypeAdapter(list[GoogleRouteMatrixRow])
 
 
 def _google_error_code(response_text: str) -> str | None:
@@ -53,8 +56,7 @@ class LiveGoogleRoutesAdapter:
             "X-Goog-FieldMask": "originIndex,duration,condition",
         }
         origins_payload = [
-            {"waypoint": {"location": {"latLng": {"latitude": lat, "longitude": lng}}}}
-            for lat, lng in origins
+            {"waypoint": {"location": {"latLng": {"latitude": lat, "longitude": lng}}}} for lat, lng in origins
         ]
         body = {
             "origins": origins_payload,
@@ -142,33 +144,28 @@ class LiveGoogleRoutesAdapter:
                 "Google Route Matrix returned invalid JSON", self.provider, response_body=resp.text
             ) from exc
 
+        try:
+            rows = _MATRIX_ROWS_ADAPTER.validate_python(data)
+        except ValidationError as exc:
+            raise RoutingProviderError(
+                "Google Route Matrix returned a malformed success response",
+                self.provider,
+                error_code="invalid_output",
+                response_body=resp.text,
+            ) from exc
+
         elements: list[RouteMatrixElement] = []
-        if isinstance(data, list):
-            for item in data:
-                idx = item.get("originIndex", 0)
-                dur = item.get("duration")
-                seconds = int(dur.rstrip("s")) if isinstance(dur, str) and dur.endswith("s") else None
-                if seconds is None and isinstance(dur, dict):
-                    seconds = int(dur.get("seconds", 0)) or None
-                status = "AVAILABLE" if seconds else "UNAVAILABLE"
-                elements.append(
-                    RouteMatrixElement(
-                        origin_index=idx,
-                        duration_seconds=seconds,
-                        status=status,
-                        provider_status=item.get("condition", "OK"),
-                    )
+        for item in rows:
+            seconds = round(item.duration_seconds) if item.duration_seconds is not None else None
+            status = "AVAILABLE" if seconds is not None else "UNAVAILABLE"
+            elements.append(
+                RouteMatrixElement(
+                    origin_index=item.origin_index,
+                    duration_seconds=seconds,
+                    status=status,
+                    provider_status=item.condition,
                 )
-        else:
-            for idx in range(len(origins)):
-                elements.append(
-                    RouteMatrixElement(
-                        origin_index=idx,
-                        duration_seconds=None,
-                        status="UNAVAILABLE",
-                        provider_status="NO_ROUTE",
-                    )
-                )
+            )
 
         return RouteMatrixResult(
             elements=elements,

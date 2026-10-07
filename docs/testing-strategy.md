@@ -29,14 +29,17 @@ optional similarity component.
 | Shortlist removal | stable-ID deletion, confirmation/cancel, persistence rollback, cascading listing state, combined Add a flat entry area and one/zero-listing behaviour |
 | Public Transport presentation | rating boundaries, practical interpretation, honest missing data, tie-aware shortlist positions and progressive disclosure |
 | Driving presentation | four-component weights, exact 76-point rollup formula, no-destination completeness, separate destination journey presentation, route singular/plural wording, parking-field omission, availability freshness and Singapore-time formatting |
+| External provider contracts | OneMap auth/search (Pydantic in Python and Zod in Next.js), Google Places autocomplete/details, Google Routes/Matrix nesting, raw HDB/LTA/SLA maintenance responses, normalized snapshots and road/model artifacts; malformed structures fail before canonical mapping or publication |
 
 Run: `cd apps/api && pytest`
 
-## Integration tests (`tests/integration/` — Phase 2)
+## Integration tests (`apps/api/app/tests/test_api_integration.py`)
 
-- PostgreSQL repositories with test database
-- Smart Paste with recorded LLM fixtures
-- Adapter mocks with partial route-matrix failure
+- PostgreSQL repositories with a configured test database
+- Session, profile, listing, Smart Paste, comparison and local enrichment-job flows
+- Adapter/provider integration remains deterministic through mocks and provider-shaped fixtures
+
+The older planned `tests/integration/` directory is not the current layout; integration coverage lives with the backend pytest suite and is skipped when `DATABASE_URL` is unavailable.
 
 CI does **not** depend on live paid APIs.
 
@@ -44,9 +47,11 @@ CI does **not** depend on live paid APIs.
 
 Vitest + React Testing Library for:
 
+- OneMap API-route token/search structural validation and malformed-provider handling
 - Priority max 3 validation
 - Always-expanded price/fair-price panels
 - Unavailable journey states (Phase 2)
+- Smart Paste contextual guide navigation, full-guide destination, closing, focus trap/restoration and scroll locking
 
 Run: `cd apps/web && npm test`
 
@@ -66,6 +71,13 @@ Playwright flows from master prompt §31:
 10. Priority custom factor picker and drag-and-drop/keyboard reordering, with ranks updating after a drop
 11. Buyer-profile-first workflow, with flat entry becoming available after profile save
 12. Dedicated comparison route starts enrichment from the shortlist action, shows progress, then displays refreshed results
+13. Smart Paste contextual help appears above the listing-text field, completes all four steps (including messy-paste reassurance and formatted review), links to `/how-it-works#copy-and-paste`, preserves unsubmitted textarea content and supports visible-close and Escape paths
+14. `/how-it-works` renders from the primary navigation with two in-page `/` start CTAs, the four workflow headings in order, a working copy/paste anchor and no horizontal overflow at 390 px
+
+The How It Works capture script also provides deterministic visual fixtures. Before release, inspect
+the route at approximately 1440 px and 390 px, plus the paste dialog at desktop and mobile widths;
+check screenshot readability, connector alignment, stacking order, focus visibility, console errors
+and `prefers-reduced-motion` behaviour.
 
 ## CI gates
 

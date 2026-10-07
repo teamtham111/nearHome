@@ -2,13 +2,23 @@
 
 from __future__ import annotations
 
-import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
 
+from pydantic import TypeAdapter
+
+from app.adapters.provider_schemas.reference import (
+    LtaBusStopSnapshotRow,
+    MoeSchoolSnapshotRow,
+    MrtStationSnapshotRow,
+)
+
 ROOT = Path(__file__).resolve().parents[4]
 FIXTURES = ROOT / "data_pipeline" / "fixtures"
+_BUS_STOP_ROWS_ADAPTER = TypeAdapter(list[LtaBusStopSnapshotRow])
+_MRT_STATION_ROWS_ADAPTER = TypeAdapter(list[MrtStationSnapshotRow])
+_SCHOOL_ROWS_ADAPTER = TypeAdapter(list[MoeSchoolSnapshotRow])
 
 
 @dataclass
@@ -65,15 +75,15 @@ class ReferenceDataStore:
     def bus_stops(cls) -> list[BusStop]:
         if cls._bus_stops is None:
             path = FIXTURES / "lta_bus_stops.json"
-            raw = json.loads(path.read_text()) if path.exists() else []
+            raw = _BUS_STOP_ROWS_ADAPTER.validate_json(path.read_text()) if path.exists() else []
             cls._bus_stops = [
                 BusStop(
-                    stop_code=r["stop_code"],
-                    description=r["description"],
-                    latitude=r["latitude"],
-                    longitude=r["longitude"],
-                    road_name=r["road_name"],
-                    services=r.get("services", []),
+                    stop_code=r.stop_code,
+                    description=r.description,
+                    latitude=r.latitude,
+                    longitude=r.longitude,
+                    road_name=r.road_name,
+                    services=r.services,
                 )
                 for r in raw
             ]
@@ -83,22 +93,22 @@ class ReferenceDataStore:
     def mrt_stations(cls) -> list[MrtStation]:
         if cls._mrt_stations is None:
             path = FIXTURES / "mrt_stations.json"
-            raw = json.loads(path.read_text()) if path.exists() else []
+            raw = _MRT_STATION_ROWS_ADAPTER.validate_json(path.read_text()) if path.exists() else []
             seen: set[str] = set()
             stations: list[MrtStation] = []
             for r in raw:
-                key = r["name"].upper()
+                key = r.name.upper()
                 if key in seen:
                     continue
                 seen.add(key)
                 stations.append(
                     MrtStation(
-                        station_code=r["station_code"],
-                        name=r["name"],
-                        latitude=r["latitude"],
-                        longitude=r["longitude"],
-                        lines=r.get("lines", []),
-                        is_interchange=r.get("is_interchange", False),
+                        station_code=r.station_code,
+                        name=r.name,
+                        latitude=r.latitude,
+                        longitude=r.longitude,
+                        lines=r.lines,
+                        is_interchange=r.is_interchange,
                     )
                 )
             cls._mrt_stations = stations
@@ -108,8 +118,17 @@ class ReferenceDataStore:
     def schools(cls) -> list[School]:
         if cls._schools is None:
             path = FIXTURES / "moe_schools.json"
-            raw = json.loads(path.read_text()) if path.exists() else []
-            cls._schools = [School(**r) for r in raw]
+            raw = _SCHOOL_ROWS_ADAPTER.validate_json(path.read_text()) if path.exists() else []
+            cls._schools = [
+                School(
+                    school_name=r.school_name,
+                    level=r.level,
+                    latitude=r.latitude,
+                    longitude=r.longitude,
+                    address=r.address,
+                )
+                for r in raw
+            ]
         return cls._schools
 
     @classmethod
