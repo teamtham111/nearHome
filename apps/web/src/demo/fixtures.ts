@@ -297,3 +297,22 @@ export function getDemoGeocode(query: string) {
   const name = school ? "Ang Mo Kio Primary School" : "Raffles Place";
   return { suggestions: [{ place_id: "demo-place", description: `${name}, Singapore`, main_text: name, formatted_address: `${name}, Singapore`, latitude: school ? 1.369 : 1.284, longitude: school ? 103.849 : 103.852 }] };
 }
+
+/** A completed two-flat comparison for the dev-only results preview page. */
+export function buildResultsPreview(transportMode: "MAINLY_PUBLIC_TRANSPORT" | "MAINLY_DRIVING" | "BOTH" = "BOTH") {
+  const namedSchools = ["Ai Tong School"];
+  const importantLocations = [{ important_location_id: "demo-location-0", label: "Work", formatted_address: "Raffles Place, Singapore", transport_mode: "BOTH", is_complete: true }];
+  const state: DemoState = {
+    ...emptyState(),
+    profile_saved: true,
+    buyer_profile: { max_budget: 750000, main_transport_mode: transportMode, schools_matter: true, named_schools: namedSchools, priorities: ["AFFORDABILITY", "SPACE", "PUBLIC_TRANSPORT"] },
+    listings: listings.map(({ image: _image, ...listing }, index) => ({ ...listing, listing_id: `demo-flat-${index + 1}` })),
+  };
+  return {
+    comparison: mockComparison(state),
+    session: {
+      listings: state.listings,
+      buyer_profile: { main_transport_mode: transportMode, schools_matter: true, named_schools: namedSchools, named_school: null, important_locations: importantLocations },
+    },
+  };
+}

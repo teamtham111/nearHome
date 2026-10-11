@@ -292,6 +292,16 @@ class HealthResponse(BaseModel):
     checks: dict[str, str] | None = None
 
 
+class SessionFeedbackInput(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    comment: str | None = Field(default=None, max_length=2000)
+
+    @field_validator("comment")
+    @classmethod
+    def blank_comment_is_none(cls, value: str | None) -> str | None:
+        return value.strip() or None if value is not None else None
+
+
 class ObservationCreate(BaseModel):
     category: str = Field(min_length=1, max_length=80)
     value_text: str = Field(min_length=1)

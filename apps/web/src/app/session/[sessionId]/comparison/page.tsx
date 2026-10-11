@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { ComparisonView } from "@/components/comparison-view";
 import { EnrichmentProgress } from "@/components/enrichment-progress";
+import { RatingPrompt } from "@/components/rating-prompt";
 import { WorkflowStepper } from "@/components/workflow-stepper";
 import { getComparison, getSession, startEnrichment } from "@/lib/api";
 import { startDemoEnrichmentFixture } from "@/demo/fixtures";
@@ -178,7 +179,10 @@ export default function SessionComparisonPage() {
           {String(comparisonQuery.error?.message ?? "Unable to load comparison")}
         </div>
       ) : (
-        <ComparisonView data={comparisonQuery.data} session={session} />
+        <>
+          <ComparisonView data={comparisonQuery.data} session={session} />
+          {!isDemo && !comparisonQuery.data.demo_mode && <RatingPrompt sessionId={sessionId} />}
+        </>
       )}
     </div>
   );

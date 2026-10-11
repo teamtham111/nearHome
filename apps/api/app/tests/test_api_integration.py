@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from datetime import UTC, datetime, timedelta
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
@@ -279,3 +280,30 @@ def test_polling_expires_a_stale_active_enrichment_job(client: TestClient):
     assert response.json()["status"] == "failed"
     assert response.json()["progress_stage"] == "failed"
     assert response.json()["error_code"] == "enrichment_job_timed_out"
+
+
+def test_session_feedback_upserts_one_rating_per_session(client: TestClient):
+    session_id = client.post("/api/v1/sessions").json()["session_id"]
+
+    first = client.put(f"/api/v1/sessions/{session_id}/feedback", json={"rating": 4})
+    assert first.status_code == 200
+    assert first.json() == {"rating": 4, "comment": None}
+
+    updated = client.put(
+        f"/api/v1/sessions/{session_id}/feedback",
+        json={"rating": 5, "comment": "  Clear comparison  "},
+    )
+    assert updated.json() == {"rating": 5, "comment": "Clear comparison"}
+
+    rating_only = client.put(f"/api/v1/sessions/{session_id}/feedback", json={"rating": 3})
+    assert rating_only.json() == {"rating": 3, "comment": "Clear comparison"}
+
+
+def test_session_feedback_rejects_invalid_ratings_and_unknown_sessions(client: TestClient):
+    session_id = client.post("/api/v1/sessions").json()["session_id"]
+    for rating in (0, 6):
+        response = client.put(f"/api/v1/sessions/{session_id}/feedback", json={"rating": rating})
+        assert response.status_code == 422
+
+    missing = client.put(f"/api/v1/sessions/{uuid4()}/feedback", json={"rating": 5})
+    assert missing.status_code == 404

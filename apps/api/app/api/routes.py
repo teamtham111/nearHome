@@ -9,6 +9,8 @@ from fastapi import APIRouter, Depends, Header, HTTPException, status
 from fastapi.responses import JSONResponse
 from redis import Redis
 from redis.exceptions import RedisError
+from sqlalchemy import func
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -24,6 +26,7 @@ from app.domain.models import (
     ImportantLocation,
     build_priorities,
 )
+from app.models.orm import SessionFeedbackORM
 from app.repositories.enrichment_job_repository import EnrichmentJobRepository
 from app.repositories.enrichment_repository import EnrichmentRepository
 from app.repositories.session_repository import SessionRepository
@@ -38,6 +41,7 @@ from app.schemas.comparison import (
     ObservationCreate,
     PlacesAutocompleteResponse,
     SessionCreateResponse,
+    SessionFeedbackInput,
     SmartPasteInput,
 )
 from app.schemas.enrichment_jobs import EnrichmentJobStartResponse, EnrichmentJobStatusResponse
@@ -831,6 +835,23 @@ def get_recommendation_trace(session_id: UUID, db: Session = Depends(get_db)) ->
     if not trace:
         raise HTTPException(status_code=404, detail="No recommendation trace yet — run comparison first")
     return trace
+
+
+@router.put("/sessions/{session_id}/feedback")
+def save_session_feedback(session_id: UUID, body: SessionFeedbackInput, db: Session = Depends(get_db)) -> dict:
+    if not SessionRepository(db).get_session(session_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+    values = {"session_id": session_id, "rating": body.rating}
+    if body.comment is not None:
+        values["comment"] = body.comment
+    statement = pg_insert(SessionFeedbackORM).values(**values)
+    statement = statement.on_conflict_do_update(
+        index_elements=[SessionFeedbackORM.session_id],
+        set_={**{key: statement.excluded[key] for key in values if key != "session_id"}, "updated_at": func.now()},
+    ).returning(SessionFeedbackORM.rating, SessionFeedbackORM.comment)
+    rating, comment = db.execute(statement).one()
+    db.commit()
+    return {"rating": rating, "comment": comment}
 
 
 @router.get("/sessions/{session_id}/observations")

@@ -512,3 +512,10 @@ export function createObservation(listingId: string, category: string, valueText
 export function deleteObservation(observationId: string) {
   return apiFetch(`/api/v1/observations/${observationId}`, { method: "DELETE" });
 }
+
+export function saveSessionFeedback(sessionId: string, body: { rating: number; comment?: string }) {
+  return apiFetch<{ rating: number; comment: string | null }>(`/api/v1/sessions/${sessionId}/feedback`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
