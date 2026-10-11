@@ -36,7 +36,10 @@ describe("API request timeouts", () => {
     vi.stubGlobal("window", {
       setTimeout: setTimeoutSpy,
       clearTimeout: globalThis.clearTimeout,
+      location: { search: "" },
     });
+    // apiFetch checks for demo mode via the URL and body dataset before calling fetch.
+    vi.stubGlobal("document", { body: { dataset: {} } });
   });
 
   afterEach(() => {
