@@ -40,6 +40,19 @@ function isDemoContext() {
   );
 }
 
+/** An HTTP error response from the NearHome API, keeping its status for callers. */
+export class ApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+/** True for 4xx responses, which repeat identically on retry. */
+export function isClientApiError(error: unknown): error is ApiError {
+  return error instanceof ApiError && error.status >= 400 && error.status < 500;
+}
+
 export function parseApiError(detail: string): string {
   try {
     const parsed = JSON.parse(detail) as { detail?: unknown; message?: unknown };
@@ -102,7 +115,7 @@ export async function apiFetch<T>(path: string, init?: ApiFetchInit): Promise<T>
   }
   if (!res.ok) {
     const detail = await res.text();
-    throw new Error(parseApiError(detail));
+    throw new ApiError(parseApiError(detail), res.status);
   }
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;

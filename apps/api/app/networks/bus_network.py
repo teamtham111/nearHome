@@ -7,6 +7,7 @@ not whole service routes or unordered stop sets.
 
 from __future__ import annotations
 
+from bisect import bisect_left
 from dataclasses import dataclass, field
 from functools import cache
 
@@ -51,15 +52,36 @@ class _UnionFind:
             self._parent[root_a] = root_b
 
 
-def _longest_common_subsequence_length(left: tuple[str, ...], right: tuple[str, ...]) -> int:
-    """Return the length of the ordered stop sequence shared by two options."""
-    previous = [0] * (len(right) + 1)
-    for left_stop in left:
-        current = [0]
-        for index, right_stop in enumerate(right, 1):
-            current.append(previous[index - 1] + 1 if left_stop == right_stop else max(previous[index], current[-1]))
-        previous = current
-    return previous[-1]
+def _stop_positions(stops: tuple[str, ...]) -> dict[str, list[int]]:
+    positions: dict[str, list[int]] = {}
+    for index, stop in enumerate(stops):
+        positions.setdefault(stop, []).append(index)
+    return positions
+
+
+def _longest_common_subsequence_length(
+    left: tuple[str, ...],
+    right: tuple[str, ...],
+    right_positions: dict[str, list[int]] | None = None,
+) -> int:
+    """Return the length of the ordered stop sequence shared by two options.
+
+    Hunt-Szymanski: bus routes rarely repeat a stop, so matching stop pairs
+    are sparse and this runs in O((n + matches) log n) rather than the
+    O(n * m) table, which dominated Public Transport enrichment time.
+    """
+    positions = right_positions if right_positions is not None else _stop_positions(right)
+    # tails[k] is the smallest right-index ending a common subsequence of length k + 1.
+    tails: list[int] = []
+    for stop in left:
+        # Descending order stops one left stop from extending its own match.
+        for index in reversed(positions.get(stop, ())):
+            slot = bisect_left(tails, index)
+            if slot == len(tails):
+                tails.append(index)
+            else:
+                tails[slot] = index
+    return len(tails)
 
 
 def downstream_similarity(left: BoardingServiceOption, right: BoardingServiceOption) -> float:
@@ -72,6 +94,45 @@ def downstream_similarity(left: BoardingServiceOption, right: BoardingServiceOpt
     if not shorter:
         return 0.0
     return _longest_common_subsequence_length(left.downstream_stop_codes, right.downstream_stop_codes) / shorter
+
+
+class _OverlapChecker:
+    """Answers ``downstream_similarity(left, right) >= threshold`` for many pairs.
+
+    Exact, but faster than calling downstream_similarity per pair: each
+    option's stop set and positions are computed once, and the LCS is skipped
+    when the shared-stop count already rules the threshold out (when either
+    sequence has no repeated stop, LCS <= |shared stops|).
+    """
+
+    def __init__(self, threshold: float) -> None:
+        self.threshold = threshold
+        self._profiles: dict[int, tuple[frozenset[str], bool, dict[str, list[int]]]] = {}
+
+    def _profile(self, option: BoardingServiceOption) -> tuple[frozenset[str], bool, dict[str, list[int]]]:
+        # Keyed by identity: dataclass hashing re-hashes the whole stop tuple.
+        key = id(option.downstream_stop_codes)
+        profile = self._profiles.get(key)
+        if profile is None:
+            stops = option.downstream_stop_codes
+            stop_set = frozenset(stops)
+            profile = (stop_set, len(stop_set) == len(stops), _stop_positions(stops))
+            self._profiles[key] = profile
+        return profile
+
+    def meets(self, left: BoardingServiceOption, right: BoardingServiceOption) -> bool:
+        shorter = min(len(left.downstream_stop_codes), len(right.downstream_stop_codes))
+        if not shorter:
+            # Same result as downstream_similarity's 0.0 for an empty sequence.
+            return self.threshold <= 0.0
+        left_set, left_unique, _ = self._profile(left)
+        right_set, right_unique, right_positions = self._profile(right)
+        if (left_unique or right_unique) and len(left_set & right_set) / shorter < self.threshold:
+            return False
+        lcs = _longest_common_subsequence_length(
+            left.downstream_stop_codes, right.downstream_stop_codes, right_positions
+        )
+        return lcs / shorter >= self.threshold
 
 
 class BoardingCorridorContext:
@@ -167,15 +228,20 @@ class BusNetwork:
             for stop_code in set(option.downstream_stop_codes):
                 by_stop.setdefault(stop_code, []).append(option)
 
-        compared: set[tuple[BoardingServiceOption, BoardingServiceOption]] = set()
+        # Compare by position in the sorted list: hashing option pairs would
+        # re-hash every downstream stop tuple on each lookup.
+        rank = {id(option): index for index, option in enumerate(ordered_options)}
+        overlap = _OverlapChecker(self.overlap_threshold)
+        compared: set[tuple[int, int]] = set()
         for candidates in by_stop.values():
             for index, left in enumerate(candidates):
                 for right in candidates[index + 1 :]:
-                    pair = (left, right) if left < right else (right, left)
+                    left_rank, right_rank = rank[id(left)], rank[id(right)]
+                    pair = (left_rank, right_rank) if left_rank < right_rank else (right_rank, left_rank)
                     if pair in compared:
                         continue
                     compared.add(pair)
-                    if downstream_similarity(left, right) >= self.overlap_threshold:
+                    if overlap.meets(left, right):
                         union_find.union(left, right)
 
         groups: dict[BoardingServiceOption, set[BoardingServiceOption]] = {}
@@ -235,13 +301,11 @@ class BusNetwork:
         # Discard only transfer options that themselves duplicate a direct
         # choice. This happens before grouping, so a duplicate option cannot
         # pull a genuinely new transfer service into an excluded group.
+        overlap = _OverlapChecker(self.overlap_threshold)
         novel_transfer_options = {
             transfer_option
             for transfer_option in transfer_options
-            if not any(
-                downstream_similarity(transfer_option, direct_option) >= self.overlap_threshold
-                for direct_option in direct_options
-            )
+            if not any(overlap.meets(transfer_option, direct_option) for direct_option in direct_options)
         }
         # Group transfer options separately so they cannot bridge or merge two
         # otherwise distinct direct corridors.

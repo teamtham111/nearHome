@@ -55,6 +55,10 @@ function demoRoute(route: string, step: number, extra: Record<string, string> = 
   return `${route}?${params.toString()}`;
 }
 
+function resultsShown(): boolean {
+  return document.querySelector('[data-demo-id="comparison-results"]') !== null;
+}
+
 function readDemoForm(): Record<string, unknown> {
   try { return JSON.parse(localStorage.getItem(formKey) ?? "{}"); } catch { return {}; }
 }
@@ -110,6 +114,7 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
   const indexRef = useRef(0);
   const advanceRef = useRef<(() => void) | null>(null);
   const actionProgress = useRef<Record<string, string>>({});
+  const pendingSkipRef = useRef<number | null>(null);
   const actionTimes = useRef<Record<string, number>>({});
   const [captionPosition, setCaptionPosition] = useState({ left: 0, top: 0 });
   const step = DEMO_STEPS[Math.min(stepIndex, DEMO_STEPS.length - 1)];
@@ -181,6 +186,8 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
     for (let attempt = 0; attempt < attempts; attempt += 1) {
       const found = document.querySelector<HTMLElement>(`[data-demo-id="${target}"]`);
       if (found) return found;
+      // The loading bar is gone for good once results render (e.g. after skipping ahead quickly).
+      if (target === "enrichment-progress-bar" && resultsShown()) return null;
       await poll(100);
     }
     return null;
@@ -299,11 +306,15 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
     const current = DEMO_STEPS[indexRef.current];
     if (!current) { busy.current = false; return; }
     try {
-      if (window.location.pathname !== current.route) {
+      const progress = actionProgress.current[current.id];
+      // "run" already moved to the comparison; if it is re-entered (e.g. Next
+      // pressed during its pause) finish it in place rather than going back to
+      // the workspace and starting the comparison a second time.
+      const runNavigated = current.id === "run" && progress === "navigated";
+      if (window.location.pathname !== current.route && !runNavigated) {
         await navigateWithSwitch(current.route, indexRef.current);
         await playbackDelay(650);
       }
-      const progress = actionProgress.current[current.id];
       let targetId = current.target;
       if (current.id === "destination" && ["opened", "query-entered"].includes(progress ?? "")) targetId = "destination-query";
       if (current.id === "destination" && progress === "place-selected") targetId = "destination-done";
@@ -321,9 +332,10 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
           await findTarget("confirm-listing");
         }
       }
-      const target = progress === "extracted" || progress === "confirmed" ? null : await findTarget(targetId);
+      const target = progress === "extracted" || progress === "confirmed" || runNavigated ? null : await findTarget(targetId);
       const completedTargetAction = current.action === "paste" && ["extracted", "confirmed"].includes(progress ?? "");
-      if (current.target && !target && !completedTargetAction && !(current.action === "wait" && speed < 1)) throw new Error(`Could not find the demo target: ${current.target}`);
+      const loadingFinished = current.target === "enrichment-progress-bar" && !target && resultsShown();
+      if (current.target && !target && !completedTargetAction && !runNavigated && !loadingFinished && !(current.action === "wait" && speed < 1)) throw new Error(`Could not find the demo target: ${current.target}`);
       if (target) {
         await moveTo(target);
         if (!playingRef.current) { busy.current = false; return; }
@@ -359,7 +371,13 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
         }
       } else if (current.action === "click" && target) {
         if (current.id === "run") {
-          target.click();
+          // Navigate once, straight to the demo comparison URL. Clicking the real
+          // link and then replacing its URL started two overlapping navigations;
+          // when Next was pressed quickly, Next.js fell back to a full page load of
+          // the link's non-demo URL, dropping the demo and calling the real API.
+          const runStep = DEMO_STEPS[indexRef.current + 1];
+          if (runStep) router.push(demoRoute(runStep.route, indexRef.current + 1, { run: "1" }), { scroll: false });
+          actionProgress.current[current.id] = "navigated";
           for (let attempt = 0; attempt < 50 && !window.location.pathname.endsWith("/comparison"); attempt += 1) await poll(100);
         } else if (priorityStep) {
           const ids = ["priority-add", "priority-picker", priorityStep.option];
@@ -555,15 +573,11 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
       Object.keys(actionTimes.current).filter((key) => key.startsWith(`${current.id}:`)).forEach((key) => delete actionTimes.current[key]);
       indexRef.current = nextIndex;
       setStepIndex(nextIndex);
-      busy.current = false;
       const fastTarget = fastTargetRef.current;
       const fastDone = fastTarget !== null && nextIndex >= fastTarget;
       if (fastDone) { fastTargetRef.current = null; speed = 1; }
       const shouldPause = fastDone || (fastTarget === null && current.pauseAfter && pauseRef.current);
       const nextStep = DEMO_STEPS[nextIndex];
-      if (current.id === "run" && nextStep) {
-        router.replace(demoRoute(nextStep.route, nextIndex, { run: "1" }), { scroll: false });
-      }
       if (current.id === "results-loading" && nextStep) {
         router.replace(demoRoute(nextStep.route, nextIndex), { scroll: false });
       }
@@ -581,6 +595,9 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
           if (shouldPause) await delay(reducedMotion ? 60 : Math.round(700 / 0.75));
         }
       }
+      // Stay busy until the move to the next step's page has finished, so a
+      // queued Next cannot start another step while this navigation is in flight.
+      busy.current = false;
       if (shouldPause || current.id === DEMO_STEPS[DEMO_STEPS.length - 1]?.id) {
         setPlaying(false);
         playingRef.current = false;
@@ -625,19 +642,38 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
   // sample data, form and route all match the step the person lands on.
   const skipTo = async (requestedIndex: number) => {
     const targetIndex = Math.max(0, Math.min(DEMO_STEPS.length - 1, requestedIndex));
-    if (targetIndex < indexRef.current) { jumpTo(targetIndex); return; }
+    if (targetIndex < indexRef.current) { pendingSkipRef.current = null; jumpTo(targetIndex); return; }
     if (targetIndex === indexRef.current) return;
+    // Rapid clicks must not start overlapping skips (each racing its own
+    // navigations). Extend a fast skip already under way, or the one click
+    // already waiting for the current step to stop, instead.
+    if (fastTargetRef.current !== null && playingRef.current) {
+      fastTargetRef.current = Math.max(fastTargetRef.current, targetIndex);
+      return;
+    }
+    if (pendingSkipRef.current !== null) {
+      pendingSkipRef.current = Math.max(pendingSkipRef.current, targetIndex);
+      return;
+    }
+    pendingSkipRef.current = targetIndex;
     if (playingRef.current || busy.current) {
       playingRef.current = false;
       setPlaying(false);
       for (let attempt = 0; busy.current && attempt < 60; attempt += 1) await poll(100);
     }
+    const finalTarget = pendingSkipRef.current;
+    pendingSkipRef.current = null;
+    if (finalTarget === null || finalTarget <= indexRef.current) return;
     setStepError(null);
-    fastTargetRef.current = targetIndex;
+    fastTargetRef.current = finalTarget;
     speed = FAST_SPEED;
     void advance();
   };
-  const next = () => { void skipTo(indexRef.current + 1); };
+  // Each click moves one step past wherever the walkthrough is already heading.
+  const next = () => {
+    const heading = Math.max(indexRef.current, fastTargetRef.current ?? -1, pendingSkipRef.current ?? -1);
+    void skipTo(heading + 1);
+  };
   const back = () => jumpTo(indexRef.current - 1);
   const togglePlay = () => {
     if (playingRef.current) {

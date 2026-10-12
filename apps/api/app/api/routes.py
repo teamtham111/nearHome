@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 
 import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from redis import Redis
 from redis.exceptions import RedisError
@@ -29,7 +30,7 @@ from app.domain.models import (
 from app.models.orm import SessionFeedbackORM
 from app.repositories.enrichment_job_repository import EnrichmentJobRepository
 from app.repositories.enrichment_repository import EnrichmentRepository
-from app.repositories.session_repository import SessionRepository
+from app.repositories.session_repository import ListingLimitError, SessionRepository
 from app.schemas.comparison import (
     BuyerProfileInput,
     ComparisonResponse,
@@ -53,6 +54,8 @@ from app.services.smart_paste.service import SmartPasteService
 
 router = APIRouter(prefix="/api/v1")
 logger = get_logger(__name__)
+
+LISTING_LIMIT_MESSAGE = "You can compare up to five flats. Remove one before adding another."
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -391,6 +394,9 @@ def create_manual_listing(
     listing_input = repo.create_manual_listing_input(session_id)
     try:
         listing = repo.confirm_listing(session_id, listing_input.id, body.model_dump())
+    except ListingLimitError:
+        repo.delete_unconfirmed_listing_input(listing_input.id)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=LISTING_LIMIT_MESSAGE) from None
     except IntegrityError as exc:
         db.rollback()
         repo.delete_unconfirmed_listing_input(listing_input.id)
@@ -421,6 +427,22 @@ def get_comparison(session_id: UUID, db: Session = Depends(get_db)) -> Compariso
 )
 async def start_enrichment(session_id: UUID, db: Session = Depends(get_db)) -> EnrichmentJobStartResponse:
     """Persist a job and dispatch it without running provider work in production."""
+    # Database access, Cloud Tasks dispatch and inline enrichment are all
+    # blocking. Run them off the event loop so a long inline run cannot stall
+    # status polling and every other request served by this process.
+    response, arq_job_id = await run_in_threadpool(_start_enrichment_sync, session_id, db)
+    if arq_job_id is not None:
+        # Preserve the old ARQ path for local installations during migration.
+        from app.jobs.queue import enqueue_enrichment
+
+        await enqueue_enrichment(arq_job_id)
+    return response
+
+
+def _start_enrichment_sync(
+    session_id: UUID, db: Session
+) -> tuple[EnrichmentJobStartResponse, UUID | None]:
+    """Create or reuse the session's job; return the ARQ job id when it still needs enqueueing."""
     if not SessionRepository(db).get_session(session_id):
         raise HTTPException(status_code=404, detail="Session not found")
     jobs = EnrichmentJobRepository(db)
@@ -449,7 +471,7 @@ async def start_enrichment(session_id: UUID, db: Session = Depends(get_db)) -> E
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail="Enrichment could not be queued. Please try again.",
                 ) from None
-        return _job_start_response(job.id, session_id, job.status)
+        return _job_start_response(job.id, session_id, job.status), None
 
     # Local/test compatibility during the migration. Production validation
     # rejects this mode, so public Cloud Run can never run providers inline.
@@ -475,13 +497,9 @@ async def start_enrichment(session_id: UUID, db: Session = Depends(get_db)) -> E
                     {"listing_count": len(result.get("listings", [])), "error_count": len(result.get("errors", []))},
                 )
         current = jobs.get(job.id)
-        return _job_start_response(job.id, session_id, current.status if current else "failed")
+        return _job_start_response(job.id, session_id, current.status if current else "failed"), None
 
-    # Preserve the old ARQ path for local installations during migration.
-    from app.jobs.queue import enqueue_enrichment
-
-    await enqueue_enrichment(job.id)
-    return _job_start_response(job.id, session_id, job.status)
+    return _job_start_response(job.id, session_id, job.status), job.id
 
 
 @router.get("/sessions/{session_id}/enrichment/status", response_model=EnrichmentStatusResponse)
@@ -817,6 +835,8 @@ def confirm_from_input(
     listing_input_id = data.pop("listing_input_id")
     try:
         listing = repo.confirm_listing(session_id, listing_input_id, data)
+    except ListingLimitError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=LISTING_LIMIT_MESSAGE) from None
     except IntegrityError as exc:
         db.rollback()
         raise HTTPException(

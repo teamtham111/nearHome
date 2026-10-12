@@ -48,10 +48,34 @@ export type DerivedEnrichmentProgress = {
   stages: Array<EnrichmentStage & { state: StageState }>;
 };
 
-function stageState(type: string, runs: EnrichmentRunStatus[], terminal: boolean): StageState {
-  const statuses = runs.filter((run) => run.enrichment_type === type).map((run) => run.status.toUpperCase());
+/** Statuses meaning a listing's check has finished, whatever its outcome. */
+const SETTLED_STATUSES = new Set(["SUCCEEDED", "UNAVAILABLE", "FAILED", "ERROR", "SKIPPED"]);
+
+export type EnrichmentProgressOptions = {
+  /** Every listing in the job. Listings without status rows yet still count as outstanding work. */
+  listingIds?: string[];
+  /** Stage types the job will run (mirrors the API's plan_enrichments); others are left out of the total. */
+  expectedTypes?: string[];
+};
+
+/** Stage types the API plans for a buyer profile; see EnrichmentService.plan_enrichments. */
+export function expectedStageTypes(profile: { main_transport_mode: string; schools_matter: boolean } | null | undefined): string[] {
+  const types = ["GEOCODING", "PROPERTY_DATA", "TRANSACTION_DATA", "LEASE", "FAIR_PRICE"];
+  if (!profile) return types;
+  if (profile.main_transport_mode === "MAINLY_PUBLIC_TRANSPORT" || profile.main_transport_mode === "BOTH") types.push("PUBLIC_TRANSPORT");
+  if (profile.main_transport_mode === "MAINLY_DRIVING" || profile.main_transport_mode === "BOTH") types.push("DRIVING_ACCESS");
+  if (profile.schools_matter) types.push("SCHOOLS");
+  return types;
+}
+
+function stageState(type: string, runs: EnrichmentRunStatus[], terminal: boolean, listingIds: string[]): StageState {
+  const typeRuns = runs.filter((run) => run.enrichment_type === type);
+  const statuses = typeRuns.map((run) => run.status.toUpperCase());
   if (statuses.length === 0) return terminal ? "not_requested" : "pending";
   if (statuses.some((status) => status === "RUNNING" || status === "QUEUED")) return "running";
+  // Listings are enriched one after another: a stage finished for the first
+  // listing is still in progress until the remaining listings reach it.
+  if (!terminal && listingIds.some((id) => !typeRuns.some((run) => run.listing_id === id))) return "running";
   if (statuses.every((status) => status === "SUCCEEDED")) return "succeeded";
   if (statuses.some((status) => status === "FAILED" || status === "ERROR")) return "failed";
   return "unavailable";
@@ -64,11 +88,16 @@ function joinActions(stages: EnrichmentStage[]): string {
   return `${stages.slice(0, 2).map((stage) => stage.label.toLowerCase()).join(" and ")} calculations`;
 }
 
-export function deriveEnrichmentProgress(snapshot: EnrichmentProgressSnapshot): DerivedEnrichmentProgress {
+export function deriveEnrichmentProgress(
+  snapshot: EnrichmentProgressSnapshot,
+  options: EnrichmentProgressOptions = {},
+): DerivedEnrichmentProgress {
   const terminal = ["completed", "failed", "cancelled"].includes(snapshot.jobStatus);
   const successful = snapshot.jobStatus === "completed";
-  const states = new Map(ENRICHMENT_STAGES.map((stage) => [stage.type, stageState(stage.type, snapshot.runs, terminal)]));
-  const completedStages = ENRICHMENT_STAGES.filter((stage) => states.get(stage.type) === "succeeded");
+  const listingIds = options.listingIds?.length
+    ? options.listingIds
+    : [...new Set(snapshot.runs.map((run) => run.listing_id))];
+  const states = new Map(ENRICHMENT_STAGES.map((stage) => [stage.type, stageState(stage.type, snapshot.runs, terminal, listingIds)]));
   const unavailableCount = ENRICHMENT_STAGES.filter((stage) => {
     const state = states.get(stage.type);
     return state === "unavailable" || state === "not_requested";
@@ -78,7 +107,23 @@ export function deriveEnrichmentProgress(snapshot: EnrichmentProgressSnapshot): 
   const fallbackStages = (JOB_STAGE_TO_TYPES[snapshot.progressStage] ?? [])
     .map((type) => ENRICHMENT_STAGES.find((stage) => stage.type === type))
     .filter((stage): stage is EnrichmentStage => Boolean(stage));
-  const rawPercent = completedStages.reduce((total, stage) => total + stage.weight, 0);
+  // Progress is work done per listing: a check counts once it has settled for
+  // that listing, even if its result is unavailable. Counting only stage-wide
+  // successes made the bar fall back whenever a later listing started a stage
+  // or returned an unavailable result.
+  const expected = new Set(options.expectedTypes ?? ENRICHMENT_STAGES.map((stage) => stage.type));
+  const plannedStages = ENRICHMENT_STAGES.filter((stage) => expected.has(stage.type));
+  const settled = new Set(
+    snapshot.runs
+      .filter((run) => SETTLED_STATUSES.has(run.status.toUpperCase()))
+      .map((run) => `${run.listing_id}|${run.enrichment_type}`),
+  );
+  const totalWeight = plannedStages.reduce((total, stage) => total + stage.weight, 0) * listingIds.length;
+  const settledWeight = plannedStages.reduce(
+    (total, stage) => total + stage.weight * listingIds.filter((id) => settled.has(`${id}|${stage.type}`)).length,
+    0,
+  );
+  const rawPercent = totalWeight ? Math.floor((settledWeight / totalWeight) * 100) : 0;
 
   let message: string;
   if (successful) {
@@ -97,9 +142,9 @@ export function deriveEnrichmentProgress(snapshot: EnrichmentProgressSnapshot): 
 
   return {
     percent: successful ? 100 : Math.min(99, rawPercent),
-    completedCount: completedStages.length,
+    completedCount: plannedStages.filter((stage) => listingIds.length > 0 && listingIds.every((id) => settled.has(`${id}|${stage.type}`))).length,
     unavailableCount,
-    totalChecks: ENRICHMENT_STAGES.length,
+    totalChecks: plannedStages.length,
     terminal,
     successful,
     message,

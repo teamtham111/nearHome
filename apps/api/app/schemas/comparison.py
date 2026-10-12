@@ -95,18 +95,18 @@ class BuyerProfileInput(BaseModel):
 class ManualListingInput(BaseModel):
     asking_price: float = Field(gt=0)
     floor_area_sqm: float = Field(gt=0)
-    address: str = Field(min_length=3)
-    flat_type: str = Field(min_length=2)
-    flat_type_raw: str | None = None
-    listing_flat_subtype: str | None = None
-    raw_listing_subtype: str | None = None
-    flat_type_source: str | None = None
-    flat_model: str | None = None
-    flat_model_source: str | None = None
+    address: str = Field(min_length=3, max_length=255)
+    flat_type: str = Field(min_length=2, max_length=50)
+    flat_type_raw: str | None = Field(default=None, max_length=100)
+    listing_flat_subtype: str | None = Field(default=None, max_length=50)
+    raw_listing_subtype: str | None = Field(default=None, max_length=50)
+    flat_type_source: str | None = Field(default=None, max_length=50)
+    flat_model: str | None = Field(default=None, max_length=100)
+    flat_model_source: str | None = Field(default=None, max_length=50)
     subtype_conflicts: list[dict[str, Any]] = Field(default_factory=list)
-    storey_range: str | None = None
-    storey_source: str | None = None
-    display_name: str | None = None
+    storey_range: str | None = Field(default=None, max_length=50)
+    storey_source: str | None = Field(default=None, max_length=50)
+    display_name: str | None = Field(default=None, max_length=255)
     renovation_estimate: float | None = Field(default=None, ge=0)
     lease_commencement_year: int | None = None
     remaining_lease_years: float | None = Field(default=None, gt=0)
@@ -241,18 +241,18 @@ class ConfirmListingFromInput(BaseModel):
     listing_input_id: UUID
     asking_price: float = Field(gt=0)
     floor_area_sqm: float = Field(gt=0)
-    address: str = Field(min_length=3)
-    flat_type: str = Field(min_length=2)
-    flat_type_raw: str | None = None
-    listing_flat_subtype: str | None = None
-    raw_listing_subtype: str | None = None
-    flat_type_source: str | None = None
-    flat_model: str | None = None
-    flat_model_source: str | None = None
+    address: str = Field(min_length=3, max_length=255)
+    flat_type: str = Field(min_length=2, max_length=50)
+    flat_type_raw: str | None = Field(default=None, max_length=100)
+    listing_flat_subtype: str | None = Field(default=None, max_length=50)
+    raw_listing_subtype: str | None = Field(default=None, max_length=50)
+    flat_type_source: str | None = Field(default=None, max_length=50)
+    flat_model: str | None = Field(default=None, max_length=100)
+    flat_model_source: str | None = Field(default=None, max_length=50)
     subtype_conflicts: list[dict[str, Any]] = Field(default_factory=list)
-    storey_range: str | None = None
-    storey_source: str | None = None
-    display_name: str | None = None
+    storey_range: str | None = Field(default=None, max_length=50)
+    storey_source: str | None = Field(default=None, max_length=50)
+    display_name: str | None = Field(default=None, max_length=255)
     remaining_lease_years: float | None = Field(default=None, gt=0)
     property_category: PropertyCategory = PropertyCategory.HDB
     source_url: str | None = None

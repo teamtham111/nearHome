@@ -193,7 +193,8 @@ export function PriorityRanking({
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-2 shadow-sm">
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      {/* A React-generated id keeps dnd-kit's accessibility ids identical on server and client. */}
+      <DndContext id={`${baseId}-dnd`} sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={priorities} strategy={verticalListSortingStrategy}>
           <ol className="space-y-2" aria-label="Decision priorities">
             {priorities.map((priority, index) => {

@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { CircleHelp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -15,6 +15,7 @@ import {
   deleteListing,
   geocodeAddress,
   getSession,
+  isClientApiError,
   saveBuyerProfile,
   smartPaste,
 } from "@/lib/api";
@@ -77,7 +78,7 @@ const profileSchema = z.object({
 
 const listingSchema = z.object({
   display_name: z.string().optional(),
-  address: z.string().min(3),
+  address: z.string().min(3).max(255),
   asking_price: z.coerce.number().positive(),
   floor_area_sqm: z.coerce.number().positive(),
   flat_type: z.string().min(2),
@@ -141,6 +142,7 @@ function isSchoolSuggestion(suggestion: GeocodeSuggestion) {
 
 export default function SessionPage() {
   const params = useParams<{ sessionId: string }>();
+  const searchParams = useSearchParams();
   const sessionId = params.sessionId;
   const qc = useQueryClient();
   const [inputMode, setInputMode] = useState<"manual" | "paste">("paste");
@@ -191,6 +193,13 @@ export default function SessionPage() {
     queryKey: ["session", sessionId],
     queryFn: () => getSession(sessionId),
   });
+
+  useEffect(() => {
+    // Stop the homepage offering "Continue your previous comparison" for a session that no longer exists.
+    if (isClientApiError(sessionQuery.error) && localStorage.getItem("nearhome_session_id") === sessionId) {
+      localStorage.removeItem("nearhome_session_id");
+    }
+  }, [sessionId, sessionQuery.error]);
 
   const savedListings = sessionQuery.data?.listings ?? [];
   const listingCount = sessionQuery.data?.listing_count ?? 0;
@@ -678,6 +687,36 @@ export default function SessionPage() {
       ? "listings"
       : "compare";
 
+  // In the walkthrough, keep the demo parameters on this link so any navigation
+  // through it stays on demo fixtures rather than the real API.
+  const comparisonRunHref = searchParams.get("demo") === "1"
+    ? `/session/${sessionId}/comparison?${new URLSearchParams({ ...Object.fromEntries(searchParams), run: "1" })}`
+    : `/session/${sessionId}/comparison?run=1`;
+
+  if (sessionQuery.isError) {
+    const notFound = isClientApiError(sessionQuery.error);
+    return (
+      <div className="nh-workflow-grid space-y-4 py-8 sm:py-10">
+        <Link href="/" className="text-sm text-teal-700 hover:underline">← Home</Link>
+        <section className="nh-card space-y-3" role="alert">
+          <h2 className="text-2xl font-bold tracking-tight text-blue-950">
+            {notFound ? "This comparison could not be found" : "Unable to load this comparison"}
+          </h2>
+          <p className="text-sm text-slate-600">
+            {notFound
+              ? "The link may be incorrect, or the comparison is no longer available. Start a new comparison to continue."
+              : String(sessionQuery.error.message)}
+          </p>
+          {notFound ? (
+            <Link href="/#start-comparison" className="nh-primary inline-flex">Start a new comparison</Link>
+          ) : (
+            <button type="button" className="nh-primary" onClick={() => void sessionQuery.refetch()}>Try again</button>
+          )}
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="nh-workflow-grid flex flex-col gap-7 py-8 sm:py-10">
       <div className="order-0 space-y-4">
@@ -888,8 +927,8 @@ export default function SessionPage() {
             {savedListings.map((l) => (
               <li key={l.listing_id} className="flex min-h-40 flex-col justify-between rounded-xl border border-slate-200 bg-gradient-to-b from-blue-50/60 to-white p-4 text-sm shadow-sm">
                 <div>
-                  <p className="font-medium text-slate-900">{l.display_name}</p>
-                  <p className="text-slate-600">{l.address}</p>
+                  <p className="font-medium text-slate-900">{l.display_name || l.address}</p>
+                  {l.display_name && l.display_name !== l.address && <p className="text-slate-600">{l.address}</p>}
                   <p className="mt-1 text-slate-700">
                     {formatPrice(l.asking_price)} · {l.floor_area_sqm} sqm · {l.flat_type}
                   </p>
@@ -1134,7 +1173,7 @@ export default function SessionPage() {
                 Open your comparison to begin analysis and follow the live progress there.
               </p>
             </div>
-            <Link href={`/session/${sessionId}/comparison?run=1`} data-demo-id="run-comparison" className="nh-primary">
+            <Link href={comparisonRunHref} data-demo-id="run-comparison" className="nh-primary">
               Open comparison and run enrichment
             </Link>
           </div>

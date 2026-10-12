@@ -41,14 +41,31 @@ export default function SessionComparisonPage() {
     enabled: Boolean(sessionId),
   });
 
+  // Track the start request from the mutation's own callbacks rather than
+  // enrich.isPending: auto-run calls mutate() during mount, and a StrictMode
+  // remount detaches useMutation's observer from that in-flight mutation, so
+  // its isPending would never clear and the page would stay on "Starting".
+  const [enrichStarting, setEnrichStarting] = useState(false);
+  const [enrichError, setEnrichError] = useState<string | null>(null);
+
   const enrich = useMutation({
     mutationFn: () => startEnrichment(sessionId),
+    onMutate: () => {
+      setEnrichStarting(true);
+      setEnrichError(null);
+    },
     onSuccess: (result) => {
+      setEnrichStarting(false);
       setComparisonReady(false);
       window.sessionStorage.setItem(enrichmentStorageKey, result.job_id);
       setActiveEnrichmentJobId(result.job_id);
     },
-    onError: () => { setActiveEnrichmentJobId(null); setComparisonReady(true); },
+    onError: (error) => {
+      setEnrichStarting(false);
+      setEnrichError(error instanceof Error ? error.message : "Enrichment could not be started.");
+      setActiveEnrichmentJobId(null);
+      setComparisonReady(true);
+    },
   });
 
   useEffect(() => {
@@ -83,8 +100,9 @@ export default function SessionComparisonPage() {
       startTransition(() => setComparisonReady(false));
       enrich.mutate();
     }
-    router.replace(demoRun ? `/session/${sessionId}/comparison?demo=1&demoStep=${demoStep}` : `/session/${sessionId}/comparison`, { scroll: false });
-  }, [demoStep, enrich, isDemo, router, runRequested, sessionId, sessionQuery.data]);
+    const demoEmbed = searchParams.get("demoEmbed") === "1" ? "&demoEmbed=1" : "";
+    router.replace(demoRun ? `/session/${sessionId}/comparison?demo=1&demoStep=${demoStep}${demoEmbed}` : `/session/${sessionId}/comparison`, { scroll: false });
+  }, [demoStep, enrich, isDemo, router, runRequested, searchParams, sessionId, sessionQuery.data]);
 
   const handleEnrichmentTerminal = useCallback(
     (jobStatus: TerminalEnrichmentStatus, jobId: string) => {
@@ -127,7 +145,7 @@ export default function SessionComparisonPage() {
   const session = sessionQuery.data;
   const isEnriching = isDemo
     ? !demoResultsStep && Boolean(activeEnrichmentJobId)
-    : enrich.isPending || Boolean(activeEnrichmentJobId);
+    : enrichStarting || Boolean(activeEnrichmentJobId);
 
   return (
     <div className="nh-workflow-grid space-y-7 py-8 sm:py-10">
@@ -153,7 +171,7 @@ export default function SessionComparisonPage() {
         </section>
       ) : !demoResultsStep && isEnriching ? (
         <>
-          {enrich.isPending && !activeEnrichmentJobId ? (
+          {enrichStarting && !activeEnrichmentJobId ? (
             <section className="nh-card text-sm text-slate-600" role="status">Starting analysis…</section>
           ) : null}
           {activeEnrichmentJobId ? (
@@ -161,13 +179,14 @@ export default function SessionComparisonPage() {
               sessionId={sessionId}
               jobId={activeEnrichmentJobId}
               listings={session.listings}
+              buyerProfile={session.buyer_profile}
               onTerminal={handleEnrichmentTerminal}
             />
           ) : null}
         </>
-      ) : !demoResultsStep && enrich.isError ? (
+      ) : !demoResultsStep && enrichError !== null ? (
         <section className="nh-card space-y-3">
-          <p className="text-sm text-red-600" role="alert">{String(enrich.error.message)}</p>
+          <p className="text-sm text-red-600" role="alert">{enrichError}</p>
           <button type="button" className="nh-primary" onClick={() => enrich.mutate()}>
             Try enrichment again
           </button>

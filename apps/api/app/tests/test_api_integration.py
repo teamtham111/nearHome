@@ -261,6 +261,34 @@ def test_local_enrichment_job(client: TestClient):
         assert comparison["fair_price_status"] in ("AVAILABLE", "INSUFFICIENT_EVIDENCE")
 
 
+def test_inline_enrichment_runs_off_the_event_loop(client: TestClient, monkeypatch: pytest.MonkeyPatch):
+    """A long inline run must not block the event loop that serves status polling."""
+    import asyncio
+
+    from app.api import routes
+    from app.services.enrichment_service import EnrichmentService
+
+    monkeypatch.setattr(routes.settings, "job_execution_mode", "inline")
+    observed: dict[str, bool] = {}
+
+    def fake_run(self, session_id, **kwargs):
+        try:
+            asyncio.get_running_loop()
+            observed["on_event_loop"] = True
+        except RuntimeError:
+            observed["on_event_loop"] = False
+        return {"listings": [], "errors": []}
+
+    monkeypatch.setattr(EnrichmentService, "run_session_enrichment", fake_run)
+    session_id = client.post("/api/v1/sessions").json()["session_id"]
+
+    resp = client.post(f"/api/v1/sessions/{session_id}/enrichment/start")
+
+    assert resp.status_code == 202
+    assert resp.json()["status"] == "completed"
+    assert observed == {"on_event_loop": False}
+
+
 def test_polling_expires_a_stale_active_enrichment_job(client: TestClient):
     from app.core.config import settings
     from app.db.session import SessionLocal
@@ -307,3 +335,30 @@ def test_session_feedback_rejects_invalid_ratings_and_unknown_sessions(client: T
 
     missing = client.put(f"/api/v1/sessions/{uuid4()}/feedback", json={"rating": 5})
     assert missing.status_code == 404
+
+
+def _manual_listing(address: str) -> dict:
+    return {"address": address, "asking_price": 400000, "floor_area_sqm": 70, "flat_type": "3 ROOM"}
+
+
+def test_sixth_listing_is_rejected_with_conflict_not_server_error(client: TestClient):
+    session_id = client.post("/api/v1/sessions").json()["session_id"]
+    for block in range(1, 6):
+        resp = client.post(
+            f"/api/v1/sessions/{session_id}/listings/manual", json=_manual_listing(f"Blk {block} Limit St")
+        )
+        assert resp.status_code == 201
+
+    resp = client.post(f"/api/v1/sessions/{session_id}/listings/manual", json=_manual_listing("Blk 6 Limit St"))
+
+    assert resp.status_code == 409
+    assert "up to five flats" in resp.json()["detail"]
+    assert client.get(f"/api/v1/sessions/{session_id}").json()["listing_count"] == 5
+
+
+def test_overlong_address_is_a_validation_error(client: TestClient):
+    session_id = client.post("/api/v1/sessions").json()["session_id"]
+
+    resp = client.post(f"/api/v1/sessions/{session_id}/listings/manual", json=_manual_listing("A" * 256))
+
+    assert resp.status_code == 422

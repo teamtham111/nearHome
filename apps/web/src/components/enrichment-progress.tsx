@@ -4,18 +4,20 @@ import { useEffect, useRef, useState } from "react";
 import { Check, Circle, Clock3, LoaderCircle, ShieldCheck, TriangleAlert } from "lucide-react";
 import { getEnrichmentJob, getEnrichmentStatus } from "@/lib/api";
 import type { SessionListing } from "@/lib/api";
-import { deriveEnrichmentProgress, type EnrichmentProgressSnapshot, type StageState } from "@/lib/enrichment-progress";
+import { deriveEnrichmentProgress, expectedStageTypes, type EnrichmentProgressSnapshot, type StageState } from "@/lib/enrichment-progress";
 
 export function EnrichmentProgress({
   sessionId,
   jobId,
   onTerminal,
   listings = [],
+  buyerProfile,
 }: {
   sessionId: string;
   jobId: string;
   onTerminal?: (status: "completed" | "failed" | "cancelled", jobId: string) => void;
   listings?: SessionListing[];
+  buyerProfile?: { main_transport_mode: string; schools_matter: boolean } | null;
 }) {
   const [snapshot, setSnapshot] = useState<EnrichmentProgressSnapshot>({
     jobStatus: "queued",
@@ -66,7 +68,16 @@ export function EnrichmentProgress({
     };
   }, [jobId, onTerminal, sessionId]);
 
-  const progress = deriveEnrichmentProgress(snapshot);
+  const derived = deriveEnrichmentProgress(snapshot, {
+    listingIds: listings.map((listing) => listing.listing_id),
+    expectedTypes: buyerProfile ? expectedStageTypes(buyerProfile) : undefined,
+  });
+  // Never show less progress than already shown for this job, e.g. when a
+  // retry resets the job's checks to queued.
+  const [peak, setPeak] = useState({ jobId, percent: 0 });
+  const shownPercent = peak.jobId === jobId ? Math.max(peak.percent, derived.percent) : derived.percent;
+  if (peak.jobId !== jobId || shownPercent !== peak.percent) setPeak({ jobId, percent: shownPercent });
+  const progress = { ...derived, percent: shownPercent };
   const countLabel = `${progress.completedCount} of ${progress.totalChecks} checks completed`;
 
   const stageIcon = (state: StageState) => {

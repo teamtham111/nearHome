@@ -32,7 +32,7 @@ export function SiteHeader({ demoMode = false }: { demoMode?: boolean }) {
           {demoMode && <span className="nh-badge-demo" aria-label="Demo data mode">Demo data</span>}
         </Link>
 
-        {!isWorkflow && !isMethod && <nav className={`ml-auto items-center gap-2 sm:gap-5 text-[12px] sm:text-[13px] text-[#344742] md:gap-7 ${isHomepage ? "flex" : "hidden md:flex"}`} aria-label="Primary navigation">
+        {!isWorkflow && !isMethod && <nav className={`ml-auto min-w-0 flex-wrap items-center justify-end gap-2 sm:gap-5 text-[12px] sm:text-[13px] text-[#344742] md:gap-7 ${isHomepage ? "flex" : "hidden md:flex"}`} aria-label="Primary navigation">
           {visibleLinks.map((link) => (
             <Link key={link.href} href={link.href} className={`py-2 font-medium transition focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2 ${isHomepage ? "rounded-[4px] border border-[#bdcbc5] px-3 sm:px-4" : ""} ${pathname === link.href ? "text-[#087b72]" : "hover:text-[#087b72]"}`}>
               {link.label}

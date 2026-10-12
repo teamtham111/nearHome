@@ -28,6 +28,12 @@ from app.repositories.mappers import (
 )
 from app.services.smart_paste.flat_attributes import normalize_flat_type, resolve_flat_property_details
 
+MAX_LISTINGS_PER_SESSION = 5
+
+
+class ListingLimitError(ValueError):
+    """The session already holds the maximum number of confirmed listings."""
+
 
 class SessionRepository:
     def __init__(self, db: Session) -> None:
@@ -197,8 +203,8 @@ class SessionRepository:
         session = self.get_session(session_id)
         if not session:
             raise ValueError("Session not found")
-        if len(session.listings) >= 5:
-            raise ValueError("Maximum five listings per session")
+        if len(session.listings) >= MAX_LISTINGS_PER_SESSION:
+            raise ListingLimitError("Maximum five listings per session")
 
         address = data["address"]
         norm_key = normalize_address(address)

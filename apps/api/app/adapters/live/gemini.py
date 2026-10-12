@@ -31,6 +31,7 @@ class LiveGeminiAdapter(LiveGroqAdapter):
                 "No live LLM API key is configured. Add LLM_API_KEY to the server environment.",
                 error_code="configuration",
             )
+        self.model_name = settings.effective_llm_model
         self.client = genai.Client(api_key=settings.effective_llm_api_key)
 
     def extract(self, cleaned_text: str) -> LLMExtractionResult:

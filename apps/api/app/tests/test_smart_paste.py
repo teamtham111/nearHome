@@ -15,6 +15,15 @@ from app.services.smart_paste.flat_attributes import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _groq_llm_settings(monkeypatch):
+    """These tests exercise the Groq adapter; don't inherit a developer .env's LLM provider."""
+    monkeypatch.setattr(settings, "llm_provider", "groq")
+    monkeypatch.setattr(settings, "llm_api_key", "")
+    monkeypatch.setattr(settings, "llm_model", "")
+    monkeypatch.setattr(settings, "llm_base_url", "")
+
+
 def _field(value, raw_text=None, status="AVAILABLE"):
     return {
         "value": value,
@@ -487,7 +496,7 @@ def test_groq_retries_transient_schema_generation_error(monkeypatch):
 def test_groq_missing_key_is_configuration_error(monkeypatch):
     monkeypatch.setattr(settings, "groq_api_key", "")
 
-    with pytest.raises(AdapterError, match="GROQ_API_KEY") as exc_info:
+    with pytest.raises(AdapterError, match="LLM_API_KEY") as exc_info:
         groq_module.LiveGroqAdapter()
 
     assert exc_info.value.error_code == "configuration"

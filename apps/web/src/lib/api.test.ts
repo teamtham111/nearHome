@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  ApiError,
   createSession,
   DEFAULT_REQUEST_TIMEOUT_MS,
+  getSession,
+  isClientApiError,
   LONG_RUNNING_REQUEST_TIMEOUT_MS,
   parseApiError,
   smartPaste,
@@ -102,6 +105,33 @@ describe("API request timeouts", () => {
     const assertion = expect(request).rejects.toThrow("The analysis is taking longer than expected. Please retry in a moment.");
     await vi.advanceTimersByTimeAsync(DEFAULT_REQUEST_TIMEOUT_MS);
     await assertion;
+  });
+});
+
+describe("API error status", () => {
+  beforeEach(() => {
+    vi.stubGlobal("window", { setTimeout, clearTimeout, location: { search: "" } });
+    vi.stubGlobal("document", { body: { dataset: {} } });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps the HTTP status so a missing session is not retried", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({
+      ok: false,
+      status: 404,
+      text: async () => JSON.stringify({ detail: "Session not found" }),
+    }) as Response));
+
+    const error = await getSession("missing").catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({ status: 404, message: "Session not found" });
+    expect(isClientApiError(error)).toBe(true);
+    expect(isClientApiError(new ApiError("Server error", 500))).toBe(false);
+    expect(isClientApiError(new Error("network"))).toBe(false);
   });
 });
 

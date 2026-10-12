@@ -678,3 +678,49 @@ class TestGoldenCases:
             "mrt_reach",
             "route_resilience",
         }
+
+
+def _reference_lcs_length(left: tuple[str, ...], right: tuple[str, ...]) -> int:
+    """Straightforward O(n * m) table, kept as the oracle for the fast LCS."""
+    previous = [0] * (len(right) + 1)
+    for left_stop in left:
+        current = [0]
+        for index, right_stop in enumerate(right, 1):
+            current.append(previous[index - 1] + 1 if left_stop == right_stop else max(previous[index], current[-1]))
+        previous = current
+    return previous[-1]
+
+
+def test_fast_lcs_matches_reference_including_repeated_stops() -> None:
+    import random
+
+    from app.networks.bus_network import _longest_common_subsequence_length
+
+    rng = random.Random(20261011)
+    for _ in range(2_000):
+        # A small alphabet forces repeated stops, as on loop services.
+        alphabet = [str(code) for code in range(rng.randint(1, 12))]
+        left = tuple(rng.choice(alphabet) for _ in range(rng.randint(0, 25)))
+        right = tuple(rng.choice(alphabet) for _ in range(rng.randint(0, 25)))
+        assert _longest_common_subsequence_length(left, right) == _reference_lcs_length(left, right)
+
+
+def test_overlap_checker_matches_similarity_threshold() -> None:
+    import random
+
+    from app.networks.bus_network import BoardingServiceOption, _OverlapChecker
+
+    rng = random.Random(7)
+    for threshold in (0.0, 0.3, 0.5, 0.7, 1.0):
+        checker = _OverlapChecker(threshold)
+        options = []
+        for index in range(60):
+            alphabet = [str(code) for code in range(rng.choice([3, 8, 40]))]
+            length = rng.randint(0, 20)
+            stops = tuple(rng.choice(alphabet) for _ in range(length))
+            if rng.random() < 0.5:
+                stops = tuple(dict.fromkeys(stops))  # unique-stop route
+            options.append(BoardingServiceOption((str(index), 1), stops[0] if stops else "", stops))
+        for left in options:
+            for right in options:
+                assert checker.meets(left, right) == (downstream_similarity(left, right) >= threshold)

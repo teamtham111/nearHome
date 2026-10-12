@@ -96,7 +96,6 @@ Return only the requested structured JSON object."""
 
 class LiveGroqAdapter:
     provider = "GROQ"
-    model_name = settings.effective_llm_model
 
     def __init__(self) -> None:
         if not settings.effective_llm_api_key:
@@ -104,6 +103,8 @@ class LiveGroqAdapter:
                 "No live LLM API key is configured. Add LLM_API_KEY to the server environment.",
                 error_code="configuration",
             )
+        # Resolved per adapter, not at import, so it follows the current settings.
+        self.model_name = settings.effective_llm_model
         self.client = Groq(
             api_key=settings.effective_llm_api_key,
             base_url=settings.effective_llm_base_url,
