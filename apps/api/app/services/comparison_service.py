@@ -7,8 +7,10 @@ from dataclasses import asdict, is_dataclass
 from enum import Enum
 from uuid import UUID
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.utils import inputs_hash
 from app.engines.immediate_comparison import ImmediateComparisonEngine
 from app.engines.preference_scoring import PreferenceScoringEngine
@@ -18,6 +20,7 @@ from app.repositories.enrichment_repository import EnrichmentRepository
 from app.repositories.session_repository import SessionRepository
 from app.schemas.comparison import ComparisonResponse, MetricResultSchema, RecommendationSchema
 from app.services.enrichment_service import EnrichmentService
+from app.services.location_benchmarks import benchmarks_for_block
 from app.services.observation_service import ObservationService
 
 _DRIVING_COMPONENT_WEIGHTS = {
@@ -132,6 +135,26 @@ class ComparisonService:
         self.enrichment_repo = EnrichmentRepository(db)
         self.enrichment = EnrichmentService(db)
 
+    def _location_benchmarks(self, identities: dict[str, dict]) -> dict[str, dict]:
+        """Read saved block comparisons; never recalculates the national set."""
+        if settings.location_benchmark_display not in ("shadow", "on"):
+            return {}
+        results: dict[str, dict] = {}
+        try:
+            for listing_id, identity in identities.items():
+                results[listing_id] = benchmarks_for_block(
+                    self.db,
+                    identity.get("block_key"),
+                    town_code=identity.get("town_code"),
+                    town_name=identity.get("town_name"),
+                )
+        except SQLAlchemyError:
+            # Benchmarks are additive; a missing table or read failure must
+            # leave the existing comparison intact.
+            self.db.rollback()
+            return {}
+        return results
+
     def get_comparison(self, session_id: UUID) -> ComparisonResponse:
         session = self.repo.get_session(session_id)
         if not session:
@@ -187,6 +210,7 @@ class ComparisonService:
         transport_by_listing: dict[str, dict] = {}
         driving_by_listing: dict[str, dict] = {}
         schools_by_listing: dict[str, dict] = {}
+        block_identity_by_listing: dict[str, dict] = {}
         fair_price_status = "NOT_STARTED"
 
         for lid in listing_ids:
@@ -201,6 +225,8 @@ class ComparisonService:
                     driving_by_listing[str(lid)] = _buyer_driving(f.value_json)
                 elif f.field_name == "schools" and f.value_json:
                     schools_by_listing[str(lid)] = f.value_json
+                elif f.field_name == "block_identity" and f.value_json:
+                    block_identity_by_listing[str(lid)] = f.value_json
 
         if not fair_price_by_listing and listings:
             fair_price_status = "AWAITING_ENRICHMENT"
@@ -262,6 +288,8 @@ class ComparisonService:
                 }
             )
 
+        location_benchmarks_by_listing = self._location_benchmarks(block_identity_by_listing)
+
         enrichment_summary = self.enrichment.get_status(session_id)
         observations = ObservationService(self.db).list_for_session(session_id)
 
@@ -278,6 +306,10 @@ class ComparisonService:
             transport_by_listing=transport_by_listing,
             driving_by_listing=driving_by_listing,
             schools_by_listing=schools_by_listing,
+            location_benchmarks_by_listing=location_benchmarks_by_listing,
+            location_benchmark_display=settings.location_benchmark_display
+            if settings.location_benchmark_display in ("shadow", "on")
+            else "off",
             observations=observations,
             journey_results=journey_results,
             regular_destination_journeys=regular_destination_journeys,

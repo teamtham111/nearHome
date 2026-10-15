@@ -11,6 +11,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.adapters.factory import (
+    get_free_routing_provider,
     get_geocoding_adapter,
     get_routes_adapter,
     get_routing_provider,
@@ -19,10 +20,23 @@ from app.adapters.factory import (
 from app.adapters.parking.hdb_availability import CarparkAvailabilityProvider
 from app.core.config import settings
 from app.core.logging import get_logger
-from app.domain.enums import DataStatus, EnrichmentStatus, EnrichmentType, JourneyMode, MainTransportMode
+from app.domain.enums import (
+    ComponentStatus,
+    DataStatus,
+    EnrichmentStatus,
+    EnrichmentType,
+    JourneyMode,
+    MainTransportMode,
+    Provenance,
+)
 from app.domain.models import BuyerProfile, ConfirmedListing, JourneyEstimate
-from app.domain.transport_models import ModelRollup
-from app.engines.driving.engine import compute_driving_model
+from app.domain.transport_models import ComponentResult, ModelRollup
+from app.engines.driving.engine import (
+    assemble_driving_rollup,
+    compute_driving_baseline,
+    compute_driving_paid_evidence,
+    paid_evidence_not_requested,
+)
 from app.engines.fair_price import FairPriceEngine
 from app.engines.fair_price_comparables import (
     derive_lease_commencement_from_transactions,
@@ -32,10 +46,17 @@ from app.engines.fair_price_comparables import (
 from app.engines.public_transport.engine import compute_public_transport_model
 from app.engines.schools import SchoolsEngine
 from app.models.orm import ConfirmedListingORM
+from app.repositories.block_repository import BlockRepository
 from app.repositories.carpark_repository import CarparkRepository
 from app.repositories.enrichment_repository import EnrichmentRepository
 from app.repositories.mappers import confirmed_listing_from_orm
 from app.repositories.session_repository import SessionRepository
+from app.services.block_features import (
+    BlockFeatureService,
+    BlockIdentity,
+    payload_provenance,
+    resolve_block,
+)
 from app.services.enrichment_metrics import collect_enrichment_metrics, measure_stage
 from app.services.journey.timestamp_resolver import resolve_departure_timestamp
 from app.services.lease_estimation import LeaseEvidenceCache, estimate_remaining_lease
@@ -81,6 +102,24 @@ def _rollup_to_field(rollup: ModelRollup) -> dict:
     }
 
 
+def _component_from_dict(data: dict) -> ComponentResult:
+    """Rebuild a stored component so per-listing persistence can reuse it."""
+    return ComponentResult(
+        name=data["name"],
+        value=data.get("value"),
+        score=data.get("score"),
+        weight=data.get("weight", 0.0),
+        status=ComponentStatus(data.get("status", "not_assessed")),
+        explanation=data.get("explanation", ""),
+        strengths=data.get("strengths") or [],
+        limitations=data.get("limitations") or [],
+        evidence=data.get("evidence") or [],
+        source=data.get("source"),
+        provenance=Provenance(data.get("provenance", "CALCULATED")),
+        confidence=data.get("confidence", "unavailable"),
+    )
+
+
 def _rollup_provenance(rollup: ModelRollup) -> str:
     provenances = {c.provenance.value for c in rollup.components if c.is_assessed}
     if not provenances:
@@ -97,6 +136,152 @@ class EnrichmentService:
         self.carpark_repo = CarparkRepository(db)
         self.session_repo = SessionRepository(db)
         self.lease_cache = LeaseEvidenceCache()
+        self.block_repo = BlockRepository(db)
+        self.block_features = BlockFeatureService(self.block_repo)
+        self.free_routing = None
+
+    def _resolve_block(self, listing: ConfirmedListing, geo) -> BlockIdentity | None:
+        """Associate the listing with its HDB block and persist the link."""
+        if not settings.block_feature_reuse_enabled:
+            return None
+        try:
+            identity = resolve_block(
+                self.block_repo,
+                address=listing.address,
+                geocode_postal_code=getattr(geo, "postal_code", None),
+                geocode_block=getattr(geo, "block", None),
+                geocode_street=getattr(geo, "street", None),
+                geocode_latitude=getattr(geo, "latitude", None),
+                geocode_longitude=getattr(geo, "longitude", None),
+            )
+        except Exception as exc:  # registry problems must never block enrichment
+            logger.warning("block_resolution_failed", error_type=type(exc).__name__)
+            return None
+        if identity is None:
+            return None
+        listing_orm = self.db.get(ConfirmedListingORM, listing.listing_id)
+        if listing_orm is not None:
+            listing_orm.block_key = identity.block_key
+        self.repo.save_enriched_field(
+            listing.listing_id,
+            "block_identity",
+            identity.to_dict(),
+            DataStatus.AVAILABLE.value,
+            "HDB_BLOCK_REGISTRY" if identity.in_registry else "LISTING_ADDRESS",
+            provenance="OFFICIAL" if identity.in_registry else "CALCULATED",
+        )
+        return identity
+
+    def _block_feature(
+        self,
+        identity: BlockIdentity | None,
+        feature_set: str,
+        fallback_origin: tuple[float, float],
+        compute: Callable[[float, float], dict],
+        *,
+        reuse: bool = True,
+    ) -> dict:
+        """Reuse the block's stored result, or calculate once from the block origin."""
+        if (
+            identity is None
+            or identity.origin_latitude is None
+            or identity.origin_longitude is None
+            or identity.origin_source is None
+        ):
+            return compute(*fallback_origin)
+        outcome = self.block_features.get_or_compute(
+            identity.block_key,
+            feature_set,
+            (identity.origin_latitude, identity.origin_longitude),
+            identity.origin_source,
+            compute,
+            reuse=reuse,
+        )
+        payload = dict(outcome.payload)
+        payload["block_feature"] = {
+            "block_key": identity.block_key,
+            "reused": outcome.reused,
+            "origin_latitude": outcome.origin_latitude,
+            "origin_longitude": outcome.origin_longitude,
+            "calculation_version": outcome.calculation_version,
+            "source_fingerprint": outcome.source_fingerprint,
+            "computed_at": outcome.computed_at.isoformat(),
+        }
+        return payload
+
+    def _free_provider(self):
+        if self.free_routing is None:
+            self.free_routing = get_free_routing_provider()
+        return self.free_routing
+
+    def _driving_field(
+        self,
+        identity: BlockIdentity | None,
+        fallback_origin: tuple[float, float],
+        listing: ConfirmedListing,
+        paid_routing,
+        availability_provider: CarparkAvailabilityProvider | None,
+    ) -> dict:
+        """Free baseline block result plus paid Google evidence for this shortlisted home."""
+        baseline = self._block_feature(
+            identity,
+            "driving_baseline",
+            fallback_origin,
+            lambda la, lo: {
+                "components": [
+                    c.to_dict()
+                    for c in compute_driving_baseline(
+                        la,
+                        lo,
+                        self._free_provider(),
+                        availability_provider=availability_provider,
+                        history_lookup=self.carpark_repo.historical_summary,
+                        listing_address=listing.address,
+                    )
+                ],
+                "routing_provider": self._free_provider().provider_name,
+            },
+        )
+        components = [_component_from_dict(c) for c in baseline.get("components") or []]
+        major = next((c for c in components if c.name == "major_road_access"), None)
+        anchor = ((major.value or {}).get("selected_entry") or {}).get("candidate_id") if major else None
+        if major is None or not settings.google_driving_evidence_enabled or paid_routing is None:
+            reason = (
+                "Google route-flexibility and peak-hour evidence is switched off."
+                if not settings.google_driving_evidence_enabled
+                else "Major-road access was not calculated."
+            )
+            paid = [c.to_dict() for c in paid_evidence_not_requested(reason)]
+            paid_meta = None
+        else:
+
+            def compute_paid(la: float, lo: float) -> dict:
+                return {
+                    "components": [c.to_dict() for c in compute_driving_paid_evidence(la, lo, paid_routing, major)],
+                    "anchor_candidate_id": anchor,
+                    "routing_provider": paid_routing.provider_name,
+                }
+
+            # Reuse stored Google evidence only when it was anchored on the
+            # same baseline entry; otherwise request it again.
+            evidence = self._block_feature(identity, "driving_google_evidence", fallback_origin, compute_paid)
+            if evidence.get("anchor_candidate_id") != anchor:
+                evidence = self._block_feature(
+                    identity, "driving_google_evidence", fallback_origin, compute_paid, reuse=False
+                )
+            paid = evidence.get("components") or []
+            paid_meta = evidence.get("block_feature")
+        rollup = assemble_driving_rollup(components + [_component_from_dict(c) for c in paid])
+        field = _rollup_to_field(rollup)
+        field["block_feature"] = baseline.get("block_feature")
+        field["google_evidence"] = paid_meta
+        field["routing_providers"] = {
+            "baseline": baseline.get("routing_provider"),
+            "flexibility_and_peak": getattr(paid_routing, "provider_name", None)
+            if settings.google_driving_evidence_enabled
+            else None,
+        }
+        return field
 
     def plan_enrichments(self, session_id: UUID, profile: BuyerProfile | None) -> list[str]:
         """Return enrichment types needed for this session."""
@@ -134,7 +319,10 @@ class EnrichmentService:
         job_id: UUID | None = None,
     ) -> dict:
         """Run one session with request-scoped performance diagnostics."""
+        # Free provider (OneMap) for block measurements; paid provider (Google)
+        # only for shortlisted-home driving evidence and personal journeys.
         routing_provider = get_routing_provider()
+        self.free_routing = get_free_routing_provider()
         try:
             with collect_enrichment_metrics(job_id=str(job_id) if job_id else None, session_id=str(session_id)):
                 return self._run_session_enrichment(
@@ -144,9 +332,10 @@ class EnrichmentService:
                     routing_provider=routing_provider,
                 )
         finally:
-            close = getattr(routing_provider, "close", None)
-            if callable(close):
-                close()
+            for provider in (routing_provider, self.free_routing):
+                close = getattr(provider, "close", None)
+                if callable(close):
+                    close()
 
     def _run_session_enrichment(
         self,
@@ -213,6 +402,7 @@ class EnrichmentService:
         town_derivation: dict[str, object] | None = None
         lat: float | None = None
         lng: float | None = None
+        identity: BlockIdentity | None = None
         transaction_records = []
         with measure_stage("transaction_fixture_loading", listing_id=str(lid)):
             try:
@@ -267,6 +457,7 @@ class EnrichmentService:
                 geo.provider,
                 provenance=geo.provenance,
             )
+            identity = self._resolve_block(listing, geo)
             self.repo.upsert_run(lid, EnrichmentType.GEOCODING.value, EnrichmentStatus.SUCCEEDED.value)
         except Exception as e:
             self.repo.upsert_run(lid, EnrichmentType.GEOCODING.value, EnrichmentStatus.FAILED.value, str(e))
@@ -479,21 +670,28 @@ class EnrichmentService:
                 )
             else:
                 with measure_stage("public_transport_enrichment", listing_id=str(lid)):
-                    pt_rollup = compute_public_transport_model(lat, lng, routing_provider)
+                    pt_field = self._block_feature(
+                        identity,
+                        "public_transport",
+                        (lat, lng),
+                        lambda la, lo: {
+                            **_rollup_to_field(compute_public_transport_model(la, lo, self._free_provider())),
+                            "routing_provider": self._free_provider().provider_name,
+                        },
+                    )
+                pt_available = pt_field.get("display_score") is not None
                 self.repo.save_enriched_field(
                     lid,
                     "public_transport",
-                    _rollup_to_field(pt_rollup),
-                    DataStatus.AVAILABLE.value if pt_rollup.display_score is not None else DataStatus.UNAVAILABLE.value,
+                    pt_field,
+                    DataStatus.AVAILABLE.value if pt_available else DataStatus.UNAVAILABLE.value,
                     "PUBLIC_TRANSPORT_ENGINE",
-                    provenance=_rollup_provenance(pt_rollup),
+                    provenance=payload_provenance("public_transport", pt_field),
                 )
                 self.repo.upsert_run(
                     lid,
                     EnrichmentType.PUBLIC_TRANSPORT.value,
-                    EnrichmentStatus.SUCCEEDED.value
-                    if pt_rollup.display_score is not None
-                    else EnrichmentStatus.UNAVAILABLE.value,
+                    EnrichmentStatus.SUCCEEDED.value if pt_available else EnrichmentStatus.UNAVAILABLE.value,
                 )
 
         if progress_callback is not None:
@@ -510,19 +708,15 @@ class EnrichmentService:
                 )
             else:
                 with measure_stage("driving_enrichment", listing_id=str(lid)):
-                    dr_rollup = compute_driving_model(
-                        lat,
-                        lng,
-                        routing_provider,
-                        availability_provider=availability_provider,
-                        history_lookup=self.carpark_repo.historical_summary,
-                        listing_address=listing.address,
+                    dr_field = self._driving_field(
+                        identity, (lat, lng), listing, routing_provider, availability_provider
                     )
-                parking_component = next(
-                    (component for component in dr_rollup.components if component.name == "parking_convenience"), None
+                parking_data = next(
+                    (c for c in dr_field.get("components") or [] if c.get("name") == "parking_convenience"), None
                 )
-                if parking_component is not None:
+                if parking_data is not None:
                     try:
+                        parking_component = _component_from_dict(parking_data)
                         self.carpark_repo.save_matches_and_metric(lid, parking_component, commit=False)
                     except Exception as exc:
                         self.repo.save_enriched_field(
@@ -532,20 +726,19 @@ class EnrichmentService:
                             DataStatus.TEMPORARILY_UNAVAILABLE.value,
                             "HDB_CARPARK_DATABASE",
                         )
+                dr_available = dr_field.get("display_score") is not None
                 self.repo.save_enriched_field(
                     lid,
                     "driving_access",
-                    _rollup_to_field(dr_rollup),
-                    DataStatus.AVAILABLE.value if dr_rollup.display_score is not None else DataStatus.UNAVAILABLE.value,
+                    dr_field,
+                    DataStatus.AVAILABLE.value if dr_available else DataStatus.UNAVAILABLE.value,
                     "DRIVING_ENGINE",
-                    provenance=_rollup_provenance(dr_rollup),
+                    provenance=payload_provenance("driving_baseline", dr_field),
                 )
                 self.repo.upsert_run(
                     lid,
                     EnrichmentType.DRIVING_ACCESS.value,
-                    EnrichmentStatus.SUCCEEDED.value
-                    if dr_rollup.display_score is not None
-                    else EnrichmentStatus.UNAVAILABLE.value,
+                    EnrichmentStatus.SUCCEEDED.value if dr_available else EnrichmentStatus.UNAVAILABLE.value,
                 )
 
         if progress_callback is not None:

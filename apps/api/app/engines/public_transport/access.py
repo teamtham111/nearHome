@@ -8,7 +8,6 @@ shortlisted geographically, then confirmed with routed results.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import Any
 
 from app.adapters.reference_data import ReferenceDataStore, haversine_m
@@ -17,6 +16,7 @@ from app.adapters.routing.batch import RouteCall, run_bounded_route_calls
 from app.adapters.transport_data.lta_bus import LtaBusDataStore
 from app.domain.enums import ComponentStatus, Provenance
 from app.domain.transport_models import ComponentResult, provider_error
+from app.engines.time_utils import next_weekday_occurrence_at_hour
 from app.engines.transport_config import PT_CONFIG, PublicTransportConfig
 from app.networks.bus_network import BusNetwork, get_bus_network
 from app.networks.rail_graph import RailGraph, get_rail_graph
@@ -323,7 +323,7 @@ def compute_access(
             feeder_targets.append((stop, station, walk_route, corridors))
         if feeder_pairs >= config.max_feeder_route_pairs:
             break
-    feeder_departure = datetime.now(UTC)
+    feeder_departure = next_weekday_occurrence_at_hour(config.feeder_departure_hour)
     feeder_calls = [
         RouteCall(
             key=(

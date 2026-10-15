@@ -3,6 +3,22 @@
 Project changes are recorded newest first. Each entry uses the local timestamp
 and briefly describes the files or behavior changed.
 
+## 2026-10-16 02:05:00 +08:00 (Asia/Singapore)
+
+- Added block-level location features: listings are linked to a stable HDB
+  block (registry from HDB Property Information, all 10,817 residential blocks
+  geocoded with OneMap) and Public Transport / driving results are calculated
+  once per block and reused across units.
+- Added a OneMap routing provider. Public Transport and baseline major-road
+  access (now a baseline, not AM-peak, driving time) use OneMap; Google is
+  kept only for route flexibility and estimated peak-hour delay on
+  shortlisted homes.
+- Added versioned Singapore/town "Better than X% of HDB blocks" comparisons
+  for six approved measurements, a free backfill job that cannot call Google,
+  and a `LOCATION_BENCHMARK_DISPLAY` switch (default `shadow`). Parking,
+  route flexibility and peak-hour delay are evidence only. See
+  docs/location-benchmarks.md.
+
 ## 2026-10-05 17:25:50 +08:00 (Asia/Singapore)
 
 - Rebuilt the Docker web image from the current source so the interactive demo

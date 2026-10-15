@@ -336,6 +336,47 @@ export interface ComparisonResponse {
   enrichment_summary: Array<EnrichmentRunStatus>;
   requirement_results?: Array<Record<string, unknown>>;
   demo_mode: boolean;
+  location_benchmarks_by_listing?: Record<string, LocationBenchmarks>;
+  location_benchmark_display?: "off" | "shadow" | "on";
+}
+
+export interface BenchmarkComparison {
+  status: "available" | "suppressed" | "unavailable";
+  better_than_pct: number | null;
+  strictly_worse: number | null;
+  tied: number | null;
+  group_size: number;
+  reference_block_count?: number;
+  coverage?: number;
+  reason?: string | null;
+  town_name?: string | null;
+}
+
+export interface BenchmarkMeasurement {
+  key: string;
+  feature_set: "public_transport" | "driving_baseline";
+  component: string;
+  label: string;
+  unit: string;
+  direction: "lower" | "higher";
+  comparison_phrase: string;
+  value: number | null;
+  value_status: "measured" | "worst" | "unavailable";
+  national: BenchmarkComparison;
+  town: BenchmarkComparison;
+  national_coverage?: number | null;
+  complete_national_benchmark?: boolean;
+  measured_at?: string | null;
+}
+
+export interface LocationBenchmarks {
+  status: "available" | "no_published_version" | "no_compatible_version" | "block_unknown" | "block_not_measured";
+  block_key: string | null;
+  version_id?: string;
+  published_at?: string | null;
+  national_reference_blocks?: number | null;
+  measurements: BenchmarkMeasurement[];
+  unranked_features?: Array<{ feature: string; reason: string }>;
 }
 
 export type EnrichmentRunStatus = {

@@ -15,6 +15,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     String,
     Text,
     Time,
@@ -212,6 +213,10 @@ class ConfirmedListingORM(Base):
     source_hash: Mapped[str | None] = mapped_column(String(64))
     confirmed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     field_provenance_json: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    # Stable HDB block identity shared by every unit in the same building.
+    # Not a foreign key: a listing can resolve to a block that is not (yet) in
+    # the reference registry, and units in it still share block features.
+    block_key: Mapped[str | None] = mapped_column(String(160), index=True)
 
     session: Mapped[ComparisonSessionORM] = relationship(back_populates="listings")
     listing_input: Mapped[ListingInputORM | None] = relationship(back_populates="confirmed_listing")
@@ -493,3 +498,127 @@ class SessionFeedbackORM(Base):
     )
 
     __table_args__ = (CheckConstraint("rating BETWEEN 1 AND 5", name="ck_session_feedback_rating"),)
+
+
+class HdbBlockORM(Base):
+    """Reference registry of HDB buildings from HDB Property Information."""
+
+    __tablename__ = "hdb_blocks"
+
+    block_key: Mapped[str] = mapped_column(String(160), primary_key=True)
+    block: Mapped[str] = mapped_column(String(20), nullable=False)
+    street: Mapped[str] = mapped_column(String(160), nullable=False)
+    residential: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    town_code: Mapped[str | None] = mapped_column(String(10))
+    town_name: Mapped[str | None] = mapped_column(String(80))
+    postal_code: Mapped[str | None] = mapped_column(String(6))
+    latitude: Mapped[float | None] = mapped_column(Float)
+    longitude: Mapped[float | None] = mapped_column(Float)
+    geocode_status: Mapped[str | None] = mapped_column(String(30))
+    geocode_match: Mapped[str | None] = mapped_column(String(30))
+    onemap_road_name: Mapped[str | None] = mapped_column(String(160))
+    year_completed: Mapped[int | None] = mapped_column(Integer)
+    max_floor_level: Mapped[int | None] = mapped_column(Integer)
+    total_dwelling_units: Mapped[int | None] = mapped_column(Integer)
+    registry_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    source_updated_at: Mapped[str | None] = mapped_column(String(40))
+    refreshed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        Index("ix_hdb_blocks_postal_code", "postal_code"),
+        Index("ix_hdb_blocks_town_code", "town_code"),
+    )
+
+
+class BlockLocationFeatureORM(Base):
+    """One block-level location calculation, shared by every unit in the block.
+
+    ``measurements_json`` holds the extracted raw measurements used for
+    benchmarking; ``payload_gz`` holds the full gzip-compressed engine result
+    so a listing can reuse the evidence without calling providers again.
+    """
+
+    __tablename__ = "block_location_features"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    block_key: Mapped[str] = mapped_column(String(160), nullable=False)
+    feature_set: Mapped[str] = mapped_column(String(40), nullable=False)
+    calculation_version: Mapped[str] = mapped_column(String(80), nullable=False)
+    source_fingerprint: Mapped[str] = mapped_column(String(80), nullable=False)
+    status: Mapped[str] = mapped_column(String(40), nullable=False)
+    origin_latitude: Mapped[float] = mapped_column(Float, nullable=False)
+    origin_longitude: Mapped[float] = mapped_column(Float, nullable=False)
+    origin_source: Mapped[str] = mapped_column(String(40), nullable=False)
+    measurements_json: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    payload_gz: Mapped[bytes | None] = mapped_column(LargeBinary)
+    provenance: Mapped[str | None] = mapped_column(String(50))
+    computed_for: Mapped[str] = mapped_column(String(20), nullable=False, default="listing")
+    computed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("block_key", "feature_set", "calculation_version", name="uq_block_feature_version"),
+        Index("ix_block_location_features_feature", "feature_set", "calculation_version"),
+    )
+
+
+class LocationBenchmarkVersionORM(Base):
+    """A coherent, published set of block comparisons built in one run."""
+
+    __tablename__ = "location_benchmark_versions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)  # building | published | superseded | failed
+    ranking_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    measurement_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    calculation_versions: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    registry_version: Mapped[str | None] = mapped_column(String(40))
+    registry_source_updated_at: Mapped[str | None] = mapped_column(String(40))
+    summary_json: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (Index("ix_location_benchmark_versions_status", "status"),)
+
+
+class LocationBenchmarkResultORM(Base):
+    """One block's measurement with its Singapore and town comparisons."""
+
+    __tablename__ = "location_benchmark_results"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("location_benchmark_versions.id", ondelete="CASCADE"), nullable=False
+    )
+    block_key: Mapped[str] = mapped_column(String(160), nullable=False)
+    measurement_key: Mapped[str] = mapped_column(String(60), nullable=False)
+    value: Mapped[float | None] = mapped_column(Float)
+    value_status: Mapped[str] = mapped_column(String(20), nullable=False)
+    town_code: Mapped[str | None] = mapped_column(String(10))
+    national_json: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    town_json: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    measured_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        UniqueConstraint("version_id", "block_key", "measurement_key", name="uq_benchmark_result"),
+        Index("ix_location_benchmark_results_block", "version_id", "block_key"),
+    )
+
+
+class LocationBenchmarkCohortORM(Base):
+    """Sorted measurement distribution of one comparison group in one version.
+
+    Lets a listing whose block has no stored result be compared against the
+    published group without recalculating the national dataset.
+    """
+
+    __tablename__ = "location_benchmark_cohorts"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("location_benchmark_versions.id", ondelete="CASCADE"), nullable=False
+    )
+    measurement_key: Mapped[str] = mapped_column(String(60), nullable=False)
+    scope: Mapped[str] = mapped_column(String(20), nullable=False)  # "national" or an HDB town code
+    cohort_json: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+
+    __table_args__ = (UniqueConstraint("version_id", "measurement_key", "scope", name="uq_benchmark_cohort"),)

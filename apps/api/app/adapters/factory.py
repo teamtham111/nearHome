@@ -81,6 +81,23 @@ def get_routing_provider():
     return GoogleRoutingProvider()
 
 
+def get_free_routing_provider():
+    """Routing for free nationwide block measurements (OneMap).
+
+    Never returns a paid provider: if OneMap is not configured every call
+    fails as a provider error and the measurement is reported unavailable.
+    """
+    if settings.demo_mode:
+        from app.adapters.routing.mock import MockRoutingProvider
+
+        return MockRoutingProvider()
+    from app.adapters.routing.onemap import OneMapRoutingProvider, UnavailableRoutingProvider
+
+    if not settings.onemap_email or not settings.onemap_password:
+        return UnavailableRoutingProvider()
+    return OneMapRoutingProvider()
+
+
 @lru_cache(maxsize=1)
 def get_transactions_adapter():
     from app.adapters.mock.hdb_transactions import FixtureHDBTransactionsAdapter

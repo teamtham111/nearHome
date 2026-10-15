@@ -103,6 +103,8 @@ read-only production smoke test.
 | Production enrichment worker | `./scripts/deploy-enrichment-worker.sh <google-cloud-project-id>` |
 | HDB carpark data ingest | `python data_pipeline/ingest_hdb_carparks.py --live` |
 | Enrichment performance operations | [docs/ENRICHMENT_PERFORMANCE.md](docs/ENRICHMENT_PERFORMANCE.md) |
+| HDB block registry (benchmarks) | `apps/api/.venv/bin/python data_pipeline/ingest_hdb_blocks.py --live --persist-db` |
+| Free location benchmark backfill (OneMap) | `cd apps/api && python -m app.jobs.location_benchmarks status` — see [docs/location-benchmarks.md](docs/location-benchmarks.md) |
 | HDB transaction ingest | `python data_pipeline/ingest_hdb_transactions.py path/to.csv` |
 | Complete data source inventory | `apps/api/.venv/bin/python data_pipeline/run_pipeline.py --list-sources` |
 | Validate every data artifact | `apps/api/.venv/bin/python data_pipeline/run_pipeline.py --profile validate` |
@@ -171,6 +173,7 @@ information.
 - [Implementation plan](docs/implementation-plan.md)
 - [Implementation status](docs/implementation-status.md)
 - [Product specification](docs/nearhome-spec.md)
+- [Block-level location benchmarks](docs/location-benchmarks.md)
 - [Production deployment](docs/DEPLOYMENT.md)
 
 ## Disclaimers

@@ -59,6 +59,10 @@ class RouteStep:
     duration_minutes: float
     transit_line: str | None = None
     transit_service_number: str | None = None
+    # Provider vehicle type for transit steps (e.g. "BUS", "SUBWAY") so bus
+    # and rail legs stay distinguishable; None when the provider omits it.
+    vehicle_type: str | None = None
+    encoded_polyline: str | None = None
 
 
 @dataclass
@@ -84,6 +88,10 @@ class RouteResult:
     # Transit decomposition is optional because walking/driving routes do not
     # have a transit leg. When present it is parsed from provider steps.
     transit_minutes: float | None = None
+    # When the provider response was obtained, and whether transit times are
+    # timetable-based (scheduled) rather than live vehicle predictions.
+    retrieved_at: datetime | None = None
+    schedule_based: bool | None = None
 
 
 @dataclass
@@ -131,6 +139,16 @@ class RoutingProvider(ABC):
     ) -> RouteResult:
         """Cheap duration/distance pass; providers may omit route geometry."""
         return self.get_driving_route(origin, destination, departure_time, traffic_aware)
+
+    def get_baseline_driving_route(
+        self, origin: tuple[float, float], destination: tuple[float, float]
+    ) -> RouteResult:
+        """Static (not traffic-aware) driving route with geometry.
+
+        Providers that cannot supply one must raise so callers report the
+        measurement as unavailable instead of substituting another provider.
+        """
+        raise RoutingUnavailableError(f"{self.provider_name} has no baseline driving route", self.provider_name)
 
     @abstractmethod
     def get_driving_alternatives(

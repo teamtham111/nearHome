@@ -97,6 +97,15 @@ STAGES: tuple[Stage, ...] = (
         outputs=(FIXTURES / "hdb_carparks.json",),
     ),
     Stage(
+        "refresh-hdb-blocks",
+        "Refresh the HDB residential block registry (HDB Property Information + OneMap) for benchmarks",
+        frozenset({"core", "all"}),
+        _python_script("ingest_hdb_blocks.py", "--live", "--persist-db"),
+        source_ids=("hdb-property-information", "onemap-geocoding", "postgresql"),
+        credentials=("ONEMAP_EMAIL", "ONEMAP_PASSWORD", "DATABASE_URL"),
+        outputs=(FIXTURES / "hdb_blocks.json",),
+    ),
+    Stage(
         "download-moe-schools",
         "Download the complete official MOE school directory CSV",
         frozenset({"core", "all"}),

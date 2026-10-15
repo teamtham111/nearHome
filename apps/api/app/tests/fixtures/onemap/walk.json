@@ -1,0 +1,119 @@
+{
+ "params": {
+  "start": "1.320959012238707,103.8841293953685",
+  "end": "1.31982276662398,103.88194665985091",
+  "routeType": "walk"
+ },
+ "response": {
+  "status_message": "Found route between points",
+  "route_geometry": "c_aGwz`yR@l@?D?J?D@N@x@BzA?@@p@|@AJ?D?@f@?Lz@t@??t@C@X?F@FFAHA@D",
+  "status": 0,
+  "route_instructions": [
+   [
+    "Head",
+    "",
+    162,
+    "1.320984,103.884122",
+    117,
+    "162m",
+    "West",
+    "North",
+    "walking",
+    "Head West"
+   ],
+   [
+    "Left",
+    "",
+    44,
+    "1.320916,103.882676",
+    32,
+    "44m",
+    "South",
+    "West",
+    "walking",
+    "Turn Left"
+   ],
+   [
+    "Right",
+    "",
+    76,
+    "1.32052,103.882692",
+    55,
+    "76m",
+    "West",
+    "South",
+    "walking",
+    "Turn Right"
+   ],
+   [
+    "Left",
+    "",
+    30,
+    "1.320207,103.882148",
+    22,
+    "30m",
+    "South",
+    "South West",
+    "walking",
+    "Turn Left"
+   ],
+   [
+    "Right",
+    "",
+    24,
+    "1.319938,103.882167",
+    17,
+    "24m",
+    "West",
+    "South",
+    "walking",
+    "Turn Right"
+   ],
+   [
+    "Left",
+    "",
+    11,
+    "1.319921,103.881958",
+    8,
+    "11m",
+    "South",
+    "West",
+    "walking",
+    "Turn Left"
+   ],
+   [
+    "Right",
+    "",
+    4,
+    "1.319833,103.881981",
+    3,
+    "4m",
+    "West",
+    "South",
+    "walking",
+    "Turn Right"
+   ],
+   [
+    "Destination",
+    "",
+    1,
+    "1.319824,103.881952",
+    1,
+    "1m",
+    "North",
+    "West",
+    "walking",
+    "You Have Arrived At Your Destination"
+   ]
+  ],
+  "route_name": [
+   ""
+  ],
+  "route_summary": {
+   "start_point": "",
+   "end_point": "",
+   "total_time": 252,
+   "total_distance": 349
+  }
+ }
+}

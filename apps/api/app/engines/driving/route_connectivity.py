@@ -153,6 +153,7 @@ def compute_route_connectivity(
     strengths = []
     limitations = [
         "Route independence is a deterministic OSM/polyline approximation, not a live road-disruption simulation.",
+        "Google returns a limited set of alternative routes; other alternatives may exist.",
     ]
     if distinct_major_roads >= 2:
         strengths.append(f"Routes reach {distinct_major_roads} distinct SLA Major Roads.")
@@ -169,6 +170,8 @@ def compute_route_connectivity(
             "distinct_major_roads_reached": distinct_major_roads,
             "independent_alternatives": independent_count,
             "partially_independent_alternatives": partial_count,
+            "alternatives_found": sum(item["alternatives_considered"] for item in per_destination_evidence),
+            "provider": routing.provider_name,
         },
         score=score,
         weight=weight,

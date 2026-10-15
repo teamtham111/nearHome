@@ -189,6 +189,10 @@ class ComparisonResponse(BaseModel):
     transport_by_listing: dict[str, Any] = Field(default_factory=dict)
     driving_by_listing: dict[str, Any] = Field(default_factory=dict)
     schools_by_listing: dict[str, Any] = Field(default_factory=dict)
+    # Saved Singapore/town block comparisons per listing. Empty when
+    # LOCATION_BENCHMARK_DISPLAY=off; "shadow" returns them without display.
+    location_benchmarks_by_listing: dict[str, Any] = Field(default_factory=dict)
+    location_benchmark_display: str = "off"
     observations: list[Any] = Field(default_factory=list)
     journey_results: list[Any] = Field(default_factory=list)
     regular_destination_journeys: list[Any] = Field(default_factory=list)

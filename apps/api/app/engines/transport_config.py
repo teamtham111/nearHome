@@ -39,6 +39,10 @@ class PublicTransportConfig:
     max_feeder_route_pairs: int = 24
 
     assessed_frequency_period: str = "AM_PEAK"
+    # Feeder transit routes are queried for the next weekday at this hour
+    # (Asia/Singapore), matching the AM-peak frequency period above, so block
+    # results never depend on when a job happens to run.
+    feeder_departure_hour: int = 8
     # Eligibility ceiling only. Eligible corridors still differ in Access
     # through their combined interval, wait proxy, and generalised cost.
     maximum_usable_scheduled_interval_minutes: float = 15.0

@@ -1,0 +1,431 @@
+{
+ "params": {
+  "start": "1.320959012238707,103.8841293953685",
+  "end": "1.28393326234538,103.851463066212",
+  "routeType": "drive"
+ },
+ "response": {
+  "status_message": "Found route between points",
+  "route_geometry": "w}`G{z`yRBtA`@Cz@AX?LAb@A^A^?tAEpBE?~@B`B@zAZ~@X\\`@Th@J~MTlBAHAtD[`DYNAvNOP?BLZhC@DVrB\\fCX~BNbAh@hBp@rA`@f@`@XHDv@HlAr@b@X|Av@z@t@PR`@p@Z~@JtAJlAF`ENxDHrBNpAVlAr@hBjAtBfQf[zFfJnBpC`FtHxElHxB|CtDdElB`B`B~AxC~BPHnAp@nHxDvAt@hBbAzAv@xCfAt@Rj@PhB^hBTtAN`NvAv@H\\Dt@Jn@LlAb@rBn@n@Tr@XtBf@rD~@~@n@ZRpA~@VJxBjAlAr@v@b@wAxCy@w@iAm@_@SoBeA_@D}DM",
+  "status": 0,
+  "route_instructions": [
+   [
+    "Head",
+    "ALJUNIED CRESCENT",
+    49,
+    "1.320763,103.884143",
+    20,
+    "49m",
+    "West",
+    "North",
+    "driving",
+    "Head West On Aljunied Crescent"
+   ],
+   [
+    "Left",
+    "ALJUNIED CRESCENT",
+    240,
+    "1.320735,103.883711",
+    41,
+    "240m",
+    "South",
+    "West",
+    "driving",
+    "Turn Left To Stay On Aljunied Crescent"
+   ],
+   [
+    "Right",
+    "GEYLANG EAST CENTRAL",
+    142,
+    "1.318574,103.883829",
+    16,
+    "142m",
+    "West",
+    "South",
+    "driving",
+    "Turn Right Onto Geylang East Central"
+   ],
+   [
+    "Left",
+    "ALJUNIED ROAD",
+    632,
+    "1.318542,103.882557",
+    79,
+    "632m",
+    "South West",
+    "West",
+    "driving",
+    "Turn Left Onto Aljunied Road"
+   ],
+   [
+    "Straight",
+    "LORONG 22 GEYLANG",
+    298,
+    "1.313166,103.882095",
+    46,
+    "298m",
+    "South",
+    "South",
+    "driving",
+    "Continue Onto Lorong 22 Geylang"
+   ],
+   [
+    "Right",
+    "GUILLEMARD ROAD",
+    605,
+    "1.310479,103.882188",
+    69,
+    "605m",
+    "West",
+    "South",
+    "driving",
+    "Turn Right Onto Guillemard Road"
+   ],
+   [
+    "Slight Left",
+    "GUILLEMARD ROAD",
+    25,
+    "1.308313,103.877535",
+    3,
+    "25m",
+    "South West",
+    "South West",
+    "driving",
+    "Keep Left Onto Guillemard Road"
+   ],
+   [
+    "Slight Right",
+    "NICOLL HIGHWAY",
+    3231,
+    "1.308129,103.877409",
+    364,
+    "3231m",
+    "South West",
+    "South West",
+    "driving",
+    "Merge Right Onto Nicoll Highway"
+   ],
+   [
+    "Straight",
+    "ESPLANADE DRIVE",
+    578,
+    "1.291333,103.85499",
+    66,
+    "578m",
+    "South",
+    "South West",
+    "driving",
+    "Continue Onto Esplanade Drive"
+   ],
+   [
+    "Straight",
+    "FULLERTON ROAD",
+    145,
+    "1.286244,103.853866",
+    17,
+    "145m",
+    "South",
+    "South",
+    "driving",
+    "Continue Onto Fullerton Road"
+   ],
+   [
+    "Straight",
+    "COLLYER QUAY",
+    372,
+    "1.285033,103.853381",
+    42,
+    "372m",
+    "South West",
+    "South",
+    "driving",
+    "Continue Onto Collyer Quay"
+   ],
+   [
+    "Straight",
+    "RAFFLES QUAY",
+    169,
+    "1.282052,103.851903",
+    21,
+    "169m",
+    "South West",
+    "South West",
+    "driving",
+    "Continue Onto Raffles Quay"
+   ],
+   [
+    "Right",
+    "CROSS STREET",
+    99,
+    "1.280771,103.851082",
+    15,
+    "99m",
+    "North West",
+    "South West",
+    "driving",
+    "Turn Right Onto Cross Street"
+   ],
+   [
+    "Right",
+    "ROBINSON ROAD",
+    188,
+    "1.28121,103.850314",
+    22,
+    "188m",
+    "North East",
+    "North West",
+    "driving",
+    "Turn Right Onto Robinson Road"
+   ],
+   [
+    "Left",
+    "D'ALMEIDA STREET",
+    123,
+    "1.282594,103.851271",
+    22,
+    "123m",
+    "North",
+    "North East",
+    "driving",
+    "Turn Left Onto D'almeida Street"
+   ],
+   [
+    "Straight",
+    "D'ALMEIDA STREET",
+    0,
+    "1.283697,103.851306",
+    0,
+    "0m",
+    "North",
+    "North",
+    "driving",
+    "You Have Arrived At Your Destination, Straight Ahead"
+   ]
+  ],
+  "route_name": [
+   "GUILLEMARD ROAD",
+   "NICOLL HIGHWAY"
+  ],
+  "route_summary": {
+   "start_point": "ALJUNIED CRESCENT",
+   "end_point": "D'ALMEIDA STREET",
+   "total_time": 838,
+   "total_distance": 6890
+  },
+  "alternativeroute": [
+   {
+    "status_message": "Found route between points",
+    "route_geometry": "w}`G{z`yRBtA`@Cz@AX?LAb@A^A^?tAEpBE?~@B`B@zAZ~@X\\`@Th@J~MTlBAHAtD[`DYNAV~BHn@Jx@LfAHdAJtAHvAJxA?FLnAJbALhAHp@Jx@Lv@Tz@Tt@Tz@Tt@DVPj@H`@ZlA^|@hChIRn@Vv@Vr@DVLf@Nh@B^A|@Af@IxEVhERhABLBLr@zD@Fx@pEHf@PpAr@xEFZd@nAFPJJnBlBp@v@vApA~EpF`FvFHHHEtCyAHEdAtBdA`B`AlAJJn@n@pAf@t@Zf@RVNTPp@j@j@f@lAhAlAbAj@d@rAfAjChBNJjAv@x@j@bC~APL|B|An@`@v@j@jAv@zAbAhBnA|FtDv@b@pBbAzAx@TJx@`@dAj@tExBFB`B~@pBhAd@VjB~@nAv@\\JRFRJVLxAr@lAj@vBdANDPJbErBdA_C|@mBHS^w@p@kApAuAPQr@e@fAe@dAe@b@k@BcBHaA_@D}DM",
+    "status": 0,
+    "route_instructions": [
+     [
+      "Head",
+      "ALJUNIED CRESCENT",
+      49,
+      "1.320763,103.884143",
+      20,
+      "49m",
+      "West",
+      "North",
+      "driving",
+      "Head West On Aljunied Crescent"
+     ],
+     [
+      "Left",
+      "ALJUNIED CRESCENT",
+      240,
+      "1.320735,103.883711",
+      41,
+      "240m",
+      "South",
+      "West",
+      "driving",
+      "Turn Left To Stay On Aljunied Crescent"
+     ],
+     [
+      "Right",
+      "GEYLANG EAST CENTRAL",
+      142,
+      "1.318574,103.883829",
+      16,
+      "142m",
+      "West",
+      "South",
+      "driving",
+      "Turn Right Onto Geylang East Central"
+     ],
+     [
+      "Left",
+      "ALJUNIED ROAD",
+      632,
+      "1.318542,103.882557",
+      79,
+      "632m",
+      "South West",
+      "West",
+      "driving",
+      "Turn Left Onto Aljunied Road"
+     ],
+     [
+      "Right",
+      "GEYLANG ROAD",
+      1101,
+      "1.313166,103.882095",
+      126,
+      "1101m",
+      "South",
+      "South",
+      "driving",
+      "Turn Right Onto Geylang Road"
+     ],
+     [
+      "Slight Left",
+      "GEYLANG ROAD",
+      438,
+      "1.310492,103.872703",
+      50,
+      "438m",
+      "South West",
+      "South West",
+      "driving",
+      "Keep Left Onto Geylang Road"
+     ],
+     [
+      "Straight",
+      "KALLANG ROAD",
+      952,
+      "1.309995,103.868858",
+      107,
+      "952m",
+      "West",
+      "West",
+      "driving",
+      "Continue Onto Kallang Road"
+     ],
+     [
+      "Straight",
+      "VICTORIA STREET",
+      194,
+      "1.306201,103.861478",
+      26,
+      "194m",
+      "South West",
+      "South West",
+      "driving",
+      "Continue Onto Victoria Street"
+     ],
+     [
+      "Left",
+      "JALAN SULTAN",
+      111,
+      "1.305022,103.860188",
+      15,
+      "111m",
+      "South East",
+      "South West",
+      "driving",
+      "Turn Left Onto Jalan Sultan"
+     ],
+     [
+      "Right",
+      "NORTH BRIDGE ROAD",
+      2434,
+      "1.304172,103.860703",
+      274,
+      "2434m",
+      "South West",
+      "South East",
+      "driving",
+      "Turn Right Onto North Bridge Road"
+     ],
+     [
+      "Slight Left",
+      "SOUTH BRIDGE ROAD",
+      148,
+      "1.286582,103.847854",
+      23,
+      "148m",
+      "South West",
+      "South West",
+      "driving",
+      "Keep Left Onto South Bridge Road"
+     ],
+     [
+      "Left",
+      "PICKERING STREET",
+      164,
+      "1.285433,103.847183",
+      19,
+      "164m",
+      "South East",
+      "South West",
+      "driving",
+      "Turn Left Onto Pickering Street"
+     ],
+     [
+      "Straight",
+      "CHURCH STREET",
+      323,
+      "1.284717,103.848471",
+      37,
+      "323m",
+      "South East",
+      "South East",
+      "driving",
+      "Continue Onto Church Street"
+     ],
+     [
+      "Straight",
+      "CECIL STREET",
+      94,
+      "1.282656,103.850437",
+      18,
+      "94m",
+      "East",
+      "South East",
+      "driving",
+      "Go Straight Onto Cecil Street"
+     ],
+     [
+      "Left",
+      "D'ALMEIDA STREET",
+      123,
+      "1.282594,103.851271",
+      22,
+      "123m",
+      "North",
+      "East",
+      "driving",
+      "Turn Left Onto D'almeida Street"
+     ],
+     [
+      "Straight",
+      "D'ALMEIDA STREET",
+      0,
+      "1.283697,103.851306",
+      0,
+      "0m",
+      "North",
+      "North",
+      "driving",
+      "You Have Arrived At Your Destination, Straight Ahead"
+     ]
+    ],
+    "route_name": [
+     "GEYLANG ROAD",
+     "NORTH BRIDGE ROAD"
+    ],
+    "route_summary": {
+     "start_point": "ALJUNIED CRESCENT",
+     "end_point": "D'ALMEIDA STREET",
+     "total_time": 868,
+     "total_distance": 7138
+    },
+    "viaRoute": "JALAN SULTAN",
+    "subtitle": "Alternative suggestion"
+   }
+  ],
+  "viaRoute": "ESPLANADE DRIVE",
+  "subtitle": "Shortest distance"
+ }
+}

@@ -1,0 +1,785 @@
+{
+ "params": {
+  "start": "1.31982276662398,103.88194665985091",
+  "end": "1.32683963232487,103.890007860464",
+  "routeType": "pt",
+  "date": "10-19-2026",
+  "time": "08:00:00",
+  "mode": "transit",
+  "maxWalkDistance": "1000",
+  "numItineraries": "3"
+ },
+ "response": {
+  "requestParameters": {
+   "mode": "TRANSIT,WALK",
+   "date": "10-19-2026",
+   "arriveBy": "false",
+   "showIntermediateStops": "true",
+   "fromPlace": "1.31982276662398,103.88194665985091",
+   "transferPenalty": "7200",
+   "toPlace": "1.32683963232487,103.890007860464",
+   "time": "8:00 AM",
+   "maxTransfers": "3",
+   "numItineraries": "3"
+  },
+  "plan": {
+   "date": 1792368000000,
+   "from": {
+    "name": "Origin",
+    "lon": 103.8819467,
+    "lat": 1.3198228,
+    "vertexType": "NORMAL"
+   },
+   "to": {
+    "name": "Destination",
+    "lon": 103.8900079,
+    "lat": 1.3268396,
+    "vertexType": "NORMAL"
+   },
+   "itineraries": [
+    {
+     "duration": 706,
+     "startTime": 1792368230000,
+     "endTime": 1792368936000,
+     "walkTime": 194,
+     "transitTime": 512,
+     "waitingTime": 0,
+     "walkDistance": 194.21,
+     "walkLimitExceeded": false,
+     "generalizedCost": 2338,
+     "elevationLost": 0,
+     "elevationGained": 0,
+     "transfers": 0,
+     "fare": "1.28",
+     "legs": [
+      {
+       "startTime": 1792368230000,
+       "endTime": 1792368320000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 81.01,
+       "generalizedCost": 517,
+       "pathway": false,
+       "mode": "WALK",
+       "transitLeg": false,
+       "route": "",
+       "agencyTimeZoneOffset": 28800000,
+       "interlineWithPreviousLeg": false,
+       "from": {
+        "name": "Origin",
+        "lon": 103.8819467,
+        "lat": 1.3198228,
+        "departure": 1792368230000,
+        "vertexType": "NORMAL"
+       },
+       "to": {
+        "name": "SIMS URBAN OASIS",
+        "stopId": "FERRY:81091",
+        "stopCode": "81091",
+        "lon": 103.8817311,
+        "lat": 1.3193533,
+        "arrival": 1792368320000,
+        "departure": 1792368320000,
+        "vertexType": "TRANSIT"
+       },
+       "legGeometry": {
+        "points": "{w`Gcm`yR?AF?PABA@B@?@@Fr@B?RCXC?A??",
+        "length": 14
+       },
+       "steps": [
+        {
+         "distance": 81.04,
+         "relativeDirection": "DEPART",
+         "streetName": "path",
+         "absoluteDirection": "EAST",
+         "stayOn": false,
+         "area": false,
+         "bogusName": true,
+         "lon": 103.8819466,
+         "lat": 1.3198227,
+         "elevation": "",
+         "walkingBike": false
+        }
+       ],
+       "rentedBike": false,
+       "walkingBike": false,
+       "duration": 90
+      },
+      {
+       "startTime": 1792368320000,
+       "endTime": 1792368832000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 2295.02,
+       "generalizedCost": 1112,
+       "pathway": false,
+       "mode": "BUS",
+       "transitLeg": true,
+       "route": "SBST BUS 158",
+       "agencyName": "SBS Transit",
+       "agencyUrl": "http://www.sbstransit.com.sg/",
+       "agencyTimeZoneOffset": 28800000,
+       "routeType": 3,
+       "routeId": "158",
+       "interlineWithPreviousLeg": false,
+       "agencyId": "1:SBST",
+       "tripId": "158-1-1003",
+       "serviceDate": "2026-10-19",
+       "from": {
+        "name": "SIMS URBAN OASIS",
+        "stopId": "FERRY:81091",
+        "stopCode": "81091",
+        "lon": 103.8817311,
+        "lat": 1.3193533,
+        "arrival": 1792368320000,
+        "departure": 1792368320000,
+        "stopIndex": 49,
+        "stopSequence": 51,
+        "vertexType": "TRANSIT"
+       },
+       "to": {
+        "name": "MACPHERSON STN EXIT A",
+        "stopId": "FERRY:70371",
+        "stopCode": "70371",
+        "lon": 103.8893233,
+        "lat": 1.3262329,
+        "arrival": 1792368832000,
+        "departure": 1792368832000,
+        "stopIndex": 56,
+        "stopSequence": 58,
+        "vertexType": "TRANSIT"
+       },
+       "intermediateStops": [
+        {
+         "name": "OPP BLK 125",
+         "stopId": "FERRY:70011",
+         "stopCode": "70011",
+         "lon": 103.8811601,
+         "lat": 1.3231769,
+         "arrival": 1792368378000,
+         "departure": 1792368408000,
+         "stopIndex": 50,
+         "stopSequence": 52,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "BEF JLN ANGGEREK",
+         "stopId": "FERRY:70151",
+         "stopCode": "70151",
+         "lon": 103.881253,
+         "lat": 1.327671,
+         "arrival": 1792368494000,
+         "departure": 1792368524000,
+         "stopIndex": 51,
+         "stopSequence": 53,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "MATTAR STN EXIT A",
+         "stopId": "FERRY:70161",
+         "stopCode": "70161",
+         "lon": 103.882484,
+         "lat": 1.327297,
+         "arrival": 1792368568000,
+         "departure": 1792368598000,
+         "stopIndex": 52,
+         "stopSequence": 54,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "BLK 77",
+         "stopId": "FERRY:70171",
+         "stopCode": "70171",
+         "lon": 103.8854714,
+         "lat": 1.3283367,
+         "arrival": 1792368655000,
+         "departure": 1792368685000,
+         "stopIndex": 53,
+         "stopSequence": 55,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "BLK 36",
+         "stopId": "FERRY:70181",
+         "stopCode": "70181",
+         "lon": 103.8869172,
+         "lat": 1.3288618,
+         "arrival": 1792368714000,
+         "departure": 1792368744000,
+         "stopIndex": 54,
+         "stopSequence": 56,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "OPP BLK 66",
+         "stopId": "FERRY:70191",
+         "stopCode": "70191",
+         "lon": 103.8879366,
+         "lat": 1.327229,
+         "arrival": 1792368773000,
+         "departure": 1792368803000,
+         "stopIndex": 55,
+         "stopSequence": 57,
+         "vertexType": "TRANSIT"
+        }
+       ],
+       "legGeometry": {
+        "points": "_u`Gol`yR??wAHaAF{BJwANmBH_DV_BTc@D??????wBVi@HK@_@F_Df@aANKBw@NyAZeFdASD]GKKIS?WD{ABw@??Bi@NqE??@k@HeBFkBDiANuFu@GsBOSCKC??g@KWMQQSUMWOs@@i@Fe@JYLO@?????RWz@e@HE|Aw@|BoADA????FCr@a@rAk@|@UbAQUwAa@iAEK",
+        "length": 73
+       },
+       "steps": [],
+       "routeShortName": "158",
+       "routeLongName": "SBST BUS 158",
+       "duration": 512
+      },
+      {
+       "startTime": 1792368832000,
+       "endTime": 1792368936000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 113.2,
+       "generalizedCost": 707,
+       "pathway": false,
+       "mode": "WALK",
+       "transitLeg": false,
+       "route": "",
+       "agencyTimeZoneOffset": 28800000,
+       "interlineWithPreviousLeg": false,
+       "from": {
+        "name": "MACPHERSON STN EXIT A",
+        "stopId": "FERRY:70371",
+        "stopCode": "70371",
+        "lon": 103.8893233,
+        "lat": 1.3262329,
+        "arrival": 1792368832000,
+        "departure": 1792368832000,
+        "vertexType": "TRANSIT"
+       },
+       "to": {
+        "name": "Destination",
+        "lon": 103.8900079,
+        "lat": 1.3268396,
+        "arrival": 1792368936000,
+        "vertexType": "NORMAL"
+       },
+       "legGeometry": {
+        "points": "}_bGg{ayR??IDMYEUIWSWCI[USOI?",
+        "length": 11
+       },
+       "steps": [
+        {
+         "distance": 113.21,
+         "relativeDirection": "DEPART",
+         "streetName": "path",
+         "absoluteDirection": "NORTHWEST",
+         "stayOn": false,
+         "area": false,
+         "bogusName": true,
+         "lon": 103.8893233,
+         "lat": 1.3262328,
+         "elevation": "",
+         "walkingBike": false
+        }
+       ],
+       "rentedBike": false,
+       "walkingBike": false,
+       "duration": 104
+      }
+     ],
+     "tooSloped": false,
+     "arrivedAtDestinationWithRentedBicycle": false
+    },
+    {
+     "duration": 731,
+     "startTime": 1792368060000,
+     "endTime": 1792368791000,
+     "walkTime": 425,
+     "transitTime": 306,
+     "waitingTime": 0,
+     "walkDistance": 446.59,
+     "walkLimitExceeded": false,
+     "generalizedCost": 3694,
+     "elevationLost": 0,
+     "elevationGained": 0,
+     "transfers": 0,
+     "fare": "1.28",
+     "legs": [
+      {
+       "startTime": 1792368060000,
+       "endTime": 1792368262000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 219.1,
+       "generalizedCost": 1362,
+       "pathway": false,
+       "mode": "WALK",
+       "transitLeg": false,
+       "route": "",
+       "agencyTimeZoneOffset": 28800000,
+       "interlineWithPreviousLeg": false,
+       "from": {
+        "name": "Origin",
+        "lon": 103.8819467,
+        "lat": 1.3198228,
+        "departure": 1792368060000,
+        "vertexType": "NORMAL"
+       },
+       "to": {
+        "name": "OPP GEYLANG METH SEC SCH",
+        "stopId": "FERRY:81201",
+        "stopCode": "81201",
+        "lon": 103.8830068,
+        "lat": 1.318693,
+        "arrival": 1792368262000,
+        "departure": 1792368262000,
+        "vertexType": "TRANSIT"
+       },
+       "legGeometry": {
+        "points": "{w`Gcm`yR?AAEFAFAJ?FA??B?@?d@?RC~@KTENMHQDKBIDK@a@E]CW?UF???",
+        "length": 25
+       },
+       "steps": [
+        {
+         "distance": 219.1,
+         "relativeDirection": "DEPART",
+         "streetName": "path",
+         "absoluteDirection": "EAST",
+         "stayOn": false,
+         "area": false,
+         "bogusName": true,
+         "lon": 103.8819466,
+         "lat": 1.3198227,
+         "elevation": "",
+         "walkingBike": false
+        }
+       ],
+       "rentedBike": false,
+       "walkingBike": false,
+       "duration": 202
+      },
+      {
+       "startTime": 1792368262000,
+       "endTime": 1792368568000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 1506.76,
+       "generalizedCost": 906,
+       "pathway": false,
+       "mode": "BUS",
+       "transitLeg": true,
+       "route": "SBST BUS 80",
+       "agencyName": "SBS Transit",
+       "agencyUrl": "http://www.sbstransit.com.sg/",
+       "agencyTimeZoneOffset": 28800000,
+       "routeType": 3,
+       "routeId": "80",
+       "interlineWithPreviousLeg": false,
+       "agencyId": "1:SBST",
+       "tripId": "80-2-1006",
+       "serviceDate": "2026-10-19",
+       "from": {
+        "name": "OPP GEYLANG METH SEC SCH",
+        "stopId": "FERRY:81201",
+        "stopCode": "81201",
+        "lon": 103.8830068,
+        "lat": 1.318693,
+        "arrival": 1792368262000,
+        "departure": 1792368262000,
+        "stopIndex": 28,
+        "stopSequence": 29,
+        "vertexType": "TRANSIT"
+       },
+       "to": {
+        "name": "MACPHERSON STN EXIT C",
+        "stopId": "FERRY:70251",
+        "stopCode": "70251",
+        "lon": 103.8903707,
+        "lat": 1.3249716,
+        "arrival": 1792368568000,
+        "departure": 1792368568000,
+        "stopIndex": 32,
+        "stopSequence": 33,
+        "vertexType": "TRANSIT"
+       },
+       "intermediateStops": [
+        {
+         "name": "GEYLANG POLYCLINIC",
+         "stopId": "FERRY:81211",
+         "stopCode": "81211",
+         "lon": 103.8866675,
+         "lat": 1.3190467,
+         "arrival": 1792368319000,
+         "departure": 1792368349000,
+         "stopIndex": 29,
+         "stopSequence": 30,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "OPP BLK 1015",
+         "stopId": "FERRY:81221",
+         "stopCode": "81221",
+         "lon": 103.8901511,
+         "lat": 1.3197633,
+         "arrival": 1792368407000,
+         "departure": 1792368437000,
+         "stopIndex": 30,
+         "stopSequence": 31,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "OPP PAYA LEBAR GREEN",
+         "stopId": "FERRY:81109",
+         "stopCode": "81109",
+         "lon": 103.8911718,
+         "lat": 1.3209137,
+         "arrival": 1792368466000,
+         "departure": 1792368496000,
+         "stopIndex": 31,
+         "stopSequence": 32,
+         "vertexType": "TRANSIT"
+        }
+       ],
+       "legGeometry": {
+        "points": "}o`Gys`yR???Q?QC}B?{AAoBGiAUoBa@kDAK??AGkAaKCWu@eG?ECK??AEi@eD[a@a@Wg@Os@AA?q@J??A?A?MB????UBA@q@HaBRaAJyAPA?A?E@m@F????[D[BC???A?uD`@eAJeAL]BC?G@",
+        "length": 56
+       },
+       "steps": [],
+       "routeShortName": "80",
+       "routeLongName": "SBST BUS 80",
+       "duration": 306
+      },
+      {
+       "startTime": 1792368568000,
+       "endTime": 1792368791000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 227.49,
+       "generalizedCost": 1425,
+       "pathway": false,
+       "mode": "WALK",
+       "transitLeg": false,
+       "route": "",
+       "agencyTimeZoneOffset": 28800000,
+       "interlineWithPreviousLeg": false,
+       "from": {
+        "name": "MACPHERSON STN EXIT C",
+        "stopId": "FERRY:70251",
+        "stopCode": "70251",
+        "lon": 103.8903707,
+        "lat": 1.3249716,
+        "arrival": 1792368568000,
+        "departure": 1792368568000,
+        "vertexType": "TRANSIT"
+       },
+       "to": {
+        "name": "Destination",
+        "lon": 103.8900079,
+        "lat": 1.3268396,
+        "arrival": 1792368791000,
+        "vertexType": "NORMAL"
+       },
+       "legGeometry": {
+        "points": "axaGyabyR????A?EBK?Q@i@FAGa@DQ@E@SHoAZOHICEEMC_@DGDEDEHKGM@I?",
+        "length": 25
+       },
+       "steps": [
+        {
+         "distance": 227.49,
+         "relativeDirection": "DEPART",
+         "streetName": "path",
+         "absoluteDirection": "EAST",
+         "stayOn": false,
+         "area": false,
+         "bogusName": true,
+         "lon": 103.8903707,
+         "lat": 1.3249715,
+         "elevation": "",
+         "walkingBike": false
+        }
+       ],
+       "rentedBike": false,
+       "walkingBike": false,
+       "duration": 223
+      }
+     ],
+     "tooSloped": false,
+     "arrivedAtDestinationWithRentedBicycle": false
+    },
+    {
+     "duration": 828,
+     "startTime": 1792368280000,
+     "endTime": 1792369108000,
+     "walkTime": 376,
+     "transitTime": 452,
+     "waitingTime": 0,
+     "walkDistance": 405.99,
+     "walkLimitExceeded": false,
+     "generalizedCost": 3584,
+     "elevationLost": 0,
+     "elevationGained": 0,
+     "transfers": 0,
+     "fare": "1.28",
+     "legs": [
+      {
+       "startTime": 1792368280000,
+       "endTime": 1792368370000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 81.01,
+       "generalizedCost": 517,
+       "pathway": false,
+       "mode": "WALK",
+       "transitLeg": false,
+       "route": "",
+       "agencyTimeZoneOffset": 28800000,
+       "interlineWithPreviousLeg": false,
+       "from": {
+        "name": "Origin",
+        "lon": 103.8819467,
+        "lat": 1.3198228,
+        "departure": 1792368280000,
+        "vertexType": "NORMAL"
+       },
+       "to": {
+        "name": "SIMS URBAN OASIS",
+        "stopId": "FERRY:81091",
+        "stopCode": "81091",
+        "lon": 103.8817311,
+        "lat": 1.3193533,
+        "arrival": 1792368370000,
+        "departure": 1792368370000,
+        "vertexType": "TRANSIT"
+       },
+       "legGeometry": {
+        "points": "{w`Gcm`yR?AF?PABA@B@?@@Fr@B?RCXC?A??",
+        "length": 14
+       },
+       "steps": [
+        {
+         "distance": 81.04,
+         "relativeDirection": "DEPART",
+         "streetName": "path",
+         "absoluteDirection": "EAST",
+         "stayOn": false,
+         "area": false,
+         "bogusName": true,
+         "lon": 103.8819466,
+         "lat": 1.3198227,
+         "elevation": "",
+         "walkingBike": false
+        }
+       ],
+       "rentedBike": false,
+       "walkingBike": false,
+       "duration": 90
+      },
+      {
+       "startTime": 1792368370000,
+       "endTime": 1792368822000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 2024.73,
+       "generalizedCost": 1052,
+       "pathway": false,
+       "mode": "BUS",
+       "transitLeg": true,
+       "route": "SBST BUS 155",
+       "agencyName": "SBS Transit",
+       "agencyUrl": "http://www.sbstransit.com.sg/",
+       "agencyTimeZoneOffset": 28800000,
+       "routeType": 3,
+       "routeId": "155",
+       "interlineWithPreviousLeg": false,
+       "agencyId": "1:SBST",
+       "tripId": "155-2-1006",
+       "serviceDate": "2026-10-19",
+       "from": {
+        "name": "SIMS URBAN OASIS",
+        "stopId": "FERRY:81091",
+        "stopCode": "81091",
+        "lon": 103.8817311,
+        "lat": 1.3193533,
+        "arrival": 1792368370000,
+        "departure": 1792368370000,
+        "stopIndex": 29,
+        "stopSequence": 30,
+        "vertexType": "TRANSIT"
+       },
+       "to": {
+        "name": "OPP BLK 66",
+        "stopId": "FERRY:70191",
+        "stopCode": "70191",
+        "lon": 103.8879366,
+        "lat": 1.327229,
+        "arrival": 1792368822000,
+        "departure": 1792368822000,
+        "stopIndex": 35,
+        "stopSequence": 36,
+        "vertexType": "TRANSIT"
+       },
+       "intermediateStops": [
+        {
+         "name": "OPP BLK 125",
+         "stopId": "FERRY:70011",
+         "stopCode": "70011",
+         "lon": 103.8811601,
+         "lat": 1.3231769,
+         "arrival": 1792368427000,
+         "departure": 1792368457000,
+         "stopIndex": 30,
+         "stopSequence": 31,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "BEF JLN ANGGEREK",
+         "stopId": "FERRY:70151",
+         "stopCode": "70151",
+         "lon": 103.881253,
+         "lat": 1.327671,
+         "arrival": 1792368544000,
+         "departure": 1792368574000,
+         "stopIndex": 31,
+         "stopSequence": 32,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "MATTAR STN EXIT A",
+         "stopId": "FERRY:70161",
+         "stopCode": "70161",
+         "lon": 103.882484,
+         "lat": 1.327297,
+         "arrival": 1792368617000,
+         "departure": 1792368647000,
+         "stopIndex": 32,
+         "stopSequence": 33,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "BLK 77",
+         "stopId": "FERRY:70171",
+         "stopCode": "70171",
+         "lon": 103.8854714,
+         "lat": 1.3283367,
+         "arrival": 1792368704000,
+         "departure": 1792368734000,
+         "stopIndex": 33,
+         "stopSequence": 34,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "BLK 36",
+         "stopId": "FERRY:70181",
+         "stopCode": "70181",
+         "lon": 103.8869172,
+         "lat": 1.3288618,
+         "arrival": 1792368763000,
+         "departure": 1792368793000,
+         "stopIndex": 34,
+         "stopSequence": 35,
+         "vertexType": "TRANSIT"
+        }
+       ],
+       "legGeometry": {
+        "points": "_u`Gol`yR??yCP{BJwANmBH_DV_BTc@D??????wBVu@J_@F_Df@aANKBw@NyAZyFjA]GKKIS?WD{ABw@??Bi@NqE??@k@HeBFkBDiANuFu@GsBOSCKC??g@KWMQQSUMWOs@@i@Fe@JYJKBC????RWz@e@HE|Aw@|BoADA",
+        "length": 60
+       },
+       "steps": [],
+       "routeShortName": "155",
+       "routeLongName": "SBST BUS 155",
+       "duration": 452
+      },
+      {
+       "startTime": 1792368822000,
+       "endTime": 1792369108000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 324.98,
+       "generalizedCost": 2014,
+       "pathway": false,
+       "mode": "WALK",
+       "transitLeg": false,
+       "route": "",
+       "agencyTimeZoneOffset": 28800000,
+       "interlineWithPreviousLeg": false,
+       "from": {
+        "name": "OPP BLK 66",
+        "stopId": "FERRY:70191",
+        "stopCode": "70191",
+        "lon": 103.8879366,
+        "lat": 1.327229,
+        "arrival": 1792368822000,
+        "departure": 1792368822000,
+        "vertexType": "TRANSIT"
+       },
+       "to": {
+        "name": "Destination",
+        "lon": 103.8900079,
+        "lat": 1.3268396,
+        "arrival": 1792369108000,
+        "vertexType": "NORMAL"
+       },
+       "legGeometry": {
+        "points": "cfbGqrayR??DEVMx@c@?E??@S?MCICKMc@EO?CEOI[EQEQEKACOm@GQAKCMAKGGACCCGEEAlBS",
+        "length": 31
+       },
+       "steps": [
+        {
+         "distance": 324.98,
+         "relativeDirection": "DEPART",
+         "streetName": "path",
+         "absoluteDirection": "SOUTHEAST",
+         "stayOn": false,
+         "area": false,
+         "bogusName": true,
+         "lon": 103.8879365,
+         "lat": 1.327229,
+         "elevation": "",
+         "walkingBike": false
+        }
+       ],
+       "rentedBike": false,
+       "walkingBike": false,
+       "duration": 286
+      }
+     ],
+     "tooSloped": false,
+     "arrivedAtDestinationWithRentedBicycle": false
+    }
+   ]
+  },
+  "metadata": {
+   "searchWindowUsed": 3000,
+   "nextDateTime": 1792368420000,
+   "prevDateTime": 1792365000000
+  },
+  "previousPageCursor": "rO0ABXc1AQANUFJFVklPVVNfUEFHRQzJcyCAAAAAAAAJYAAXU1RSRUVUX0FORF9BUlJJVkFMX1RJTUU=",
+  "nextPageCursor": "rO0ABXcxAQAJTkVYVF9QQUdFDMl-JIAAAAAAAAlgABdTVFJFRVRfQU5EX0FSUklWQUxfVElNRQ==",
+  "debugOutput": {
+   "precalculationTime": 22998,
+   "directStreetRouterTime": 14378743,
+   "transitRouterTime": 240921901,
+   "filteringTime": 590047,
+   "renderingTime": 135946,
+   "totalTime": 256065021,
+   "transitRouterTimes": {
+    "tripPatternFilterTime": 25563065,
+    "accessEgressTime": 104243184,
+    "raptorSearchTime": 108363348,
+    "itineraryCreationTime": 2735807
+   }
+  },
+  "elevationMetadata": {
+   "ellipsoidToGeoidDifference": 7.474262155254684,
+   "geoidElevation": false
+  }
+ }
+}
