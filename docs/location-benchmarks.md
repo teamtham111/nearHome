@@ -58,10 +58,16 @@ depend on when a job runs (previously "now").
 
 **Baseline major-road access** (approved definition change): baseline
 estimated driving time from the block to a validated entry onto an SLA
-Major Road. The catalogue, candidate selection (nearest 10 entries, fastest
-3 geometry-validated) and sustained-entry geometry validation are unchanged;
-the OneMap response geometry is validated directly, so the previous separate
-Google detail/alternatives request is no longer needed. A route that does
+Major Road. The catalogue, candidate shortlist (nearest 10 catalogue
+entries), sustained-entry geometry validation and selection rule (fastest
+validated entry) are unchanged. The OneMap response geometry is validated
+directly, so the previous separate Google detail/alternatives request is no
+longer needed. The old "validate only the fastest 3" cap existed to limit
+paid Google detail requests; with geometry included in every OneMap response
+it is removed, and every routed candidate is validated. In the pilot this
+changed Bishan Street 12 from 5/10 blocks assessed (the fastest three were
+flyover/frontage entries that correctly failed validation) to 10/10, all
+entering Braddell Road. A route that does
 not show sustained aligned travel on the intended road is rejected; nearby
 but unvalidated entries are never accepted. The stored value carries
 `measurement = baseline_estimated_driving_time`, `traffic_aware = false`,

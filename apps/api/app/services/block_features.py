@@ -50,7 +50,7 @@ _FEATURE_DEFINITIONS: dict[str, dict[str, Any]] = {
         "time_assumption": "walks untimed; feeder transit next weekday at feeder_departure_hour Asia/Singapore",
     },
     "driving_baseline": {
-        "code": "drive-baseline-1",
+        "code": "drive-baseline-2",
         "provider": "onemap",
         "time_assumption": "baseline static driving and walking time; not traffic-aware",
     },

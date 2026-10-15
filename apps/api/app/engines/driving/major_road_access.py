@@ -389,9 +389,12 @@ def _baseline_major_road_access(
     routed.sort(
         key=lambda item: (item[1].duration_minutes, item[1].distance_metres, item[0].major_road_id, item[0].node_id)
     )
-    # Preserve the original rule: only the fastest few candidates are
-    # geometry-validated; a nearby but unvalidated entry is never accepted.
-    detailed = routed[: config.major_road_full_polyline_candidate_limit]
+    # The original "fastest 3" limit only capped paid Google detail requests.
+    # OneMap returns geometry with every routed candidate at no extra cost, so
+    # every routed candidate is geometry-validated and the fastest *validated*
+    # entry is selected (the selection rule itself is unchanged). A nearby but
+    # unvalidated entry is still never accepted.
+    detailed = routed
     roads_by_identifier = {road.identifier: road for road in candidate_roads}
     validated = []
     rejected: list[dict[str, object]] = []
