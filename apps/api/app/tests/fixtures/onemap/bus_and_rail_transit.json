@@ -1,0 +1,383 @@
+{
+ "params": {
+  "start": "1.271462565564443,103.8256835455669",
+  "end": "1.28393326234538,103.851463066212",
+  "routeType": "pt",
+  "date": "10-19-2026",
+  "time": "08:00:00",
+  "mode": "transit",
+  "maxWalkDistance": "1000",
+  "numItineraries": "3"
+ },
+ "response": {
+  "requestParameters": {
+   "mode": "TRANSIT,WALK",
+   "date": "10-19-2026",
+   "arriveBy": "false",
+   "showIntermediateStops": "true",
+   "fromPlace": "1.271462565564443,103.8256835455669",
+   "transferPenalty": "1",
+   "toPlace": "1.28393326234538,103.851463066212",
+   "time": "8:00 AM",
+   "maxTransfers": "3",
+   "numItineraries": "3"
+  },
+  "plan": {
+   "date": 1792368000000,
+   "from": {
+    "name": "Origin",
+    "lon": 103.8256835,
+    "lat": 1.2714626,
+    "vertexType": "NORMAL"
+   },
+   "to": {
+    "name": "RAFFLES PLACE MRT STATION",
+    "stopId": "FERRY:EW14",
+    "stopCode": "EW14",
+    "lon": 103.8514631,
+    "lat": 1.2839333,
+    "vertexType": "TRANSIT"
+   },
+   "itineraries": [
+    {
+     "duration": 1367,
+     "startTime": 1792368016000,
+     "endTime": 1792369383000,
+     "walkTime": 521,
+     "transitTime": 653,
+     "waitingTime": 193,
+     "walkDistance": 526.29,
+     "walkLimitExceeded": false,
+     "generalizedCost": 5319,
+     "elevationLost": 0,
+     "elevationGained": 0,
+     "transfers": 1,
+     "fare": "1.38",
+     "legs": [
+      {
+       "startTime": 1792368016000,
+       "endTime": 1792368228000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 216.14,
+       "generalizedCost": 1354,
+       "pathway": false,
+       "mode": "WALK",
+       "transitLeg": false,
+       "route": "",
+       "agencyTimeZoneOffset": 28800000,
+       "interlineWithPreviousLeg": false,
+       "from": {
+        "name": "Origin",
+        "lon": 103.8256835,
+        "lat": 1.2714626,
+        "departure": 1792368016000,
+        "vertexType": "NORMAL"
+       },
+       "to": {
+        "name": "OPP KEPPEL DP BLK 519",
+        "stopId": "FERRY:14239",
+        "stopCode": "14239",
+        "lon": 103.8271424,
+        "lat": 1.2717814,
+        "arrival": 1792368228000,
+        "departure": 1792368228000,
+        "vertexType": "TRANSIT"
+       },
+       "legGeometry": {
+        "points": "kiwFomuxR?e@?I?ASWQ?@Q?UGOAO?SZ@PM@?DEAEAABCU[EGIKa@c@EEAC?A",
+        "length": 25
+       },
+       "steps": [
+        {
+         "distance": 216.15,
+         "relativeDirection": "DEPART",
+         "streetName": "path",
+         "absoluteDirection": "EAST",
+         "stayOn": false,
+         "area": false,
+         "bogusName": true,
+         "lon": 103.8256838,
+         "lat": 1.2714226,
+         "elevation": "",
+         "walkingBike": false
+        }
+       ],
+       "rentedBike": false,
+       "walkingBike": false,
+       "duration": 212
+      },
+      {
+       "startTime": 1792368228000,
+       "endTime": 1792368680000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 2107.06,
+       "generalizedCost": 1052,
+       "pathway": false,
+       "mode": "BUS",
+       "transitLeg": true,
+       "route": "SBST BUS 166",
+       "agencyName": "SBS Transit",
+       "agencyUrl": "http://www.sbstransit.com.sg/",
+       "agencyTimeZoneOffset": 28800000,
+       "routeType": 3,
+       "routeId": "166",
+       "interlineWithPreviousLeg": false,
+       "agencyId": "1:SBST",
+       "tripId": "166-2-1006",
+       "serviceDate": "2026-10-19",
+       "from": {
+        "name": "OPP KEPPEL DP BLK 519",
+        "stopId": "FERRY:14239",
+        "stopCode": "14239",
+        "lon": 103.8271424,
+        "lat": 1.2717814,
+        "arrival": 1792368228000,
+        "departure": 1792368228000,
+        "stopIndex": 24,
+        "stopSequence": 25,
+        "vertexType": "TRANSIT"
+       },
+       "to": {
+        "name": "BEF PEARL'S HILL TERR",
+        "stopId": "FERRY:05012",
+        "stopCode": "05012",
+        "lon": 103.8408772,
+        "lat": 1.2815458,
+        "arrival": 1792368680000,
+        "departure": 1792368680000,
+        "stopIndex": 30,
+        "stopSequence": 31,
+        "vertexType": "TRANSIT"
+       },
+       "intermediateStops": [
+        {
+         "name": "CH OF ST. TERESA",
+         "stopId": "FERRY:14229",
+         "stopCode": "14229",
+         "lon": 103.8285789,
+         "lat": 1.2737067,
+         "arrival": 1792368271000,
+         "departure": 1792368301000,
+         "stopIndex": 25,
+         "stopSequence": 26,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "OPP MELATI BLK 2",
+         "stopId": "FERRY:10391",
+         "stopCode": "10391",
+         "lon": 103.8312564,
+         "lat": 1.2762711,
+         "arrival": 1792368373000,
+         "departure": 1792368403000,
+         "stopIndex": 26,
+         "stopSequence": 27,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "OPP KAMPONG BAHRU TER",
+         "stopId": "FERRY:10049",
+         "stopCode": "10049",
+         "lon": 103.8348379,
+         "lat": 1.276233,
+         "arrival": 1792368461000,
+         "departure": 1792368491000,
+         "stopIndex": 27,
+         "stopSequence": 28,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "AFT HOSP DR",
+         "stopId": "FERRY:10017",
+         "stopCode": "10017",
+         "lon": 103.8376257,
+         "lat": 1.2783205,
+         "arrival": 1792368548000,
+         "departure": 1792368578000,
+         "stopIndex": 28,
+         "stopSequence": 29,
+         "vertexType": "TRANSIT"
+        },
+        {
+         "name": "OUTRAM PK STN EXIT 6/SGH",
+         "stopId": "FERRY:10018",
+         "stopCode": "10018",
+         "lon": 103.8386036,
+         "lat": 1.2790082,
+         "arrival": 1792368593000,
+         "departure": 1792368623000,
+         "stopIndex": 29,
+         "stopSequence": 30,
+         "vertexType": "TRANSIT"
+        }
+       ],
+       "legGeometry": {
+        "points": "ckwF_wuxRwAkBYUu@_AsAyA]O[I[@_AVA?????oAXu@?k@Oq@y@oB_Bk@e@c@g@Si@Gi@QyASeC??I{@W}CKuB?o@Kc@c@s@lAoBVgA@m@AO????Iu@GOEKcCwC_@c@g@m@m@y@k@e@cAcBc@s@??????kAsBy@qAA???OWIKQWWa@a@]a@[[Uc@[uAqAa@_@{@[iCmB",
+        "length": 65
+       },
+       "steps": [],
+       "routeShortName": "166",
+       "routeLongName": "SBST BUS 166",
+       "duration": 452
+      },
+      {
+       "startTime": 1792368680000,
+       "endTime": 1792368989000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 310.15,
+       "generalizedCost": 1954,
+       "pathway": false,
+       "mode": "WALK",
+       "transitLeg": false,
+       "route": "",
+       "agencyTimeZoneOffset": 28800000,
+       "interlineWithPreviousLeg": false,
+       "from": {
+        "name": "BEF PEARL'S HILL TERR",
+        "stopId": "FERRY:05012",
+        "stopCode": "05012",
+        "lon": 103.8408772,
+        "lat": 1.2815458,
+        "arrival": 1792368680000,
+        "departure": 1792368680000,
+        "vertexType": "TRANSIT"
+       },
+       "to": {
+        "name": "OUTRAM PARK MRT STATION",
+        "stopId": "FERRY:EW16",
+        "stopCode": "EW16",
+        "lon": 103.8389844,
+        "lat": 1.2815273,
+        "arrival": 1792368989000,
+        "departure": 1792369182000,
+        "vertexType": "TRANSIT"
+       },
+       "legGeometry": {
+        "points": "shyFmlxxR?AFDCBPLBArAhADFTNTRq@nAGHIPGJFDc@x@IPLFOTC@UKAAEFAACD?F",
+        "length": 26
+       },
+       "steps": [
+        {
+         "distance": 310.15,
+         "relativeDirection": "DEPART",
+         "streetName": "path",
+         "absoluteDirection": "SOUTHWEST",
+         "stayOn": false,
+         "area": false,
+         "bogusName": true,
+         "lon": 103.8408805,
+         "lat": 1.281543,
+         "elevation": "",
+         "walkingBike": false
+        }
+       ],
+       "rentedBike": false,
+       "walkingBike": false,
+       "duration": 309
+      },
+      {
+       "startTime": 1792369182000,
+       "endTime": 1792369383000,
+       "departureDelay": 0,
+       "arrivalDelay": 0,
+       "realTime": false,
+       "distance": 2118.11,
+       "generalizedCost": 957,
+       "pathway": false,
+       "mode": "SUBWAY",
+       "transitLeg": true,
+       "route": "EAST WEST LINE",
+       "agencyName": "SMRT Corporation",
+       "agencyUrl": "http://www.smrt.com.sg/",
+       "agencyTimeZoneOffset": 28800000,
+       "routeType": 1,
+       "routeId": "EW",
+       "interlineWithPreviousLeg": false,
+       "agencyId": "1:SMRT",
+       "tripId": "EW-1-2002",
+       "serviceDate": "2026-10-19",
+       "from": {
+        "name": "OUTRAM PARK MRT STATION",
+        "stopId": "FERRY:EW16",
+        "stopCode": "EW16",
+        "lon": 103.8389844,
+        "lat": 1.2815273,
+        "arrival": 1792368989000,
+        "departure": 1792369182000,
+        "stopIndex": 17,
+        "stopSequence": 18,
+        "vertexType": "TRANSIT"
+       },
+       "to": {
+        "name": "RAFFLES PLACE MRT STATION",
+        "stopId": "FERRY:EW14",
+        "stopCode": "EW14",
+        "lon": 103.8514631,
+        "lat": 1.2839333,
+        "arrival": 1792369383000,
+        "stopIndex": 19,
+        "stopSequence": 20,
+        "vertexType": "TRANSIT"
+       },
+       "intermediateStops": [
+        {
+         "name": "TANJONG PAGAR MRT STATION",
+         "stopId": "FERRY:EW15",
+         "stopCode": "EW15",
+         "lon": 103.8459617,
+         "lat": 1.2766035,
+         "arrival": 1792369261000,
+         "departure": 1792369291000,
+         "stopIndex": 18,
+         "stopSequence": 19,
+         "vertexType": "TRANSIT"
+        }
+       ],
+       "legGeometry": {
+        "points": "yhyFy`xxRR_@tBuDr@aA|@}@z@o@r@a@z@_@dEuA`C{@bAm@fAeAf@s@^u@Xw@Py@JiABgACw@I}AIoAGkA??ImAEa@Ie@Ia@I]KWQ_@S]QWWYUUSQSOUOi@[qBcAkCuAoDiB_Ai@c@Y_@YSOEEMIEEMIECKIOIYSMKYSMK????????????????????????????A??A??A???]WWOOISKUKQGKEKEOEUGOCUESCSC_EQ",
+        "length": 90
+       },
+       "steps": [],
+       "routeShortName": "EW",
+       "routeLongName": "EAST WEST LINE",
+       "duration": 201
+      }
+     ],
+     "tooSloped": false,
+     "arrivedAtDestinationWithRentedBicycle": false
+    }
+   ]
+  },
+  "metadata": {
+   "searchWindowUsed": 3000,
+   "nextDateTime": 1792368000000,
+   "prevDateTime": 1792365000000
+  },
+  "previousPageCursor": "rO0ABXc1AQANUFJFVklPVVNfUEFHRQzJcyCAAAAAAAAJYAAXU1RSRUVUX0FORF9BUlJJVkFMX1RJTUU=",
+  "nextPageCursor": "rO0ABXcxAQAJTkVYVF9QQUdFDMl8gIAAAAAAAAlgABdTVFJFRVRfQU5EX0FSUklWQUxfVElNRQ==",
+  "debugOutput": {
+   "precalculationTime": 26704,
+   "directStreetRouterTime": 173502146,
+   "transitRouterTime": 426018051,
+   "filteringTime": 3244812,
+   "renderingTime": 235353,
+   "totalTime": 603046278,
+   "transitRouterTimes": {
+    "tripPatternFilterTime": 26071958,
+    "accessEgressTime": 138690075,
+    "raptorSearchTime": 236956915,
+    "itineraryCreationTime": 24283584
+   }
+  },
+  "elevationMetadata": {
+   "ellipsoidToGeoidDifference": 7.474262155254684,
+   "geoidElevation": false
+  }
+ }
+}

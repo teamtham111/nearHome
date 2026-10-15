@@ -11,6 +11,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.adapters.factory import (
+    get_free_routing_provider,
     get_geocoding_adapter,
     get_routes_adapter,
     get_routing_provider,
@@ -30,7 +31,12 @@ from app.domain.enums import (
 )
 from app.domain.models import BuyerProfile, ConfirmedListing, JourneyEstimate
 from app.domain.transport_models import ComponentResult, ModelRollup
-from app.engines.driving.engine import compute_driving_model
+from app.engines.driving.engine import (
+    assemble_driving_rollup,
+    compute_driving_baseline,
+    compute_driving_paid_evidence,
+    paid_evidence_not_requested,
+)
 from app.engines.fair_price import FairPriceEngine
 from app.engines.fair_price_comparables import (
     derive_lease_commencement_from_transactions,
@@ -50,7 +56,6 @@ from app.services.block_features import (
     BlockIdentity,
     payload_provenance,
     resolve_block,
-    schools_block_payload,
 )
 from app.services.enrichment_metrics import collect_enrichment_metrics, measure_stage
 from app.services.journey.timestamp_resolver import resolve_departure_timestamp
@@ -133,6 +138,7 @@ class EnrichmentService:
         self.lease_cache = LeaseEvidenceCache()
         self.block_repo = BlockRepository(db)
         self.block_features = BlockFeatureService(self.block_repo)
+        self.free_routing = None
 
     def _resolve_block(self, listing: ConfirmedListing, geo) -> BlockIdentity | None:
         """Associate the listing with its HDB block and persist the link."""
@@ -172,6 +178,8 @@ class EnrichmentService:
         feature_set: str,
         fallback_origin: tuple[float, float],
         compute: Callable[[float, float], dict],
+        *,
+        reuse: bool = True,
     ) -> dict:
         """Reuse the block's stored result, or calculate once from the block origin."""
         if (
@@ -187,6 +195,7 @@ class EnrichmentService:
             (identity.origin_latitude, identity.origin_longitude),
             identity.origin_source,
             compute,
+            reuse=reuse,
         )
         payload = dict(outcome.payload)
         payload["block_feature"] = {
@@ -199,6 +208,80 @@ class EnrichmentService:
             "computed_at": outcome.computed_at.isoformat(),
         }
         return payload
+
+    def _free_provider(self):
+        if self.free_routing is None:
+            self.free_routing = get_free_routing_provider()
+        return self.free_routing
+
+    def _driving_field(
+        self,
+        identity: BlockIdentity | None,
+        fallback_origin: tuple[float, float],
+        listing: ConfirmedListing,
+        paid_routing,
+        availability_provider: CarparkAvailabilityProvider | None,
+    ) -> dict:
+        """Free baseline block result plus paid Google evidence for this shortlisted home."""
+        baseline = self._block_feature(
+            identity,
+            "driving_baseline",
+            fallback_origin,
+            lambda la, lo: {
+                "components": [
+                    c.to_dict()
+                    for c in compute_driving_baseline(
+                        la,
+                        lo,
+                        self._free_provider(),
+                        availability_provider=availability_provider,
+                        history_lookup=self.carpark_repo.historical_summary,
+                        listing_address=listing.address,
+                    )
+                ],
+                "routing_provider": self._free_provider().provider_name,
+            },
+        )
+        components = [_component_from_dict(c) for c in baseline.get("components") or []]
+        major = next((c for c in components if c.name == "major_road_access"), None)
+        anchor = ((major.value or {}).get("selected_entry") or {}).get("candidate_id") if major else None
+        if major is None or not settings.google_driving_evidence_enabled or paid_routing is None:
+            reason = (
+                "Google route-flexibility and peak-hour evidence is switched off."
+                if not settings.google_driving_evidence_enabled
+                else "Major-road access was not calculated."
+            )
+            paid = [c.to_dict() for c in paid_evidence_not_requested(reason)]
+            paid_meta = None
+        else:
+
+            def compute_paid(la: float, lo: float) -> dict:
+                return {
+                    "components": [c.to_dict() for c in compute_driving_paid_evidence(la, lo, paid_routing, major)],
+                    "anchor_candidate_id": anchor,
+                    "routing_provider": paid_routing.provider_name,
+                }
+
+            # Reuse stored Google evidence only when it was anchored on the
+            # same baseline entry; otherwise request it again.
+            evidence = self._block_feature(identity, "driving_google_evidence", fallback_origin, compute_paid)
+            if evidence.get("anchor_candidate_id") != anchor:
+                evidence = self._block_feature(
+                    identity, "driving_google_evidence", fallback_origin, compute_paid, reuse=False
+                )
+            paid = evidence.get("components") or []
+            paid_meta = evidence.get("block_feature")
+        rollup = assemble_driving_rollup(components + [_component_from_dict(c) for c in paid])
+        field = _rollup_to_field(rollup)
+        field["block_feature"] = baseline.get("block_feature")
+        field["google_evidence"] = paid_meta
+        field["routing_providers"] = {
+            "baseline": baseline.get("routing_provider"),
+            "flexibility_and_peak": getattr(paid_routing, "provider_name", None)
+            if settings.google_driving_evidence_enabled
+            else None,
+        }
+        return field
 
     def plan_enrichments(self, session_id: UUID, profile: BuyerProfile | None) -> list[str]:
         """Return enrichment types needed for this session."""
@@ -236,7 +319,10 @@ class EnrichmentService:
         job_id: UUID | None = None,
     ) -> dict:
         """Run one session with request-scoped performance diagnostics."""
+        # Free provider (OneMap) for block measurements; paid provider (Google)
+        # only for shortlisted-home driving evidence and personal journeys.
         routing_provider = get_routing_provider()
+        self.free_routing = get_free_routing_provider()
         try:
             with collect_enrichment_metrics(job_id=str(job_id) if job_id else None, session_id=str(session_id)):
                 return self._run_session_enrichment(
@@ -246,9 +332,10 @@ class EnrichmentService:
                     routing_provider=routing_provider,
                 )
         finally:
-            close = getattr(routing_provider, "close", None)
-            if callable(close):
-                close()
+            for provider in (routing_provider, self.free_routing):
+                close = getattr(provider, "close", None)
+                if callable(close):
+                    close()
 
     def _run_session_enrichment(
         self,
@@ -587,7 +674,10 @@ class EnrichmentService:
                         identity,
                         "public_transport",
                         (lat, lng),
-                        lambda la, lo: _rollup_to_field(compute_public_transport_model(la, lo, routing_provider)),
+                        lambda la, lo: {
+                            **_rollup_to_field(compute_public_transport_model(la, lo, self._free_provider())),
+                            "routing_provider": self._free_provider().provider_name,
+                        },
                     )
                 pt_available = pt_field.get("display_score") is not None
                 self.repo.save_enriched_field(
@@ -618,20 +708,8 @@ class EnrichmentService:
                 )
             else:
                 with measure_stage("driving_enrichment", listing_id=str(lid)):
-                    dr_field = self._block_feature(
-                        identity,
-                        "driving",
-                        (lat, lng),
-                        lambda la, lo: _rollup_to_field(
-                            compute_driving_model(
-                                la,
-                                lo,
-                                routing_provider,
-                                availability_provider=availability_provider,
-                                history_lookup=self.carpark_repo.historical_summary,
-                                listing_address=listing.address,
-                            )
-                        ),
+                    dr_field = self._driving_field(
+                        identity, (lat, lng), listing, routing_provider, availability_provider
                     )
                 parking_data = next(
                     (c for c in dr_field.get("components") or [] if c.get("name") == "parking_convenience"), None
@@ -655,7 +733,7 @@ class EnrichmentService:
                     dr_field,
                     DataStatus.AVAILABLE.value if dr_available else DataStatus.UNAVAILABLE.value,
                     "DRIVING_ENGINE",
-                    provenance=payload_provenance("driving", dr_field),
+                    provenance=payload_provenance("driving_baseline", dr_field),
                 )
                 self.repo.upsert_run(
                     lid,
@@ -668,14 +746,8 @@ class EnrichmentService:
         # Schools
         if profile and profile.schools_matter:
             self.repo.upsert_run(lid, EnrichmentType.SCHOOLS.value, EnrichmentStatus.RUNNING.value)
-            school_lat, school_lng = lat, lng
-            if identity is not None and identity.origin_latitude is not None and lat is not None and lng is not None:
-                # Nearby schools are a block feature: store it once for the
-                # block. Named-school distances stay per buyer below.
-                self._block_feature(identity, "schools", (lat, lng), schools_block_payload)
-                school_lat, school_lng = identity.origin_latitude, identity.origin_longitude
             with measure_stage("school_enrichment", listing_id=str(lid)):
-                schools = SchoolsEngine.compute(lid, school_lat, school_lng, named_schools=profile.school_names)
+                schools = SchoolsEngine.compute(lid, lat, lng, named_schools=profile.school_names)
             self.repo.save_enriched_field(
                 lid,
                 "schools",

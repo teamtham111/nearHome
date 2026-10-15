@@ -280,7 +280,7 @@ def write_fixture(
             "row_count": len(blocks),
             "residential_block_count": len(residential),
             "geocoded_residential_block_count": len(matched),
-            "geocode_status_counts": dict(Counter(b.get("geocode_status") for b in residential)),
+            "geocode_status_counts": dict(Counter(b.get("geocode_status") or "pending" for b in residential)),
             "unmapped_town_codes": sorted({b["town_code"] for b in blocks if b["town_code"] and not b["town_name"]}),
         },
         "blocks": sorted(blocks, key=lambda b: b["block_key"]),

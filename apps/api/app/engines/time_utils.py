@@ -25,3 +25,15 @@ def next_occurrence_at_hour(hour: int, minute: int = 0) -> datetime:
     if candidate <= now:
         candidate += timedelta(days=1)
     return candidate
+
+
+def next_weekday_occurrence_at_hour(hour: int, minute: int = 0) -> datetime:
+    """Next future Monday-Friday datetime (Singapore time) at the given hour.
+
+    Used where a scheduled timetable is queried for a representative weekday
+    peak, so results do not depend on the time of day a job happens to run.
+    """
+    candidate = next_occurrence_at_hour(hour, minute)
+    while candidate.weekday() >= 5:
+        candidate += timedelta(days=1)
+    return candidate

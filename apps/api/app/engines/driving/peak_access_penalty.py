@@ -13,7 +13,7 @@ from app.adapters.routing.base import RoutingProvider, RoutingProviderError
 from app.domain.enums import ComponentStatus, Provenance
 from app.domain.transport_models import ComponentResult, not_assessed, provider_error
 from app.engines.driving.major_road_access import MajorRoadAccessOutcome
-from app.engines.time_utils import next_occurrence_at_hour
+from app.engines.time_utils import next_occurrence_at_hour, next_weekday_occurrence_at_hour
 from app.engines.transport_config import DRIVING_CONFIG, DrivingConfig
 
 
@@ -40,7 +40,7 @@ def compute_peak_access_penalty(
 ) -> ComponentResult:
     weight = config.weight_peak_access_penalty
 
-    if major_road_access.selected_point is None or major_road_access.selected_route is None:
+    if major_road_access.selected_point is None:
         return not_assessed(
             "peak_access_penalty",
             weight,
@@ -48,14 +48,17 @@ def compute_peak_access_penalty(
         )
 
     point = major_road_access.selected_point
-    # Reuse the already validated AM-peak route in memory.  Only the off-peak
-    # route is a new request, and both use the exact same catalogue target.
+    # Both requests go from the same origin to the exact entry selected by
+    # baseline major-road access, and both come from the same traffic-aware
+    # provider. A baseline (static) duration is never subtracted from a
+    # traffic-aware one.
+    peak_departure = next_weekday_occurrence_at_hour(config.am_peak_hour)
     off_peak_departure = next_occurrence_at_hour(config.off_peak_hour)
 
     try:
-        peak_route = major_road_access.selected_route
-        if peak_route is None:
-            return not_assessed("peak_access_penalty", weight, "Selected Major Road route evidence is unavailable.")
+        peak_route = routing.get_driving_route(
+            (latitude, longitude), point.routing_coordinate, peak_departure, traffic_aware=True
+        )
         off_peak_route = routing.get_driving_route(
             (latitude, longitude), point.routing_coordinate, off_peak_departure, traffic_aware=True
         )
@@ -65,6 +68,12 @@ def compute_peak_access_penalty(
             weight,
             "Routing provider could not confirm peak and off-peak driving durations to the selected access point.",
         )
+    if not peak_route.traffic_aware or not off_peak_route.traffic_aware:
+        return provider_error(
+            "peak_access_penalty",
+            weight,
+            "Traffic-aware estimates were not confirmed for both departure times, so no delay is reported.",
+        )
 
     penalty_minutes = round(peak_route.duration_minutes - off_peak_route.duration_minutes, 1)
     score = _score_for_penalty(max(0.0, penalty_minutes))
@@ -73,20 +82,25 @@ def compute_peak_access_penalty(
     limitations = []
     if penalty_minutes <= 3:
         strengths.append("Minimal extra delay from peak-hour traffic to the nearest major-road access point.")
-    if not peak_route.traffic_aware or not off_peak_route.traffic_aware:
-        limitations.append(
-            "Traffic-aware routing was not confirmed for one or both requests — penalty may be an estimate."
-        )
+    limitations.append("Estimated peak-hour delay from traffic-aware provider estimates; not a reliability measure.")
 
     return ComponentResult(
         name="peak_access_penalty",
-        value={"penalty_minutes": penalty_minutes},
+        value={
+            "penalty_minutes": penalty_minutes,
+            "peak_duration_minutes": peak_route.duration_minutes,
+            "off_peak_duration_minutes": off_peak_route.duration_minutes,
+            "peak_departure": peak_departure.isoformat(),
+            "off_peak_departure": off_peak_departure.isoformat(),
+            "provider": peak_route.provider,
+        },
         score=score,
         weight=weight,
         status=ComponentStatus.CALCULATED,
         explanation=(
-            f"Driving to {point.name} takes ~{peak_route.duration_minutes:.0f} min at AM peak versus "
-            f"~{off_peak_route.duration_minutes:.0f} min off-peak — a {penalty_minutes:.1f} min penalty."
+            f"Estimated peak-hour delay: driving to {point.name} takes ~{peak_route.duration_minutes:.0f} min "
+            f"at the weekday AM peak versus ~{off_peak_route.duration_minutes:.0f} min off-peak "
+            f"({penalty_minutes:.1f} min difference)."
         ),
         strengths=strengths,
         limitations=limitations,

@@ -354,11 +354,11 @@ export interface BenchmarkComparison {
 
 export interface BenchmarkMeasurement {
   key: string;
-  feature_set: "public_transport" | "driving" | "schools";
+  feature_set: "public_transport" | "driving_baseline";
   component: string;
   label: string;
   unit: string;
-  direction: "lower" | "higher" | "buyer_dependent_lower" | "buyer_dependent_higher";
+  direction: "lower" | "higher";
   comparison_phrase: string;
   value: number | null;
   value_status: "measured" | "worst" | "unavailable";
@@ -370,7 +370,7 @@ export interface BenchmarkMeasurement {
 }
 
 export interface LocationBenchmarks {
-  status: "available" | "no_published_version" | "block_unknown" | "block_not_measured";
+  status: "available" | "no_published_version" | "no_compatible_version" | "block_unknown" | "block_not_measured";
   block_key: string | null;
   version_id?: string;
   published_at?: string | null;

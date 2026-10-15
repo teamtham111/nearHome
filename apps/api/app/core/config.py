@@ -63,6 +63,8 @@ class Settings(BaseSettings):
     fair_price_model_artifact_path: str = ""
     onemap_email: str = ""
     onemap_password: str = ""
+    # OneMap documents 250 requests/minute; keep a conservative spacing.
+    onemap_min_request_interval_seconds: float = 0.3
     # Offline major-road artifacts. The build pipeline obtains the official
     # SLA geometry and OSM graph; enrichment must never download either.
     sla_major_roads_path: str = ""
@@ -113,6 +115,10 @@ class Settings(BaseSettings):
     block_feature_reuse_enabled: bool = True
     block_feature_max_age_days_public_transport: int = 30
     block_feature_max_age_days_driving: int = 7
+    block_feature_max_age_days_driving_baseline: int = 90
+    # Google route-flexibility and peak-delay evidence for shortlisted homes.
+    # false = those two components stay unavailable and no Google call is made.
+    google_driving_evidence_enabled: bool = True
     # off: no benchmark data in API responses; shadow: computed and returned
     # alongside the current scores but not displayed; on: displayed.
     location_benchmark_display: str = "shadow"

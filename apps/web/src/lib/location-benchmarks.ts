@@ -6,10 +6,9 @@ export const COMPONENT_MEASUREMENT: Record<string, string> = {
   bus_coverage: "pt_direct_bus_corridors",
   mrt_reach: "pt_mrt_stations_within_30_min",
   route_resilience: "pt_independent_fallbacks",
-  major_road_access: "drive_major_road_minutes",
-  route_connectivity: "drive_distinct_major_roads",
-  peak_access_penalty: "drive_peak_delay_minutes",
-  parking_convenience: "drive_parking_walk_minutes",
+  major_road_access: "drive_major_road_baseline_minutes",
+  // route_connectivity, peak_access_penalty and parking_convenience are
+  // evidence only: they are deliberately never ranked.
 };
 
 export function benchmarksEnabled(data: Pick<ComparisonResponse, "location_benchmark_display">): boolean {
@@ -42,7 +41,6 @@ function formatNumber(value: number): string {
 export function formatMeasurementValue(measurement: BenchmarkMeasurement): string {
   if (measurement.value_status === "worst") {
     if (measurement.key === "pt_access_cost_minutes") return "No practical bus or rail entry confirmed";
-    if (measurement.key === "schools_nearest_km") return "No school within 2 km";
     return "No practical option confirmed";
   }
   if (measurement.value_status !== "measured" || measurement.value == null) return "Not available";
@@ -81,12 +79,7 @@ export function comparisonSentence(measurement: BenchmarkMeasurement, scope: "na
   const worse = comparison.strictly_worse ?? 0;
   const groupSize = comparison.group_size;
   const phrase = measurement.comparison_phrase || "Better than";
-  const neutral = measurement.direction.startsWith("buyer_dependent");
-  if (worse === 0) {
-    return neutral
-      ? `None of the ${groupSize.toLocaleString("en-SG")} compared HDB blocks ${where} ranked below it on this measure`
-      : `None of the ${groupSize.toLocaleString("en-SG")} compared HDB blocks ${where} had a worse result`;
-  }
+  if (worse === 0) return `None of the ${groupSize.toLocaleString("en-SG")} compared HDB blocks ${where} had a worse result`;
   if (worse === groupSize) return `${phrase} every other compared HDB block ${where}`;
   if (pct === 0) return `${phrase} fewer than 1% of HDB blocks ${where}`;
   return `${phrase} ${pct}% of HDB blocks ${where}`;

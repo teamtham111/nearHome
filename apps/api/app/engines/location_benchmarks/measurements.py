@@ -3,13 +3,11 @@
 Each entry names a raw measurement that the existing engines already
 calculate, how to read it from the stored component result, and which
 direction is better. No new metric is introduced: every value below is a
-field the Public Transport, Driving or Schools engines already produce.
+field the Public Transport or baseline Driving engines already produce.
 
-Directions:
-- ``lower`` / ``higher``: a smaller / larger value is a better result.
-- ``buyer_dependent``: the value is ordered, but whether more is better is a
-  buyer preference (for example being near schools). These are compared
-  with neutral wording ("closer than", "more than") rather than "better".
+Only the six approved measurements are ranked. Each is a separate
+comparison; no overall transport or driving ranking is created and the two
+bus measurements are never combined.
 
 Features that cannot sensibly be ranked are listed in ``UNRANKED_FEATURES``
 with the reason, so the UI and docs can disclose them.
@@ -21,12 +19,16 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal
 
-Direction = Literal["lower", "higher", "buyer_dependent_lower", "buyer_dependent_higher"]
-FeatureSet = Literal["public_transport", "driving", "schools"]
+Direction = Literal["lower", "higher"]
+FeatureSet = Literal["public_transport", "driving_baseline"]
 
 # Bump when an extraction below changes meaning. Stored measurements carry the
 # feature-set calculation version; this version covers the extraction layer.
-MEASUREMENT_VERSION = "measurements-v1"
+MEASUREMENT_VERSION = "measurements-v2"
+
+BASELINE_MEASUREMENT = "baseline_estimated_driving_time"
+# Mock routing is only ever used in demo mode, which is never published.
+COMPARABLE_DRIVING_PROVIDERS = ("ONEMAP_ROUTING", "MOCK_ROUTING")
 
 
 @dataclass(frozen=True)
@@ -58,11 +60,7 @@ class MeasurementDefinition:
 
     @property
     def lower_is_better(self) -> bool:
-        return self.direction in ("lower", "buyer_dependent_lower")
-
-    @property
-    def buyer_dependent(self) -> bool:
-        return self.direction.startswith("buyer_dependent")
+        return self.direction == "lower"
 
     def describe(self) -> dict[str, Any]:
         return {
@@ -143,30 +141,19 @@ def _mrt_stations_within_30(rollup: dict[str, Any]) -> MeasuredValue:
     return MeasuredValue(float(sum(part for part in parts if part is not None)), "measured")
 
 
-def _parking_walk(rollup: dict[str, Any]) -> MeasuredValue:
-    value, reason = _assessed_value(rollup, "parking_convenience")
+def _baseline_major_road(rollup: dict[str, Any]) -> MeasuredValue:
+    """Only OneMap baseline results are comparable; AM-peak Google results never are."""
+    value, reason = _assessed_value(rollup, "major_road_access")
     if value is None:
         return MeasuredValue(None, "unavailable", reason)
-    number = _number((value.get("primary_carpark") or {}).get("walk_minutes"))
+    if value.get("measurement") != BASELINE_MEASUREMENT or value.get("traffic_aware"):
+        return MeasuredValue(None, "unavailable", "not a baseline major-road measurement")
+    if value.get("provider") not in COMPARABLE_DRIVING_PROVIDERS:
+        return MeasuredValue(None, "unavailable", f"provider {value.get('provider')} is not comparable")
+    number = _number(value.get("baseline_duration_minutes"))
     if number is None:
-        return MeasuredValue(None, "unavailable", "primary carpark walk minutes missing")
+        return MeasuredValue(None, "unavailable", "baseline duration missing")
     return MeasuredValue(number, "measured")
-
-
-def _schools_field(field: str) -> Callable[[dict[str, Any]], MeasuredValue]:
-    def extract(schools: dict[str, Any]) -> MeasuredValue:
-        if schools.get("score_status") not in ("calculated", "CALCULATED"):
-            return MeasuredValue(None, "unavailable", "school reference data unavailable")
-        number = _number(schools.get(field))
-        if number is None:
-            # No school within the 2 km search radius: the nearest distance is
-            # genuinely beyond the search radius, which is the farthest result.
-            if field == "nearest_school_distance_km":
-                return MeasuredValue(None, "worst", "no school within 2 km")
-            return MeasuredValue(None, "unavailable", f"{field} missing")
-        return MeasuredValue(number, "measured")
-
-    return extract
 
 
 MEASUREMENTS: tuple[MeasurementDefinition, ...] = (
@@ -216,69 +203,13 @@ MEASUREMENTS: tuple[MeasurementDefinition, ...] = (
         _field("route_resilience", "independent_units"),
     ),
     MeasurementDefinition(
-        "drive_major_road_minutes",
-        "driving",
+        "drive_major_road_baseline_minutes",
+        "driving_baseline",
         "major_road_access",
-        "Drive to the nearest major road",
+        "Baseline estimated drive to a major road",
         "minutes",
         "lower",
-        _field("major_road_access", "routed_duration_minutes"),
-    ),
-    MeasurementDefinition(
-        "drive_distinct_major_roads",
-        "driving",
-        "route_connectivity",
-        "Distinct major roads reached",
-        "roads",
-        "higher",
-        _field("route_connectivity", "distinct_major_roads_reached"),
-    ),
-    MeasurementDefinition(
-        "drive_independent_routes",
-        "driving",
-        "route_connectivity",
-        "Independent alternative driving routes",
-        "routes",
-        "higher",
-        _field("route_connectivity", "independent_alternatives"),
-    ),
-    MeasurementDefinition(
-        "drive_peak_delay_minutes",
-        "driving",
-        "peak_access_penalty",
-        "Extra peak-hour minutes to the major road",
-        "minutes",
-        "lower",
-        _field("peak_access_penalty", "penalty_minutes"),
-    ),
-    MeasurementDefinition(
-        "drive_parking_walk_minutes",
-        "driving",
-        "parking_convenience",
-        "Walk to the likely carpark",
-        "minutes",
-        "lower",
-        _parking_walk,
-    ),
-    MeasurementDefinition(
-        "schools_within_1km",
-        "schools",
-        "schools",
-        "Schools within 1 km",
-        "schools",
-        "buyer_dependent_higher",
-        _schools_field("schools_within_1km"),
-        comparison_phrase="More schools within 1 km than",
-    ),
-    MeasurementDefinition(
-        "schools_nearest_km",
-        "schools",
-        "schools",
-        "Distance to the nearest school",
-        "km",
-        "buyer_dependent_lower",
-        _schools_field("nearest_school_distance_km"),
-        comparison_phrase="Closer to a school than",
+        _baseline_major_road,
     ),
 )
 
@@ -294,20 +225,23 @@ UNRANKED_FEATURES: tuple[dict[str, str], ...] = (
         "reason": "Weighted composite of heuristic component scores, not a measurement; shown via its components.",
     },
     {
-        "feature": "driving.parking_live_availability",
-        "reason": "Point-in-time lot availability changes minute to minute and is not a stable block measurement.",
+        "feature": "driving.route_flexibility",
+        "reason": (
+            "Google alternatives are fetched only for shortlisted homes and are not exhaustive; alternatives, "
+            "overlap and extra travel time are shown as evidence only."
+        ),
     },
     {
-        "feature": "driving.partially_independent_routes",
-        "reason": "Partial independence has no defensible order against full independence; shown as raw evidence.",
+        "feature": "driving.peak_hour_access_penalty",
+        "reason": "Estimated peak-hour delay from Google for shortlisted homes only; shown as evidence.",
     },
     {
-        "feature": "schools.named_school_distance",
-        "reason": "Depends on the schools each buyer names, so it is unit/session-specific, not a block benchmark.",
+        "feature": "driving.parking",
+        "reason": "Product decision: parking has no comparison. Walk, carparks and availability stay as evidence.",
     },
     {
-        "feature": "schools.within_1km_and_nearest",
-        "reason": "Ordered, but more/closer schools is a buyer preference; compared with neutral wording only.",
+        "feature": "schools",
+        "reason": "Not part of the approved comparisons; school counts and distances stay as evidence.",
     },
     {
         "feature": "journeys",

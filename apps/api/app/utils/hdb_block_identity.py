@@ -16,7 +16,7 @@ from app.utils.hdb_address import canonical_hdb_address_key, canonical_hdb_parts
 
 # HDB street abbreviations that the shared canonicaliser leaves untouched.
 # ``ST`` is intentionally absent: the shared canonicaliser already maps it to
-# STREET, and ``SAINT`` streets are resolved by postal code instead.
+# STREET; a leading STREET is turned into SAINT in ``_expand_street``.
 _HDB_STREET_EXPANSIONS = {
     "BT": "BUKIT",
     "KG": "KAMPONG",
@@ -37,7 +37,12 @@ _HDB_STREET_EXPANSIONS = {
 
 
 def _expand_street(street: str) -> str:
-    return " ".join(_HDB_STREET_EXPANSIONS.get(token, token) for token in street.split())
+    tokens = [_HDB_STREET_EXPANSIONS.get(token, token) for token in street.split()]
+    # The shared canonicaliser reads "ST" as STREET; a street name never
+    # *starts* with "Street", so a leading one is "Saint" (ST. GEORGE'S RD).
+    if len(tokens) > 1 and tokens[0] == "STREET":
+        tokens[0] = "SAINT"
+    return " ".join(tokens)
 
 
 def block_key_from_parts(block: str | None, street: str | None) -> str | None:

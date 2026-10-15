@@ -78,6 +78,9 @@ class MockRoutingProvider(RoutingProvider):
             traffic_aware=traffic_aware,
         )
 
+    def get_baseline_driving_route(self, origin: tuple[float, float], destination: tuple[float, float]) -> RouteResult:
+        return self.get_driving_route(origin, destination, datetime.now(), traffic_aware=False)
+
     def get_driving_alternatives(
         self,
         origin: tuple[float, float],

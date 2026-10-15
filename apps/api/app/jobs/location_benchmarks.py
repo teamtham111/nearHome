@@ -1,21 +1,27 @@
-"""Backfill, refresh and publish block-level location benchmarks.
+"""Free backfill, refresh and publication of block-level location benchmarks.
 
 Run from ``apps/api``:
 
   python -m app.jobs.location_benchmarks load-registry
   python -m app.jobs.location_benchmarks status
-  python -m app.jobs.location_benchmarks measure --features schools
-  python -m app.jobs.location_benchmarks measure --features public_transport --allow-paid-routing --limit 50
+  python -m app.jobs.location_benchmarks measure --features public_transport --town BH --limit 20
+  python -m app.jobs.location_benchmarks measure --features driving_baseline --max-requests 2000
   python -m app.jobs.location_benchmarks publish
-  python -m app.jobs.location_benchmarks refresh            # offline features, then publish
+  python -m app.jobs.location_benchmarks refresh
+
+Only the free feature sets (``public_transport`` and ``driving_baseline``)
+can be measured here, and only through the free routing provider (OneMap).
+This job never constructs a paid provider and refuses to run if the free
+provider is anything else, so it makes zero Google calls. Google route
+flexibility and peak-hour evidence exist only for shortlisted homes in the
+normal enrichment workflow and are never backfilled or ranked.
 
 ``measure`` skips blocks whose stored result is current (same calculation
-version, same reference-data fingerprint, not past its maximum age), so it is
-both the initial backfill and the incremental refresh after source data
-changes. Public Transport and Driving call the paid Google routing provider
-for every block; they only run with ``--allow-paid-routing``. ``publish``
-rebuilds every comparison from stored measurements without calling any
-provider, so a ranking-only change never recalculates measurements.
+version — which includes provider and time assumptions — same reference-data
+fingerprint, and within its maximum age), so re-running it resumes an
+interrupted backfill and is also the incremental refresh after source data
+changes. ``--max-requests`` bounds OneMap usage per run. ``publish`` rebuilds
+every comparison from stored measurements without calling any provider.
 """
 
 from __future__ import annotations
@@ -24,7 +30,6 @@ import argparse
 import json
 import sys
 from collections import Counter
-from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -33,71 +38,56 @@ from app.core.config import settings
 from app.db.session import SessionLocal
 from app.repositories.block_repository import BlockRepository
 from app.services.block_features import (
-    FEATURE_SETS,
+    FREE_FEATURE_SETS,
     BlockFeatureService,
     calculation_version,
-    schools_block_payload,
     source_fingerprint,
 )
 from app.services.location_benchmarks import build_and_publish
 
-PAID_FEATURES = {"public_transport", "driving"}
-OFFLINE_FEATURES = ("schools",)
-# Upper bounds from the engine configuration, for cost disclosure only.
-MAX_ROUTE_CALLS_PER_BLOCK = {"public_transport": 37, "driving": 30}
+FREE_PROVIDERS = {"ONEMAP_ROUTING", "MOCK_ROUTING", "FREE_ROUTING_UNAVAILABLE"}
 
 
-class CountingRoutingProvider:
-    """Delegate to a real provider while counting calls for cost reporting."""
-
-    def __init__(self, inner: Any) -> None:
-        self._inner = inner
-        self.calls: Counter[str] = Counter()
-        self.provider_name = getattr(inner, "provider_name", "UNKNOWN")
-
-    def __getattr__(self, name: str) -> Any:
-        attr = getattr(self._inner, name)
-        if not callable(attr) or not name.startswith("get_"):
-            return attr
-
-        def counted(*args: Any, **kwargs: Any) -> Any:
-            self.calls[name] += 1
-            return attr(*args, **kwargs)
-
-        return counted
+class PaidProviderRefused(RuntimeError):
+    pass
 
 
-def _compute_fn(feature_set: str, block: Any, routing: Any, availability: Any, carpark_repo: Any):
-    from app.engines.driving.engine import compute_driving_model
+def free_routing_provider():
+    """The only provider this job may use; a paid provider is refused outright."""
+    from app.adapters.factory import get_free_routing_provider
+
+    provider = get_free_routing_provider()
+    if provider.provider_name not in FREE_PROVIDERS:
+        raise PaidProviderRefused(f"Refusing to backfill with {provider.provider_name}")
+    return provider
+
+
+def compute_function(feature_set: str, block: Any, routing: Any, availability: Any, carpark_repo: Any):
+    from app.engines.driving.engine import compute_driving_baseline
     from app.engines.public_transport.engine import compute_public_transport_model
     from app.services.enrichment_service import _rollup_to_field
 
-    if feature_set == "schools":
-        return schools_block_payload
     if feature_set == "public_transport":
-        return lambda lat, lng: _rollup_to_field(compute_public_transport_model(lat, lng, routing))
-    return lambda lat, lng: _rollup_to_field(
-        compute_driving_model(
-            lat,
-            lng,
-            routing,
-            availability_provider=availability,
-            history_lookup=carpark_repo.historical_summary,
-            listing_address=f"{block.block} {block.street}",
-        )
-    )
-
-
-def _is_current(repo: BlockRepository, block_key: str, feature_set: str, version: str, fingerprint: str) -> bool:
-    row = repo.get_feature(block_key, feature_set, version)
-    if row is None or row.source_fingerprint != fingerprint:
-        return False
-    max_age = {
-        "public_transport": timedelta(days=settings.block_feature_max_age_days_public_transport),
-        "driving": timedelta(days=settings.block_feature_max_age_days_driving),
-    }.get(feature_set)
-    computed_at = row.computed_at if row.computed_at.tzinfo else row.computed_at.replace(tzinfo=UTC)
-    return max_age is None or datetime.now(UTC) - computed_at <= max_age
+        return lambda lat, lng: {
+            **_rollup_to_field(compute_public_transport_model(lat, lng, routing)),
+            "routing_provider": routing.provider_name,
+        }
+    if feature_set == "driving_baseline":
+        return lambda lat, lng: {
+            "components": [
+                component.to_dict()
+                for component in compute_driving_baseline(
+                    lat,
+                    lng,
+                    routing,
+                    availability_provider=availability,
+                    history_lookup=carpark_repo.historical_summary,
+                    listing_address=f"{block.block} {block.street}",
+                )
+            ],
+            "routing_provider": routing.provider_name,
+        }
+    raise ValueError(f"{feature_set} is not a free block feature set")
 
 
 def cmd_load_registry(args: argparse.Namespace) -> dict[str, Any]:
@@ -112,12 +102,12 @@ def cmd_status(_args: argparse.Namespace) -> dict[str, Any]:
     with SessionLocal() as db:
         repo = BlockRepository(db)
         blocks = repo.residential_blocks()
-        geocoded = [b for b in blocks if b.latitude is not None]
+        keys = {b.block_key for b in blocks}
         features: dict[str, Any] = {}
-        for feature_set in FEATURE_SETS:
+        for feature_set in FREE_FEATURE_SETS:
             version = calculation_version(feature_set)
             fingerprint = source_fingerprint(feature_set)
-            current = repo.feature_keys(feature_set, version, fingerprint) & {b.block_key for b in blocks}
+            current = repo.feature_keys(feature_set, version, fingerprint) & keys
             features[feature_set] = {
                 "calculation_version": version,
                 "source_fingerprint": fingerprint,
@@ -127,7 +117,7 @@ def cmd_status(_args: argparse.Namespace) -> dict[str, Any]:
         published = repo.published_version()
         return {
             "residential_blocks": len(blocks),
-            "geocoded_blocks": len(geocoded),
+            "geocoded_blocks": sum(1 for b in blocks if b.latitude is not None),
             "features": features,
             "published_version": str(published.id) if published else None,
             "published_at": published.published_at.isoformat() if published and published.published_at else None,
@@ -137,77 +127,74 @@ def cmd_status(_args: argparse.Namespace) -> dict[str, Any]:
 def cmd_measure(args: argparse.Namespace) -> dict[str, Any]:
     feature_sets = [f.strip() for f in args.features.split(",") if f.strip()]
     for feature_set in feature_sets:
-        if feature_set not in FEATURE_SETS:
-            raise SystemExit(f"Unknown feature set {feature_set}")
-        if feature_set in PAID_FEATURES and not args.allow_paid_routing:
+        if feature_set not in FREE_FEATURE_SETS:
             raise SystemExit(
-                f"{feature_set} calls the paid Google routing provider for every block "
-                f"(up to {MAX_ROUTE_CALLS_PER_BLOCK[feature_set]} calls per block). "
-                "Re-run with --allow-paid-routing (and usually --limit) to proceed."
+                f"{feature_set} cannot be backfilled: only {', '.join(FREE_FEATURE_SETS)} are free block measurements."
             )
     if settings.demo_mode:
         print("WARNING: DEMO_MODE=true; results are demo data and will never be published.", file=sys.stderr)
 
-    from app.adapters.factory import get_routing_provider
     from app.adapters.parking.hdb_availability import CarparkAvailabilityProvider
     from app.repositories.carpark_repository import CarparkRepository
 
-    routing = CountingRoutingProvider(get_routing_provider()) if set(feature_sets) & PAID_FEATURES else None
-    report: dict[str, Any] = {}
-    with SessionLocal() as db:
-        repo = BlockRepository(db)
-        service = BlockFeatureService(repo)
-        carpark_repo = CarparkRepository(db)
-        availability = CarparkAvailabilityProvider() if "driving" in feature_sets else None
-        blocks = [b for b in repo.residential_blocks() if b.latitude is not None and b.longitude is not None]
-        if args.town:
-            blocks = [b for b in blocks if b.town_code == args.town]
-        for feature_set in feature_sets:
-            version = calculation_version(feature_set)
-            fingerprint = source_fingerprint(feature_set)
-            todo = [
-                b for b in blocks if args.force or not _is_current(repo, b.block_key, feature_set, version, fingerprint)
-            ]
-            if args.limit:
-                todo = todo[: args.limit]
-            statuses: Counter[str] = Counter()
-            failures = 0
-            for index, block in enumerate(todo, start=1):
-                try:
-                    service.get_or_compute(
-                        block.block_key,
-                        feature_set,
-                        (block.latitude, block.longitude),
-                        "hdb_registry_onemap",
-                        _compute_fn(feature_set, block, routing, availability, carpark_repo),
-                        computed_for="backfill",
-                        reuse=False,
-                    )
-                    db.commit()
-                    statuses["computed"] += 1
-                except Exception as exc:  # one block failing must not stop the backfill
-                    db.rollback()
-                    failures += 1
-                    statuses[type(exc).__name__] += 1
-                    continue
-                if index % 200 == 0:
-                    print(f"{feature_set}: {index}/{len(todo)}", file=sys.stderr, flush=True)
-            db.commit()
-            report[feature_set] = {
-                "blocks_considered": len(blocks),
-                "blocks_computed": len(todo) - failures,
-                "failures": failures,
-                "outcomes": dict(statuses),
-            }
-        if routing is not None:
-            report["routing_calls"] = dict(routing.calls)
+    routing = free_routing_provider()
+    report: dict[str, Any] = {"routing_provider": routing.provider_name}
+    try:
+        with SessionLocal() as db:
+            repo = BlockRepository(db)
+            service = BlockFeatureService(repo)
+            carpark_repo = CarparkRepository(db)
+            availability = CarparkAvailabilityProvider() if "driving_baseline" in feature_sets else None
+            blocks = [b for b in repo.residential_blocks() if b.latitude is not None and b.longitude is not None]
+            if args.town:
+                blocks = [b for b in blocks if b.town_code == args.town]
+            budget_hit = False
+            for feature_set in feature_sets:
+                todo = [b for b in blocks if args.force or service.cached(b.block_key, feature_set) is None]
+                if args.limit:
+                    todo = todo[: args.limit]
+                statuses: Counter[str] = Counter()
+                for index, block in enumerate(todo, start=1):
+                    if args.max_requests and getattr(routing, "request_count", 0) >= args.max_requests:
+                        budget_hit = True
+                        break
+                    try:
+                        outcome = service.get_or_compute(
+                            block.block_key,
+                            feature_set,
+                            (block.latitude, block.longitude),
+                            "hdb_registry_onemap",
+                            compute_function(feature_set, block, routing, availability, carpark_repo),
+                            computed_for="backfill",
+                            reuse=False,
+                        )
+                        db.commit()
+                        statuses[_outcome_status(outcome.payload)] += 1
+                    except Exception as exc:  # one block failing must not stop the backfill
+                        db.rollback()
+                        statuses[f"error:{type(exc).__name__}"] += 1
+                    if index % 100 == 0:
+                        print(f"{feature_set}: {index}/{len(todo)}", file=sys.stderr, flush=True)
+                report[feature_set] = {"blocks_selected": len(todo), "outcomes": dict(statuses)}
+                if budget_hit:
+                    report["stopped"] = f"request budget of {args.max_requests} reached; re-run to resume"
+                    break
+            report["onemap_requests"] = getattr(routing, "request_count", None)
+    finally:
+        close = getattr(routing, "close", None)
+        if callable(close):
+            close()
     return report
 
 
+def _outcome_status(payload: dict[str, Any]) -> str:
+    statuses = sorted({str(c.get("status")) for c in payload.get("components") or []})
+    return "+".join(statuses) or "empty"
+
+
 def cmd_publish(args: argparse.Namespace) -> dict[str, Any]:
-    feature_sets = tuple(f.strip() for f in args.features.split(",") if f.strip())
     with SessionLocal() as db:
-        result = build_and_publish(db, feature_sets=feature_sets, publish=not args.no_publish)
+        result = build_and_publish(db, publish=not args.no_publish)
     measurements = result["summary"]["measurements"]
     return {
         "version_id": result["version_id"],
@@ -230,9 +217,7 @@ def cmd_refresh(args: argparse.Namespace) -> dict[str, Any]:
     measured = cmd_measure(args)
     if args.no_publish:
         return {"measure": measured}
-    # Publish every feature set so one version always carries all comparisons.
-    publish_args = argparse.Namespace(features=",".join(FEATURE_SETS), no_publish=False)
-    return {"measure": measured, "publish": cmd_publish(publish_args)}
+    return {"measure": measured, "publish": cmd_publish(argparse.Namespace(no_publish=False))}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -247,16 +232,15 @@ def main(argv: list[str] | None = None) -> int:
 
     for name, func in (("measure", cmd_measure), ("refresh", cmd_refresh)):
         command = sub.add_parser(name)
-        command.add_argument("--features", default=",".join(OFFLINE_FEATURES))
+        command.add_argument("--features", default=",".join(FREE_FEATURE_SETS))
         command.add_argument("--town", help="Limit to one HDB town code, e.g. AMK")
-        command.add_argument("--limit", type=int, default=0)
+        command.add_argument("--limit", type=int, default=0, help="Maximum blocks per feature set this run")
+        command.add_argument("--max-requests", type=int, default=0, help="Stop after this many OneMap requests")
         command.add_argument("--force", action="store_true", help="Recompute even current results")
-        command.add_argument("--allow-paid-routing", action="store_true")
         command.add_argument("--no-publish", action="store_true")
         command.set_defaults(func=func)
 
     publish = sub.add_parser("publish", help="Build and publish a benchmark version from stored measurements")
-    publish.add_argument("--features", default=",".join(FEATURE_SETS))
     publish.add_argument("--no-publish", action="store_true", help="Build for inspection without publishing")
     publish.set_defaults(func=cmd_publish)
 

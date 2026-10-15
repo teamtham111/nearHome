@@ -246,16 +246,6 @@ STAGES: tuple[Stage, ...] = (
         cwd=API_ROOT,
     ),
     Stage(
-        "refresh-location-benchmarks",
-        "Re-measure blocks whose reference data changed (offline features) and publish one benchmark version",
-        frozenset({"core", "all"}),
-        (sys.executable, "-m", "app.jobs.location_benchmarks", "refresh", "--features", "schools"),
-        source_ids=("location-benchmarks", "postgresql"),
-        dependencies=("refresh-hdb-blocks", "normalize-moe-schools"),
-        credentials=("DATABASE_URL",),
-        cwd=API_ROOT,
-    ),
-    Stage(
         "validate-all-snapshots",
         "Validate every production snapshot and artifact against schema and volume gates",
         frozenset({"validate", "core", "roads", "all"}),

@@ -1,7 +1,7 @@
 """Calculate block-level location features once and reuse them across units.
 
 Every unit in an HDB block shares the building's location, so the Public
-Transport, Driving and nearby-school calculations are made once per block
+Transport and Driving calculations are made once per block
 from one consistent starting point and stored with their calculation version
 and a fingerprint of the reference data they used. Listing enrichment and the
 national backfill both go through ``BlockFeatureService.get_or_compute``.
@@ -27,18 +27,39 @@ from app.core.config import settings
 from app.core.logging import get_logger
 from app.engines.driving.parking_convenience import PARKING_SCORE_VERSION
 from app.engines.location_benchmarks.measurements import extract_measurements
-from app.engines.schools import SchoolsEngine
 from app.engines.transport_config import DRIVING_CONFIG, PT_CONFIG
 from app.repositories.block_repository import BlockRepository
 from app.utils.hdb_block_identity import block_key_from_address, block_key_from_parts
 
 logger = get_logger(__name__)
 
-FEATURE_SETS = ("public_transport", "driving", "schools")
+# Free, nationwide block measurements (benchmarked) and paid, on-demand
+# evidence for shortlisted homes (never benchmarked, never backfilled).
+FREE_FEATURE_SETS = ("public_transport", "driving_baseline")
+PAID_FEATURE_SETS = ("driving_google_evidence",)
+FEATURE_SETS = FREE_FEATURE_SETS + PAID_FEATURE_SETS
 
-# Bump the code version when an engine's measurement logic changes in a way
-# its configuration hash would not capture.
-_ENGINE_CODE_VERSIONS = {"public_transport": "pt-1", "driving": "drive-1", "schools": "schools-1"}
+# Provider and time assumptions are part of every calculation version, so a
+# result computed with a different provider or departure assumption is never
+# reused or compared with the current one. Bump the code version when engine
+# logic changes in a way the configuration hash would not capture.
+_FEATURE_DEFINITIONS: dict[str, dict[str, Any]] = {
+    "public_transport": {
+        "code": "pt-2",
+        "provider": "onemap",
+        "time_assumption": "walks untimed; feeder transit next weekday at feeder_departure_hour Asia/Singapore",
+    },
+    "driving_baseline": {
+        "code": "drive-baseline-1",
+        "provider": "onemap",
+        "time_assumption": "baseline static driving and walking time; not traffic-aware",
+    },
+    "driving_google_evidence": {
+        "code": "drive-google-1",
+        "provider": "google",
+        "time_assumption": "traffic-aware weekday am_peak_hour and off_peak_hour Asia/Singapore",
+    },
+}
 
 _SOURCE_FILES: dict[str, tuple[str, ...]] = {
     "public_transport": (
@@ -49,8 +70,8 @@ _SOURCE_FILES: dict[str, tuple[str, ...]] = {
         "rail/rail_edges.csv",
         "rail/rail_lines_structure.csv",
     ),
-    "driving": ("sla_osm_major_road_mapping.json", "hdb_carparks.json"),
-    "schools": ("moe_schools.json",),
+    "driving_baseline": ("sla_major_roads.geojson", "sla_osm_major_road_mapping.json", "hdb_carparks.json"),
+    "driving_google_evidence": ("sla_major_roads.geojson", "sla_osm_major_road_mapping.json"),
 }
 
 
@@ -59,16 +80,21 @@ def _short_hash(payload: object) -> str:
 
 
 def calculation_version(feature_set: str) -> str:
-    """Engine code version plus a hash of the configuration that shapes it."""
+    """Code version, provider, time assumption and configuration hash."""
+    if feature_set not in _FEATURE_DEFINITIONS:
+        raise ValueError(f"Unknown feature set {feature_set}")
+    definition = _FEATURE_DEFINITIONS[feature_set]
     if feature_set == "public_transport":
         config: object = asdict(PT_CONFIG)
-    elif feature_set == "driving":
+    elif feature_set == "driving_baseline":
         config = {"driving": asdict(DRIVING_CONFIG), "parking": PARKING_SCORE_VERSION}
-    elif feature_set == "schools":
-        config = {"search_radius_km": SchoolsEngine.SEARCH_RADIUS_KM}
     else:
-        raise ValueError(f"Unknown feature set {feature_set}")
-    return f"{_ENGINE_CODE_VERSIONS[feature_set]}-{_short_hash(config)}"
+        config = asdict(DRIVING_CONFIG)
+    return f"{definition['code']}-{definition['provider']}-{_short_hash({'config': config, **definition})}"
+
+
+def feature_definition(feature_set: str) -> dict[str, Any]:
+    return dict(_FEATURE_DEFINITIONS[feature_set])
 
 
 @lru_cache(maxsize=64)
@@ -93,7 +119,11 @@ def source_manifest(feature_set: str) -> dict[str, Any]:
             "sha256": _file_signature(str(path), stat.st_mtime_ns, stat.st_size),
             "modified_at": datetime.fromtimestamp(stat.st_mtime, UTC).isoformat(),
         }
-    return {"mode": "demo" if settings.demo_mode else "live", "files": files}
+    return {
+        "mode": "demo" if settings.demo_mode else "live",
+        "provider": _FEATURE_DEFINITIONS[feature_set]["provider"],
+        "files": files,
+    }
 
 
 def source_fingerprint(feature_set: str) -> str:
@@ -105,8 +135,10 @@ def source_fingerprint(feature_set: str) -> str:
 def _max_age(feature_set: str) -> timedelta | None:
     if feature_set == "public_transport":
         return timedelta(days=settings.block_feature_max_age_days_public_transport)
-    if feature_set == "driving":
+    if feature_set == "driving_google_evidence":
         return timedelta(days=settings.block_feature_max_age_days_driving)
+    if feature_set == "driving_baseline":
+        return timedelta(days=settings.block_feature_max_age_days_driving_baseline)
     return None
 
 
@@ -197,14 +229,12 @@ def resolve_block(
 
 
 def _payload_status(feature_set: str, payload: dict[str, Any]) -> str:
-    if feature_set == "schools":
-        return str(payload.get("score_status") or "unavailable")
-    return "available" if payload.get("display_score") is not None else "unavailable"
+    components = payload.get("components") or []
+    assessed = [c for c in components if c.get("status") in ("calculated", "estimated") and c.get("score") is not None]
+    return "available" if assessed else "unavailable"
 
 
 def _payload_provenance(feature_set: str, payload: dict[str, Any]) -> str:
-    if feature_set == "schools":
-        return "MOCK_DEMO_DATA" if settings.demo_mode else "OFFICIAL"
     provenances = {
         str(component.get("provenance"))
         for component in payload.get("components") or []
@@ -226,12 +256,6 @@ class BlockFeatureOutcome:
     calculation_version: str
     source_fingerprint: str
     computed_at: datetime
-
-
-def schools_block_payload(latitude: float, longitude: float) -> dict[str, Any]:
-    """Buyer-independent nearby-school result for a block (no named schools)."""
-    result = SchoolsEngine.compute(None, latitude, longitude)  # type: ignore[arg-type]
-    return SchoolsEngine.to_dict(result)
 
 
 class BlockFeatureService:

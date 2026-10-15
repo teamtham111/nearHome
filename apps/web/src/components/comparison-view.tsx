@@ -158,16 +158,12 @@ function NearbySchoolsPanel({
   byListing,
   selectedSchools,
   isDemo = false,
-  benchmarks = {},
-  useBenchmarks = false,
 }: {
   listingIds: string[];
   listingNames: Record<string, string>;
   byListing: Record<string, SchoolAssessment>;
   selectedSchools: string[];
   isDemo?: boolean;
-  benchmarks?: Record<string, LocationBenchmarks>;
-  useBenchmarks?: boolean;
 }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const winner = schoolsComparisonWinner(listingIds, byListing);
@@ -229,8 +225,7 @@ function NearbySchoolsPanel({
                 {isWinner && <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">Stronger</span>}
               </div>
               <p className={`mt-2 inline-flex rounded-full px-2 py-1 text-sm font-medium ${rating.className}`}>{rating.label}</p>
-              {!useBenchmarks && assessment.score != null && <p className="mt-2 text-sm font-medium text-slate-700">{isDemo ? "Illustrative access score" : "Access score"}: {Math.round(assessment.score)}/100</p>}
-              {useBenchmarks && <LocationBenchmarkList benchmarks={benchmarks[id]} featureSet="schools" />}
+              {assessment.score != null && <p className="mt-2 text-sm font-medium text-slate-700">{isDemo ? "Illustrative access score" : "Access score"}: {Math.round(assessment.score)}/100</p>}
               <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <dt className="text-slate-600">Within 1 km</dt><dd className="font-semibold text-slate-900">{assessment.schools_within_1km ?? 0}</dd>
                 <dt className="text-slate-600">Within 2 km</dt><dd className="font-semibold text-slate-900">{assessment.schools_within_2km ?? 0} total</dd>
@@ -682,12 +677,12 @@ function LocationBenchmarkList({ benchmarks, featureSet }: { benchmarks: Locatio
       ) : (
         <ul className="mt-2 space-y-3">{measurements.map((measurement) => <li key={measurement.key}><BenchmarkLines measurement={measurement} /></li>)}</ul>
       )}
-      <p className="mt-2 text-xs text-slate-500">Each home is compared with other HDB residential blocks, counting each block once. Equal results share the same comparison.</p>
+      <p className="mt-2 text-xs text-slate-500">Each home is compared with other HDB residential blocks, counting each block once. Equal results share the same comparison.{featureSet === "driving_baseline" ? " Route flexibility, peak-hour delay and parking are shown as evidence only and are not ranked." : ""}</p>
     </section>
   );
 }
 
-function ExpandableScoreRow({ title, component, children, benchmark }: { title: string; component: ComponentResultData | null; children: ReactNode; benchmark?: BenchmarkMeasurement | null | false }) {
+function ExpandableScoreRow({ title, component, children, benchmark }: { title: string; component: ComponentResultData | null; children: ReactNode; benchmark?: RowBenchmark }) {
   const [isOpen, setIsOpen] = useState(false);
   const detailsId = useId();
   const score = displayScore(component?.score);
@@ -705,7 +700,7 @@ function ExpandableScoreRow({ title, component, children, benchmark }: { title: 
       >
         <span className="font-medium">{title}</span>
         {useBenchmark ? (
-          <span className="ml-auto text-right text-sm text-slate-700">{benchmark ? comparisonSentence(benchmark, "national") : "Comparison not available"}</span>
+          <span className="ml-auto text-right text-sm text-slate-700">{benchmark === "evidence" ? "Evidence only — not ranked" : benchmark ? comparisonSentence(benchmark, "national") : "Comparison not available"}</span>
         ) : (
           <>
             <span className="text-sm text-slate-600">{score.rating ?? "Not available"}</span>
@@ -716,13 +711,18 @@ function ExpandableScoreRow({ title, component, children, benchmark }: { title: 
           <path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
-      {isOpen && <div id={detailsId} className="space-y-3 border-t border-slate-100 p-3">{useBenchmark && benchmark ? <BenchmarkLines measurement={benchmark} /> : null}{children}</div>}
+      {isOpen && <div id={detailsId} className="space-y-3 border-t border-slate-100 p-3">{useBenchmark && benchmark && benchmark !== "evidence" ? <BenchmarkLines measurement={benchmark} /> : null}{children}</div>}
     </section>
   );
 }
 
-function rowBenchmark(benchmarks: LocationBenchmarks | undefined, useBenchmarks: boolean, component: string): BenchmarkMeasurement | null | false {
-  return useBenchmarks ? measurementFor(benchmarks, COMPONENT_MEASUREMENT[component]) : false;
+type RowBenchmark = BenchmarkMeasurement | null | false | "evidence";
+
+/** false: benchmarks off; "evidence": shown but never ranked; otherwise the approved measurement (or null if missing). */
+function rowBenchmark(benchmarks: LocationBenchmarks | undefined, useBenchmarks: boolean, component: string): RowBenchmark {
+  if (!useBenchmarks) return false;
+  const key = COMPONENT_MEASUREMENT[component];
+  return key ? measurementFor(benchmarks, key) : "evidence";
 }
 
 function PublicTransportDetails({ rollup, benchmarks, useBenchmarks = false }: { rollup: ModelRollupData; benchmarks?: LocationBenchmarks; useBenchmarks?: boolean }) {
@@ -804,9 +804,9 @@ function PublicTransportPanel({ listingIds, listingNames, byListing, benchmarks 
 }
 
 const drivingFactorDefinitions = [
-  ["Major-road access", "major_road_access", "How quickly can you reach a useful expressway or major road from the home?", "This measures the traffic-aware driving time from the listing to nearby expressway or major-road entry points."],
+  ["Major-road access", "major_road_access", "How quickly can you reach a useful expressway or major road from the home?", "This is a baseline estimated driving time (OneMap) to a validated entry onto an official major road. It is not adjusted for peak-hour traffic."],
   ["Route flexibility", "route_connectivity", "Do you have alternative routes when one road is congested or disrupted?", "This considers the number of distinct major roads reached and whether the available routes meaningfully differ from one another."],
-  ["Peak-hour access reliability", "peak_access_penalty", "How consistent is access to the road network during peak hours?", "This compares the time needed to reach the selected major-road entry during peak and off-peak periods."],
+  ["Estimated peak-hour delay", "peak_access_penalty", "How much longer might it take to reach the main road network at the morning peak?", "Google traffic-aware estimates to the same major-road entry at a weekday 8am and at 10pm, for shortlisted homes only. It is an estimate, not a reliability guarantee."],
   ["Parking convenience", "parking_convenience", "How easy is it to park near the home and walk back to the block?", "This considers walking distance to the likely nearby HDB carpark, nearby alternatives, shelter, parking restrictions and night-parking availability."],
 ] as const;
 
@@ -858,7 +858,7 @@ function drivingComponentResult(component: ComponentResultData | null): string |
   return null;
 }
 
-function DrivingFactorRow({ name, component, idSuffix, benchmark = false }: { name: string; component: ComponentResultData | null; idSuffix: string; benchmark?: BenchmarkMeasurement | null | false }) {
+function DrivingFactorRow({ name, component, idSuffix, benchmark = false }: { name: string; component: ComponentResultData | null; idSuffix: string; benchmark?: RowBenchmark }) {
   const definition = drivingFactorDefinitions.find((item) => item[1] === name);
   if (!definition) return null;
   const [title, , question, explanation] = definition;
@@ -905,7 +905,7 @@ function DrivingConnectivityComparison({ listingIds, listingNames, byListing }: 
     ["Overall driving connectivity", (rollup) => rollup?.unrounded_score ?? rollup?.display_score ?? null],
     ["Major-road access", (rollup) => drivingComponent(rollup, "major_road_access")?.score ?? null],
     ["Route flexibility", (rollup) => drivingComponent(rollup, "route_connectivity")?.score ?? null],
-    ["Peak-hour access reliability", (rollup) => drivingComponent(rollup, "peak_access_penalty")?.score ?? null],
+    ["Estimated peak-hour delay", (rollup) => drivingComponent(rollup, "peak_access_penalty")?.score ?? null],
     ["Parking convenience", (rollup) => drivingComponent(rollup, "parking_convenience")?.score ?? null],
   ];
   return <ShortlistedHomesComparison headingId="driving-comparison-heading" listingIds={listingIds} listingNames={listingNames} byListing={byListing} factors={factors} />;
@@ -924,7 +924,7 @@ function DrivingPanel({ listingIds, listingNames, byListing, hasDestination, ben
       </div>
       <p className="mt-1 text-sm font-medium text-slate-800">{drivingHeadline(rollup)}</p>
       <p className="mt-2 text-sm text-slate-600">{drivingExplanation(rollup)}</p>
-      {useBenchmarks && <LocationBenchmarkList benchmarks={benchmarks[id]} featureSet="driving" />}
+      {useBenchmarks && <LocationBenchmarkList benchmarks={benchmarks[id]} featureSet="driving_baseline" />}
       <DrivingBreakdown rollup={rollup} idSuffix={id} benchmarks={benchmarks[id]} useBenchmarks={useBenchmarks} />
       {status === "Provisional" && !useBenchmarks && <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p className="font-medium">Why the score is provisional</p><p className="mt-1">{unavailableDrivingComponentNames(rollup).map((name) => { const component = drivingComponent(rollup, name); return `${name.replace(/_/g, " ")} normally contributes ${Math.round((component?.weight ?? 0) * 100)}%`; }).join("; ")} is unavailable. NearHome calculated the displayed score using the available components and temporarily reweighted them for comparison.</p></div>}
       {!hasDestination && <a className="text-sm font-medium text-teal-700 underline" href="#buyer-profile">Add a regular destination to compare journey times</a>}
@@ -1247,7 +1247,7 @@ export function ComparisonView({ data, session }: Props) {
             headingId="driving-heading"
             demoId="comparison-driving"
             title="Driving"
-            description="Road access, route flexibility, peak-hour reliability and parking."
+            description="Road access, route flexibility, estimated peak-hour delay and parking."
             defaultOpen={detailsOpen}
           >
             <DrivingPanel listingIds={listingIds} listingNames={listingNames} byListing={data.driving_by_listing} hasDestination={hasDrivingDestination} benchmarks={locationBenchmarks} useBenchmarks={useBenchmarks} />
@@ -1304,8 +1304,6 @@ export function ComparisonView({ data, session }: Props) {
             defaultOpen={detailsOpen}
           >
             <NearbySchoolsPanel
-              benchmarks={locationBenchmarks}
-              useBenchmarks={useBenchmarks}
               listingIds={listingIds}
               listingNames={listingNames}
               byListing={data.schools_by_listing ?? {}}

@@ -12,7 +12,6 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import UTC, datetime
 from typing import Any
-from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -36,7 +35,7 @@ from app.engines.location_benchmarks.measurements import (
 from app.models.orm import BlockLocationFeatureORM
 from app.repositories.block_repository import BlockRepository
 from app.services.block_features import (
-    FEATURE_SETS,
+    FREE_FEATURE_SETS,
     calculation_version,
     decompress_payload,
     source_fingerprint,
@@ -82,7 +81,7 @@ def _measurements_for_row(db: Session, feature_set: str, row: Any) -> dict[str, 
 def build_and_publish(
     db: Session,
     *,
-    feature_sets: tuple[str, ...] = FEATURE_SETS,
+    feature_sets: tuple[str, ...] = FREE_FEATURE_SETS,
     allow_demo: bool = False,
     publish: bool = True,
 ) -> dict[str, Any]:
@@ -102,6 +101,9 @@ def build_and_publish(
     sources: dict[str, Any] = {}
     # measurement_key -> block_key -> (value, status, measured_at)
     values: dict[str, dict[str, tuple[float | None, str, datetime | None]]] = defaultdict(dict)
+    unknown = set(feature_sets) - set(FREE_FEATURE_SETS)
+    if unknown:
+        raise BenchmarkPublishError(f"Only free block measurements can be ranked, not {sorted(unknown)}.")
     for feature_set in feature_sets:
         version = calculation_version(feature_set)
         fingerprint = source_fingerprint(feature_set)
@@ -231,6 +233,21 @@ def build_and_publish(
     return {"version_id": str(version_row.id), "published": publish, "results": len(result_rows), "summary": summary}
 
 
+def incompatibility(version: Any) -> str | None:
+    """Why a published version may not be served with the current code, if at all."""
+    if version.measurement_version != MEASUREMENT_VERSION:
+        return f"measurement version {version.measurement_version} != {MEASUREMENT_VERSION}"
+    if version.ranking_version != RANKING_VERSION:
+        return f"ranking version {version.ranking_version} != {RANKING_VERSION}"
+    stored = version.calculation_versions or {}
+    if not stored or set(stored) - set(FREE_FEATURE_SETS):
+        return "version contains unsupported feature sets"
+    for feature_set in stored:
+        if (stored.get(feature_set) or {}).get("calculation_version") != calculation_version(feature_set):
+            return f"{feature_set} calculation version changed; rebuild the benchmark"
+    return None
+
+
 def _with_town_name(result: dict[str, Any], town_name: str | None) -> dict[str, Any]:
     return {**result, "town_name": town_name}
 
@@ -248,6 +265,12 @@ def benchmarks_for_block(
     base: dict[str, Any] = {"block_key": block_key, "unranked_features": list(UNRANKED_FEATURES)}
     if version is None:
         return {**base, "status": "no_published_version", "measurements": []}
+    incompatible = incompatibility(version)
+    if incompatible:
+        # An older version (different measurement definitions, providers or
+        # ranking rules) is never served, so retired rankings such as parking
+        # cannot leak through.
+        return {**base, "status": "no_compatible_version", "reason": incompatible, "measurements": []}
     summary = version.summary_json or {}
     base.update(
         {
@@ -281,7 +304,7 @@ def benchmarks_for_block(
                 "source": "published_block_result",
             }
         else:
-            entry = _compare_unpublished_block(db, repo, version.id, definition, block_key, town_code, town_name)
+            entry = _compare_unpublished_block(db, repo, version, definition, block_key, town_code, town_name)
             if entry is None:
                 continue
         measurements.append(
@@ -298,7 +321,7 @@ def benchmarks_for_block(
 def _compare_unpublished_block(
     db: Session,
     repo: BlockRepository,
-    version_id: UUID,
+    version: Any,
     definition: Any,
     block_key: str,
     town_code: str | None,
@@ -310,8 +333,12 @@ def _compare_unpublished_block(
     measured after the version was built. The block is not a member of the
     stored group, so nothing needs excluding.
     """
+    version_id = version.id
     feature = repo.get_feature(block_key, definition.feature_set, calculation_version(definition.feature_set))
-    if feature is None:
+    expected = ((version.calculation_versions or {}).get(definition.feature_set) or {}).get("source_fingerprint")
+    if feature is None or feature.source_fingerprint != expected:
+        # Measured against different reference data than the published
+        # groups; comparing it would mix refreshes.
         return None
     measured = _measurements_for_row(db, definition.feature_set, feature).get(definition.key)
     if not measured:

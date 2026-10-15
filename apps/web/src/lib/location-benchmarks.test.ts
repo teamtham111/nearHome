@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { BenchmarkMeasurement } from "@/lib/api";
-import { comparisonSentence, coverageNote, formatMeasurementValue, tieNote, titleCaseTown } from "@/lib/location-benchmarks";
+import { COMPONENT_MEASUREMENT, comparisonSentence, coverageNote, formatMeasurementValue, tieNote, titleCaseTown } from "@/lib/location-benchmarks";
 
 function measurement(overrides: Partial<BenchmarkMeasurement> = {}): BenchmarkMeasurement {
   return {
@@ -56,15 +56,15 @@ describe("location benchmark copy", () => {
     expect(formatMeasurementValue(missing)).toBe("Not available");
   });
 
-  it("uses neutral wording for buyer-dependent school measures", () => {
-    const schools = measurement({ key: "schools_within_1km", unit: "schools", direction: "buyer_dependent_higher", comparison_phrase: "More schools within 1 km than" });
-    expect(comparisonSentence(schools, "national")).toBe("More schools within 1 km than 42% of HDB blocks in Singapore");
+  it("never ranks route flexibility, peak-hour delay or parking", () => {
+    expect(Object.keys(COMPONENT_MEASUREMENT).sort()).toEqual(["access", "bus_coverage", "major_road_access", "mrt_reach", "route_resilience"]);
+    expect(COMPONENT_MEASUREMENT.major_road_access).toBe("drive_major_road_baseline_minutes");
   });
 
   it("shows ties, raw values and partial coverage", () => {
     expect(tieNote(measurement().national)).toBe("30 other blocks have the same result");
     expect(formatMeasurementValue(measurement())).toBe("6 corridors");
-    expect(formatMeasurementValue(measurement({ key: "schools_nearest_km", unit: "km", value: 0.42 }))).toBe("420 m");
+    expect(formatMeasurementValue(measurement({ key: "drive_major_road_baseline_minutes", unit: "minutes", value: 6.25 }))).toBe("6.3 min");
     expect(formatMeasurementValue(measurement({ key: "pt_access_cost_minutes", value: null, value_status: "worst" }))).toBe("No practical bus or rail entry confirmed");
     expect(coverageNote(measurement({ complete_national_benchmark: false, national_coverage: 0.637 }))).toBe(
       "Based on 63% of Singapore's HDB residential blocks measured so far.",

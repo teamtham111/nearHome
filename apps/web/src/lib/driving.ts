@@ -89,16 +89,23 @@ export function drivingHeadline(rollup: ModelRollupData): string {
 export function drivingExplanation(rollup: ModelRollupData): string {
   const status = drivingStatus(rollup);
   if (status === "Unavailable") return "There is not enough confirmed routing or parking evidence to calculate a meaningful driving result.";
-  return "This is a general neighbourhood driving result based on major-road access, route flexibility, peak-hour access reliability and parking convenience. It does not depend on a personal destination.";
+  return "This is a general neighbourhood driving result based on baseline major-road access, route flexibility, estimated peak-hour delay and parking convenience. It does not depend on a personal destination.";
 }
 
 export function roadResult(component: ComponentResultData | null): string | null {
   const evidence = selectedRoadEvidence(component);
   const name = typeof evidence.name === "string" ? evidence.name : null;
   const expressway = typeof evidence.expressway === "string" ? evidence.expressway : null;
-  const minutes = finiteNumber(evidence.peak_duration_minutes ?? record(component?.value).peak_duration_minutes);
+  const value = record(component?.value);
+  const baseline = value.measurement === "baseline_estimated_driving_time";
+  const minutes = finiteNumber(
+    baseline ? value.baseline_duration_minutes : evidence.peak_duration_minutes ?? value.peak_duration_minutes,
+  );
   if (!name && !expressway && minutes == null) return null;
   const routeName = name && expressway ? `${expressway} via ${name}` : name ?? expressway ?? "The selected major-road entry";
+  if (baseline) {
+    return `${routeName} is approximately ${Math.round(minutes ?? 0)} minutes away (baseline estimated driving time, not adjusted for peak traffic).`;
+  }
   return `${routeName} is approximately ${Math.round(minutes ?? 0)} minutes away during morning peak hours.`;
 }
 
@@ -115,7 +122,7 @@ export function destinationResult(component: ComponentResultData | null): string
 
 export function routeResult(component: ComponentResultData | null): string | null {
   const value = record(component?.value);
-  const roads = finiteNumber(value.distinct_expressways_reached);
+  const roads = finiteNumber(value.distinct_expressways_reached ?? value.distinct_major_roads_reached);
   const independent = finiteNumber(value.independent_alternatives);
   const partial = finiteNumber(value.partially_independent_alternatives);
   if (roads == null && independent == null && partial == null) return null;
@@ -123,17 +130,19 @@ export function routeResult(component: ComponentResultData | null): string | nul
   const partialText = partial == null ? null : `${partial} partially independent alternative route${partial === 1 ? "" : "s"}`;
   const independentText = independent == null ? null : `${independent} independent alternative route${independent === 1 ? "" : "s"}`;
   const alternatives = [independentText, partialText].filter(Boolean).join(" and ");
-  return `The assessed routes reach ${roadText}${alternatives ? `, with ${alternatives}` : ""}.`;
+  const found = finiteNumber(value.alternatives_found);
+  const foundText = found == null ? "" : ` Google returned ${found} alternative route${found === 1 ? "" : "s"}; other alternatives may exist.`;
+  return `The assessed routes reach ${roadText}${alternatives ? `, with ${alternatives}` : ""}.${foundText}`;
 }
 
 export function peakResult(component: ComponentResultData | null): string | null {
   const value = record(component?.value);
   const evidence = selectedRoadEvidence(component);
-  const peak = finiteNumber(evidence.peak_duration_minutes);
-  const offPeak = finiteNumber(evidence.off_peak_duration_minutes);
+  const peak = finiteNumber(value.peak_duration_minutes ?? evidence.peak_duration_minutes);
+  const offPeak = finiteNumber(value.off_peak_duration_minutes ?? evidence.off_peak_duration_minutes);
   const penalty = finiteNumber(value.penalty_minutes ?? evidence.penalty_minutes);
   if (peak == null && offPeak == null && penalty == null) return null;
-  return `Morning peak: ${peak == null ? "Not available" : `${Math.round(peak)} min`} · Off-peak: ${offPeak == null ? "Not available" : `${Math.round(offPeak)} min`} · Additional peak delay: ${penalty == null ? "Not available" : `approximately ${penalty.toFixed(1)} min`}.`;
+  return `Estimated weekday morning peak: ${peak == null ? "Not available" : `${Math.round(peak)} min`} · Estimated off-peak: ${offPeak == null ? "Not available" : `${Math.round(offPeak)} min`} · Estimated peak-hour delay: ${penalty == null ? "Not available" : `approximately ${penalty.toFixed(1)} min`}.`;
 }
 
 export function parkingPrimary(component: ComponentResultData | null): Record<string, unknown> | null {

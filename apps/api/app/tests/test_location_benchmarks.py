@@ -163,9 +163,10 @@ def test_bus_reach_uses_existing_corridor_counts_and_keeps_not_assessed_unavaila
 
 def test_every_ranked_measurement_declares_a_direction() -> None:
     for definition in MEASUREMENTS_BY_KEY.values():
-        assert definition.direction in ("lower", "higher", "buyer_dependent_lower", "buyer_dependent_higher")
-    assert MEASUREMENTS_BY_KEY["schools_within_1km"].buyer_dependent
-    assert MEASUREMENTS_BY_KEY["schools_within_1km"].comparison_phrase != "Better than"
+        assert definition.direction in ("lower", "higher")
+        assert definition.comparison_phrase == "Better than"
+    assert MEASUREMENTS_BY_KEY["pt_access_cost_minutes"].lower_is_better
+    assert not MEASUREMENTS_BY_KEY["pt_direct_bus_corridors"].lower_is_better
 
 
 def test_town_legend_parses_hdb_metadata() -> None:
@@ -191,3 +192,9 @@ def test_town_legend_parses_hdb_metadata() -> None:
 def test_non_numeric_values_are_unavailable(value: object) -> None:
     payload = {"components": [_component("route_resilience", value={"independent_units": value})]}
     assert extract_measurements("public_transport", payload)["pt_independent_fallbacks"]["status"] == "unavailable"
+
+
+def test_saint_street_names_are_not_read_as_street() -> None:
+    hdb = block_key_from_parts("10", "ST. GEORGE'S RD")
+    assert hdb == block_key_from_address("Blk 10 St George's Road") == "10|SAINT GEORGES ROAD"
+    assert block_key_from_parts("5", "TAMPINES ST 81") == "5|TAMPINES STREET 81"
