@@ -97,6 +97,15 @@ STAGES: tuple[Stage, ...] = (
         outputs=(FIXTURES / "hdb_carparks.json",),
     ),
     Stage(
+        "refresh-hdb-blocks",
+        "Refresh the HDB residential block registry (HDB Property Information + OneMap) for benchmarks",
+        frozenset({"core", "all"}),
+        _python_script("ingest_hdb_blocks.py", "--live", "--persist-db"),
+        source_ids=("hdb-property-information", "onemap-geocoding", "postgresql"),
+        credentials=("ONEMAP_EMAIL", "ONEMAP_PASSWORD", "DATABASE_URL"),
+        outputs=(FIXTURES / "hdb_blocks.json",),
+    ),
+    Stage(
         "download-moe-schools",
         "Download the complete official MOE school directory CSV",
         frozenset({"core", "all"}),
@@ -234,6 +243,16 @@ STAGES: tuple[Stage, ...] = (
         source_ids=("hdb-resale-transactions", "catboost-fair-price-model"),
         dependencies=("normalize-hdb-transactions",),
         outputs=(ROOT / "artifacts/fair_price/catboost/model.cbm", ROOT / "artifacts/fair_price/catboost/metadata.json"),
+        cwd=API_ROOT,
+    ),
+    Stage(
+        "refresh-location-benchmarks",
+        "Re-measure blocks whose reference data changed (offline features) and publish one benchmark version",
+        frozenset({"core", "all"}),
+        (sys.executable, "-m", "app.jobs.location_benchmarks", "refresh", "--features", "schools"),
+        source_ids=("location-benchmarks", "postgresql"),
+        dependencies=("refresh-hdb-blocks", "normalize-moe-schools"),
+        credentials=("DATABASE_URL",),
         cwd=API_ROOT,
     ),
     Stage(

@@ -3,13 +3,25 @@
 import { useId, useState, type ReactNode } from "react";
 
 import type {
+  BenchmarkMeasurement,
   ComparisonResponse,
   ComponentResultData,
   FairPriceComparable,
   FairPriceData,
+  LocationBenchmarks,
   ModelRollupData,
   SessionListing,
 } from "@/lib/api";
+import {
+  COMPONENT_MEASUREMENT,
+  benchmarksEnabled,
+  comparisonSentence,
+  coverageNote,
+  formatMeasurementValue,
+  measurementFor,
+  measurementsForFeature,
+  tieNote,
+} from "@/lib/location-benchmarks";
 import {
   buildComparableReason,
   buildConfidenceExplanation,
@@ -146,12 +158,16 @@ function NearbySchoolsPanel({
   byListing,
   selectedSchools,
   isDemo = false,
+  benchmarks = {},
+  useBenchmarks = false,
 }: {
   listingIds: string[];
   listingNames: Record<string, string>;
   byListing: Record<string, SchoolAssessment>;
   selectedSchools: string[];
   isDemo?: boolean;
+  benchmarks?: Record<string, LocationBenchmarks>;
+  useBenchmarks?: boolean;
 }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const winner = schoolsComparisonWinner(listingIds, byListing);
@@ -213,7 +229,8 @@ function NearbySchoolsPanel({
                 {isWinner && <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">Stronger</span>}
               </div>
               <p className={`mt-2 inline-flex rounded-full px-2 py-1 text-sm font-medium ${rating.className}`}>{rating.label}</p>
-              {assessment.score != null && <p className="mt-2 text-sm font-medium text-slate-700">{isDemo ? "Illustrative access score" : "Access score"}: {Math.round(assessment.score)}/100</p>}
+              {!useBenchmarks && assessment.score != null && <p className="mt-2 text-sm font-medium text-slate-700">{isDemo ? "Illustrative access score" : "Access score"}: {Math.round(assessment.score)}/100</p>}
+              {useBenchmarks && <LocationBenchmarkList benchmarks={benchmarks[id]} featureSet="schools" />}
               <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <dt className="text-slate-600">Within 1 km</dt><dd className="font-semibold text-slate-900">{assessment.schools_within_1km ?? 0}</dd>
                 <dt className="text-slate-600">Within 2 km</dt><dd className="font-semibold text-slate-900">{assessment.schools_within_2km ?? 0} total</dd>
@@ -640,10 +657,42 @@ function PublicTransportComparison({ listingIds, listingNames, byListing }: { li
   return <ShortlistedHomesComparison headingId="transport-comparison-heading" listingIds={listingIds} listingNames={listingNames} byListing={byListing} factors={factors} />;
 }
 
-function ExpandableScoreRow({ title, component, children }: { title: string; component: ComponentResultData | null; children: ReactNode }) {
+function BenchmarkLines({ measurement }: { measurement: BenchmarkMeasurement }) {
+  const ties = tieNote(measurement.national);
+  const coverage = coverageNote(measurement);
+  return (
+    <div className="space-y-0.5 text-sm">
+      <p className="text-slate-600">{measurement.label}: <span className="font-medium text-slate-900">{formatMeasurementValue(measurement)}</span></p>
+      <p className="font-medium text-slate-900">{comparisonSentence(measurement, "national")}</p>
+      <p className="text-slate-700">{comparisonSentence(measurement, "town")}</p>
+      {ties && <p className="text-xs text-slate-500">{ties} in Singapore.</p>}
+      {coverage && <p className="text-xs text-amber-800">{coverage}</p>}
+    </div>
+  );
+}
+
+function LocationBenchmarkList({ benchmarks, featureSet }: { benchmarks: LocationBenchmarks | undefined; featureSet: BenchmarkMeasurement["feature_set"] }) {
+  const headingId = useId();
+  const measurements = measurementsForFeature(benchmarks, featureSet);
+  return (
+    <section className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3" aria-labelledby={headingId}>
+      <h5 id={headingId} className="font-medium text-teal-800">How this block compares</h5>
+      {measurements.length === 0 ? (
+        <p className="mt-1 text-sm text-slate-600">Singapore and town comparisons are not published for this block yet. The measurements below are still shown.</p>
+      ) : (
+        <ul className="mt-2 space-y-3">{measurements.map((measurement) => <li key={measurement.key}><BenchmarkLines measurement={measurement} /></li>)}</ul>
+      )}
+      <p className="mt-2 text-xs text-slate-500">Each home is compared with other HDB residential blocks, counting each block once. Equal results share the same comparison.</p>
+    </section>
+  );
+}
+
+function ExpandableScoreRow({ title, component, children, benchmark }: { title: string; component: ComponentResultData | null; children: ReactNode; benchmark?: BenchmarkMeasurement | null | false }) {
   const [isOpen, setIsOpen] = useState(false);
   const detailsId = useId();
   const score = displayScore(component?.score);
+  // ``benchmark === false`` means benchmarks are off: keep the existing score.
+  const useBenchmark = benchmark !== false && benchmark !== undefined;
   return (
     <section className="rounded-lg border border-slate-200 bg-white">
       <button
@@ -655,18 +704,28 @@ function ExpandableScoreRow({ title, component, children }: { title: string; com
         className="flex w-full items-center gap-3 p-3 text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-teal-600"
       >
         <span className="font-medium">{title}</span>
-        <span className="text-sm text-slate-600">{score.rating ?? "Not available"}</span>
-        <span className="ml-auto text-sm font-semibold">{formatDisplayScore(score)}</span>
+        {useBenchmark ? (
+          <span className="ml-auto text-right text-sm text-slate-700">{benchmark ? comparisonSentence(benchmark, "national") : "Comparison not available"}</span>
+        ) : (
+          <>
+            <span className="text-sm text-slate-600">{score.rating ?? "Not available"}</span>
+            <span className="ml-auto text-sm font-semibold">{formatDisplayScore(score)}</span>
+          </>
+        )}
         <svg className={`h-4 w-4 shrink-0 text-teal-700 transition-transform ${isOpen ? "rotate-180" : ""}`} viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
-      {isOpen && <div id={detailsId} className="space-y-3 border-t border-slate-100 p-3">{children}</div>}
+      {isOpen && <div id={detailsId} className="space-y-3 border-t border-slate-100 p-3">{useBenchmark && benchmark ? <BenchmarkLines measurement={benchmark} /> : null}{children}</div>}
     </section>
   );
 }
 
-function PublicTransportDetails({ rollup }: { rollup: ModelRollupData }) {
+function rowBenchmark(benchmarks: LocationBenchmarks | undefined, useBenchmarks: boolean, component: string): BenchmarkMeasurement | null | false {
+  return useBenchmarks ? measurementFor(benchmarks, COMPONENT_MEASUREMENT[component]) : false;
+}
+
+function PublicTransportDetails({ rollup, benchmarks, useBenchmarks = false }: { rollup: ModelRollupData; benchmarks?: LocationBenchmarks; useBenchmarks?: boolean }) {
   const breakdownHeadingId = useId();
   const access = componentByName(rollup, "access");
   const bus = componentByName(rollup, "bus_coverage");
@@ -691,19 +750,19 @@ function PublicTransportDetails({ rollup }: { rollup: ModelRollupData }) {
     <section className="mt-3 rounded-lg border border-slate-200 bg-slate-50" aria-labelledby={breakdownHeadingId}>
       <h5 id={breakdownHeadingId} className="border-b border-slate-200 p-3 font-medium text-teal-800">Transport breakdown</h5>
       <div className="space-y-3 p-3">
-        <ExpandableScoreRow title="Access" component={access}>
+        <ExpandableScoreRow title="Access" component={access} benchmark={rowBenchmark(benchmarks, useBenchmarks, "access")}>
           <p className="text-sm text-slate-600">How easily can you get from the home to a useful bus stop or MRT station?</p>
           {access && <><p className="font-medium">Best network-entry option</p><p className="text-sm">{naturalAccessLabel(selectedPath)}</p><div className="overflow-x-auto"><table className="min-w-full text-sm"><tbody>{accessStages(selectedPath).map(([label, minutes, status]) => <tr key={label} className="border-b border-slate-100"><td className="py-2 pr-4">{label}</td><td className="py-2 text-right">{minutesText(minutes, status)}</td></tr>)}</tbody></table></div><p className="text-sm text-slate-700"><span className="font-medium">Why it is {ratingForScore(access.score)?.toLowerCase() ?? "unavailable"}:</span> {accessExplanation(access, selectedPath)}</p></>}
           {accessEvidence.length > 1 && <details><summary className="cursor-pointer text-sm text-teal-700">View alternative access options</summary><ul className="mt-2 space-y-1 text-sm">{accessEvidence.slice(0, 8).map((entry, index) => <li key={`${String(entry.bus_stop_code ?? entry.station_name ?? index)}-${index}`}>{naturalAccessLabel(entry)}{numberValue(entry.total_expected_minutes) != null ? ` — about ${Math.round(numberValue(entry.total_expected_minutes) as number)} min` : ""}</li>)}</ul></details>}
         </ExpandableScoreRow>
-        <ExpandableScoreRow title="Bus coverage" component={bus}>
+        <ExpandableScoreRow title="Bus coverage" component={bus} benchmark={rowBenchmark(benchmarks, useBenchmarks, "bus_coverage")}>
           <p className="text-sm text-slate-600">How many genuinely different areas can be reached using nearby bus services?</p>
           <ul className="space-y-1 text-sm"><li><span className="font-medium">What you get:</span> {busCount == null ? "Not available" : `${busCount} distinct direct bus corridor${busCount === 1 ? "" : "s"}`}</li><li>{transferCoverageLabel(transferCount) ?? "Additional coverage not available"}</li><li>Multiple directions of travel where scheduled services support them</li></ul>
           <p className="text-sm text-slate-700"><span className="font-medium">Why it scores {ratingForScore(bus?.score)?.toLowerCase() ?? "unavailable"}:</span> {bus?.strengths?.[0] ?? bus?.explanation ?? "Bus coverage evidence is unavailable."}</p>
           <p className="text-sm text-slate-600"><span className="font-medium">Limitation:</span> One-transfer coverage is estimated from scheduled bus-route structure; transfers are not guaranteed to be equally fast throughout the day.</p>
           {bus?.evidence?.length ? <details><summary className="cursor-pointer text-sm text-teal-700">View direct bus corridors</summary><ul className="mt-2 space-y-1 text-sm">{bus.evidence.map((corridor, index) => <li key={String(corridor.corridor_id ?? index)}>{Array.isArray(corridor.member_services) ? corridor.member_services.map((service) => recordValue(service).service).filter(Boolean).join(", ") : "Bus corridor"}{corridor.destination ? ` — ${String(corridor.destination)}` : ""}</li>)}</ul></details> : null}
         </ExpandableScoreRow>
-        <ExpandableScoreRow title="MRT reach" component={mrt}>
+        <ExpandableScoreRow title="MRT reach" component={mrt} benchmark={rowBenchmark(benchmarks, useBenchmarks, "mrt_reach")}>
           <p className="text-sm text-slate-600">How well connected are you to the rail network after reaching a practical MRT station?</p>
           <p className="font-medium">Best rail entry</p>
           <p className="text-sm">{String(mrtEvidence.primary_station_name ?? mrtEvidence.primary_physical_station_id ?? "Not available")}</p>
@@ -713,7 +772,7 @@ function PublicTransportDetails({ rollup }: { rollup: ModelRollupData }) {
           <p className="text-sm text-slate-600"><span className="font-medium">Limitation:</span> These estimates use rail-network structure and approximate travel times. Walking, waiting, feeder travel and station-entry time are measured separately under Access.</p>
           {Object.keys(stationBuckets).length > 0 && <details><summary className="cursor-pointer text-sm text-teal-700">View reachable MRT stations</summary><div className="mt-2 grid gap-2 md:grid-cols-2">{Object.entries(stationBuckets).map(([bucket, entries]) => <div key={bucket}><p className="font-medium capitalize">{bucket.replace(/_/g, " ")}</p><p className="text-sm text-slate-600">{Array.isArray(entries) ? entries.slice(0, 12).map((entry) => recordValue(entry).station_name).join(", ") : "Not available"}</p></div>)}</div></details>}
         </ExpandableScoreRow>
-        <ExpandableScoreRow title="Route resilience" component={resilience}>
+        <ExpandableScoreRow title="Route resilience" component={resilience} benchmark={rowBenchmark(benchmarks, useBenchmarks, "route_resilience")}>
           <p className="text-sm text-slate-600">Do you have genuinely different alternatives when the usual route is inconvenient or unavailable?</p>
           <p className="font-medium">Available alternatives</p>
           <p className="text-sm">{fallbackExamples.length ? `${fallbackExamples.length} independent fallback option${fallbackExamples.length === 1 ? "" : "s"} found` : "No independent fallback options confirmed"}</p>
@@ -726,7 +785,7 @@ function PublicTransportDetails({ rollup }: { rollup: ModelRollupData }) {
   );
 }
 
-function PublicTransportPanel({ listingIds, listingNames, byListing }: { listingIds: string[]; listingNames: Record<string, string>; byListing: Record<string, ModelRollupData> }) {
+function PublicTransportPanel({ listingIds, listingNames, byListing, benchmarks = {}, useBenchmarks = false }: { listingIds: string[]; listingNames: Record<string, string>; byListing: Record<string, ModelRollupData>; benchmarks?: Record<string, LocationBenchmarks>; useBenchmarks?: boolean }) {
   return <div className="mt-3 space-y-3">{listingIds.map((id) => {
     const rollup = byListing[id];
     if (!rollup || !rollup.components?.length) return <div key={id} className="rounded-lg border border-slate-200 bg-slate-50 p-3"><h4 className="font-medium">{listingNames[id]}</h4><p className="mt-1 text-sm text-slate-700">Not assessed — verified route data is unavailable for this listing.</p></div>;
@@ -734,11 +793,12 @@ function PublicTransportPanel({ listingIds, listingNames, byListing }: { listing
     return <article key={id} className="rounded-lg border border-slate-200 bg-white p-4" aria-labelledby={`transport-${id}`}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h4 id={`transport-${id}`} className="font-semibold">{listingNames[id]}</h4>
-        <ScoreRing score={overall.rawScore} label="Transport strength" size="md" partial={!rollup.is_complete} statusLabel={rollup.is_complete ? "Complete" : "Partial"} />
+        {!useBenchmarks && <ScoreRing score={overall.rawScore} label="Transport strength" size="md" partial={!rollup.is_complete} statusLabel={rollup.is_complete ? "Complete" : "Partial"} />}
       </div>
       <p className="mt-1 text-sm font-medium text-slate-800">{buildTransportHeadline(rollup)}</p>
       <p className="mt-2 text-sm text-slate-600">{buildTransportExplanation(rollup)}</p>
-      <PublicTransportDetails rollup={rollup} />
+      {useBenchmarks && <LocationBenchmarkList benchmarks={benchmarks[id]} featureSet="public_transport" />}
+      <PublicTransportDetails rollup={rollup} benchmarks={benchmarks[id]} useBenchmarks={useBenchmarks} />
     </article>;
   })}<PublicTransportComparison listingIds={listingIds} listingNames={listingNames} byListing={byListing} /></div>;
 }
@@ -798,14 +858,14 @@ function drivingComponentResult(component: ComponentResultData | null): string |
   return null;
 }
 
-function DrivingFactorRow({ name, component, idSuffix }: { name: string; component: ComponentResultData | null; idSuffix: string }) {
+function DrivingFactorRow({ name, component, idSuffix, benchmark = false }: { name: string; component: ComponentResultData | null; idSuffix: string; benchmark?: BenchmarkMeasurement | null | false }) {
   const definition = drivingFactorDefinitions.find((item) => item[1] === name);
   if (!definition) return null;
   const [title, , question, explanation] = definition;
   const result = drivingComponentResult(component);
   const source = component?.source ? readableSource(component.source) : "Source unavailable";
   return (
-    <ExpandableScoreRow title={title} component={component}>
+    <ExpandableScoreRow title={title} component={component} benchmark={benchmark}>
       <section>
         <h6 className="text-sm font-medium">What it means</h6>
         <p className="mt-1 text-sm text-slate-600">{question}</p>
@@ -828,13 +888,13 @@ function DrivingFactorRow({ name, component, idSuffix }: { name: string; compone
   );
 }
 
-function DrivingBreakdown({ rollup, idSuffix }: { rollup: ModelRollupData; idSuffix: string }) {
+function DrivingBreakdown({ rollup, idSuffix, benchmarks, useBenchmarks = false }: { rollup: ModelRollupData; idSuffix: string; benchmarks?: LocationBenchmarks; useBenchmarks?: boolean }) {
   const headingId = useId();
   return (
     <section className="mt-4 rounded-lg border border-slate-200 bg-slate-50" aria-labelledby={headingId}>
       <h5 id={headingId} className="border-b border-slate-200 p-3 font-medium text-teal-800">Driving breakdown</h5>
       <div className="space-y-3 p-3">
-        {drivingFactorDefinitions.map(([, name]) => <DrivingFactorRow key={name} name={name} idSuffix={idSuffix} component={drivingComponent(rollup, name)} />)}
+        {drivingFactorDefinitions.map(([, name]) => <DrivingFactorRow key={name} name={name} idSuffix={idSuffix} component={drivingComponent(rollup, name)} benchmark={rowBenchmark(benchmarks, useBenchmarks, name)} />)}
       </div>
     </section>
   );
@@ -851,7 +911,7 @@ function DrivingConnectivityComparison({ listingIds, listingNames, byListing }: 
   return <ShortlistedHomesComparison headingId="driving-comparison-heading" listingIds={listingIds} listingNames={listingNames} byListing={byListing} factors={factors} />;
 }
 
-function DrivingPanel({ listingIds, listingNames, byListing, hasDestination }: { listingIds: string[]; listingNames: Record<string, string>; byListing: Record<string, ModelRollupData>; hasDestination: boolean }) {
+function DrivingPanel({ listingIds, listingNames, byListing, hasDestination, benchmarks = {}, useBenchmarks = false }: { listingIds: string[]; listingNames: Record<string, string>; byListing: Record<string, ModelRollupData>; hasDestination: boolean; benchmarks?: Record<string, LocationBenchmarks>; useBenchmarks?: boolean }) {
   return <div className="mt-3 space-y-3">{listingIds.map((id) => {
     const rollup = byListing[id];
     if (!rollup || !rollup.components?.length) return <article key={id} className="rounded-lg border border-slate-200 bg-slate-50 p-3"><h4 className="font-medium">{listingNames[id]}</h4><p className="mt-1 text-sm text-slate-700">Not assessed — verified road and location data is unavailable for this listing.</p></article>;
@@ -860,12 +920,13 @@ function DrivingPanel({ listingIds, listingNames, byListing, hasDestination }: {
     return <article key={id} className="rounded-lg border border-slate-200 bg-white p-4" aria-labelledby={`driving-${id}`}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h4 id={`driving-${id}`} className="font-semibold">{listingNames[id]}</h4>
-        <ScoreRing score={status === "Unavailable" ? null : score.rawScore} label="Driving connectivity" size="md" partial={status === "Provisional"} statusLabel={status} />
+        {!useBenchmarks && <ScoreRing score={status === "Unavailable" ? null : score.rawScore} label="Driving connectivity" size="md" partial={status === "Provisional"} statusLabel={status} />}
       </div>
       <p className="mt-1 text-sm font-medium text-slate-800">{drivingHeadline(rollup)}</p>
       <p className="mt-2 text-sm text-slate-600">{drivingExplanation(rollup)}</p>
-      <DrivingBreakdown rollup={rollup} idSuffix={id} />
-      {status === "Provisional" && <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p className="font-medium">Why the score is provisional</p><p className="mt-1">{unavailableDrivingComponentNames(rollup).map((name) => { const component = drivingComponent(rollup, name); return `${name.replace(/_/g, " ")} normally contributes ${Math.round((component?.weight ?? 0) * 100)}%`; }).join("; ")} is unavailable. NearHome calculated the displayed score using the available components and temporarily reweighted them for comparison.</p></div>}
+      {useBenchmarks && <LocationBenchmarkList benchmarks={benchmarks[id]} featureSet="driving" />}
+      <DrivingBreakdown rollup={rollup} idSuffix={id} benchmarks={benchmarks[id]} useBenchmarks={useBenchmarks} />
+      {status === "Provisional" && !useBenchmarks && <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p className="font-medium">Why the score is provisional</p><p className="mt-1">{unavailableDrivingComponentNames(rollup).map((name) => { const component = drivingComponent(rollup, name); return `${name.replace(/_/g, " ")} normally contributes ${Math.round((component?.weight ?? 0) * 100)}%`; }).join("; ")} is unavailable. NearHome calculated the displayed score using the available components and temporarily reweighted them for comparison.</p></div>}
       {!hasDestination && <a className="text-sm font-medium text-teal-700 underline" href="#buyer-profile">Add a regular destination to compare journey times</a>}
     </article>;
   })}<DrivingConnectivityComparison listingIds={listingIds} listingNames={listingNames} byListing={byListing} /></div>;
@@ -994,13 +1055,18 @@ export function ComparisonView({ data, session }: Props) {
     );
   };
 
+  // LOCATION_BENCHMARK_DISPLAY=on replaces the "/100" scores with saved
+  // Singapore/town block comparisons; "shadow" and "off" keep today's display.
+  const useBenchmarks = benchmarksEnabled(data);
+  const locationBenchmarks = data.location_benchmarks_by_listing ?? {};
+
   const transportSummary = (listingId: string) => {
     const rollup = data.transport_by_listing[listingId];
     const score = displayScore(rollup?.unrounded_score ?? rollup?.display_score);
     if (!rollup || score.roundedScore === null) return <span className="text-amber-800">{enrichmentFallback(listingId, "PUBLIC_TRANSPORT")}</span>;
     return (
       <div className="space-y-0.5">
-        <p className="font-medium text-slate-800">{formatDisplayScore(score)} · {score.rating ?? "Not assessed"}</p>
+        <p className="font-medium text-slate-800">{useBenchmarks ? score.rating ?? "Not assessed" : `${formatDisplayScore(score)} · ${score.rating ?? "Not assessed"}`}</p>
         {!rollup.is_complete && <p className="text-xs text-amber-800">Partial result</p>}
       </div>
     );
@@ -1012,7 +1078,7 @@ export function ComparisonView({ data, session }: Props) {
     if (!rollup || score.roundedScore === null) return <span className="text-amber-800">{enrichmentFallback(listingId, "DRIVING_ACCESS")}</span>;
     return (
       <div className="space-y-0.5">
-        <p className="font-medium text-slate-800">{formatDrivingScore(score)} · {score.rating ?? "Not assessed"}</p>
+        <p className="font-medium text-slate-800">{useBenchmarks ? score.rating ?? "Not assessed" : `${formatDrivingScore(score)} · ${score.rating ?? "Not assessed"}`}</p>
         {!rollup.is_complete && <p className="text-xs text-amber-800">Partial result</p>}
       </div>
     );
@@ -1172,7 +1238,7 @@ export function ComparisonView({ data, session }: Props) {
             description="Access, bus coverage, MRT reach and route alternatives from each home."
             defaultOpen={detailsOpen}
           >
-            <PublicTransportPanel listingIds={listingIds} listingNames={listingNames} byListing={data.transport_by_listing} />
+            <PublicTransportPanel listingIds={listingIds} listingNames={listingNames} byListing={data.transport_by_listing} benchmarks={locationBenchmarks} useBenchmarks={useBenchmarks} />
           </ResultSection>
         )}
 
@@ -1184,7 +1250,7 @@ export function ComparisonView({ data, session }: Props) {
             description="Road access, route flexibility, peak-hour reliability and parking."
             defaultOpen={detailsOpen}
           >
-            <DrivingPanel listingIds={listingIds} listingNames={listingNames} byListing={data.driving_by_listing} hasDestination={hasDrivingDestination} />
+            <DrivingPanel listingIds={listingIds} listingNames={listingNames} byListing={data.driving_by_listing} hasDestination={hasDrivingDestination} benchmarks={locationBenchmarks} useBenchmarks={useBenchmarks} />
           </ResultSection>
         )}
 
@@ -1238,6 +1304,8 @@ export function ComparisonView({ data, session }: Props) {
             defaultOpen={detailsOpen}
           >
             <NearbySchoolsPanel
+              benchmarks={locationBenchmarks}
+              useBenchmarks={useBenchmarks}
               listingIds={listingIds}
               listingNames={listingNames}
               byListing={data.schools_by_listing ?? {}}

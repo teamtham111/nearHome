@@ -108,6 +108,15 @@ class Settings(BaseSettings):
     hdb_carpark_history_min_samples: int = 5
     hdb_carpark_static_source_updated_at: str | None = None
 
+    # Block-level location features and benchmarks (docs/location-benchmarks.md).
+    # Set BLOCK_FEATURE_REUSE_ENABLED=false to return to per-listing calculation.
+    block_feature_reuse_enabled: bool = True
+    block_feature_max_age_days_public_transport: int = 30
+    block_feature_max_age_days_driving: int = 7
+    # off: no benchmark data in API responses; shadow: computed and returned
+    # alongside the current scores but not displayed; on: displayed.
+    location_benchmark_display: str = "shadow"
+
     smart_paste_prompt_version: str = "1.0.0"
     smart_paste_schema_version: str = "1.0.0"
     smart_paste_pipeline_version: str = "1.0.0"
