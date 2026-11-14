@@ -349,6 +349,45 @@ class TestBoardingStopSpecificCorridors:
         assert terminating is not None
         assert context.corridor_for_option(terminating) is None
 
+    def test_terminating_service_is_not_a_direct_option_and_does_not_discard_transfers(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # T and C both terminate at S (one-stop downstream sequences). C can be
+        # boarded at D1, downstream of B. Compared against C's own one-stop
+        # sequence at S, the transfer option [D1, S] used to look like a
+        # perfect overlap and was wrongly discarded as a duplicate.
+        _install_bus_data(
+            monkeypatch,
+            {
+                ("B", 1): ["S", "D1", "D2"],
+                ("T", 1): ["X", "Y", "S"],
+                ("C", 1): ["D1", "S"],
+            },
+        )
+        context = BusNetwork().corridors_for_boarding_stops({"S"})
+        terminating = BusNetwork.downstream_option(("T", 1), "S")
+        assert terminating is not None
+        assert terminating not in context._direct_options
+        assert len(context.direct_corridor_ids()) == 1
+        assert len(context.one_transfer_corridor_ids()) == 1
+        transfer_services = {
+            key
+            for corridor_id in context.one_transfer_corridor_ids()
+            for key in context.corridor_info(corridor_id).member_services  # type: ignore[union-attr]
+        }
+        assert ("C", 1) in transfer_services
+
+    def test_a_terminating_service_is_not_a_source_of_transfer_options(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        _install_bus_data(
+            monkeypatch,
+            {("T", 1): ["S"], ("U", 1): ["S", "Z"], ("V", 1): ["Z", "W", "V1"]},
+        )
+        context = BusNetwork().corridors_for_boarding_stops({"S"})
+        assert len(context.direct_corridor_ids()) == 1
+        assert len(context.one_transfer_corridor_ids()) == 1
+
     def test_reversed_order_is_not_a_shared_corridor(self, monkeypatch: pytest.MonkeyPatch) -> None:
         _install_bus_data(
             monkeypatch,

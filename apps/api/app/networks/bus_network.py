@@ -291,11 +291,17 @@ class BusNetwork:
     def corridors_for_boarding_stops(
         self, stop_codes: set[str], *, include_one_transfer: bool = True
     ) -> BoardingCorridorContext:
+        # A service that terminates at the boarding stop has a one-stop downstream
+        # sequence: it carries no one anywhere, so it is not a direct option at
+        # all. Excluding it here keeps it out of the novelty filter below (where
+        # it would "overlap" any transfer option passing that stop), out of the
+        # context's direct options, and out of the sources of transfer options.
         direct_options = {
             option
             for stop_code in stop_codes
             for key in LtaBusDataStore.services_by_stop(stop_code)
             if (option := self.downstream_option(key, stop_code)) is not None
+            and len(option.downstream_stop_codes) > 1
         }
         transfer_options: set[BoardingServiceOption] = set()
         if include_one_transfer:
