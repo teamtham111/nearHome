@@ -121,6 +121,10 @@ class Settings(BaseSettings):
     block_feature_max_age_days_public_transport: int = 30
     block_feature_max_age_days_driving: int = 7
     block_feature_max_age_days_driving_baseline: int = 90
+    # A stored block result that is incomplete because routing requests failed
+    # is re-measured by later ``measure`` runs, at most this many attempts in
+    # total (the first calculation counts), then left as incomplete evidence.
+    block_feature_max_incomplete_attempts: int = 3
     # Google route-flexibility and peak-delay evidence for shortlisted homes.
     # false = those two components stay unavailable and no Google call is made.
     google_driving_evidence_enabled: bool = True

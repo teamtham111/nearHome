@@ -18,6 +18,10 @@ from app.models.orm import (
     LocationBenchmarkVersionORM,
 )
 
+# Stored status of a block result that rests on failed routing requests or
+# flagged walking detours: kept as evidence, never reused as a current result.
+INCOMPLETE_STATUS = "incomplete"
+
 _REGISTRY_FIELDS = (
     "block",
     "street",
@@ -118,12 +122,29 @@ class BlockRepository:
         yield from self.db.execute(query)
 
     def feature_keys(self, feature_set: str, calculation_version: str, source_fingerprint: str) -> set[str]:
+        """Blocks with a complete current result (incomplete evidence rows excluded)."""
         return set(
             self.db.scalars(
                 select(BlockLocationFeatureORM.block_key).where(
                     BlockLocationFeatureORM.feature_set == feature_set,
                     BlockLocationFeatureORM.calculation_version == calculation_version,
                     BlockLocationFeatureORM.source_fingerprint == source_fingerprint,
+                    BlockLocationFeatureORM.status != INCOMPLETE_STATUS,
+                )
+            )
+        )
+
+    def incomplete_features(
+        self, feature_set: str, calculation_version: str, source_fingerprint: str
+    ) -> list[BlockLocationFeatureORM]:
+        """Stored results kept as incomplete evidence (failed routing or flagged detours)."""
+        return list(
+            self.db.scalars(
+                select(BlockLocationFeatureORM).where(
+                    BlockLocationFeatureORM.feature_set == feature_set,
+                    BlockLocationFeatureORM.calculation_version == calculation_version,
+                    BlockLocationFeatureORM.source_fingerprint == source_fingerprint,
+                    BlockLocationFeatureORM.status == INCOMPLETE_STATUS,
                 )
             )
         )

@@ -28,7 +28,7 @@ from app.core.logging import get_logger
 from app.engines.driving.parking_convenience import PARKING_SCORE_VERSION
 from app.engines.location_benchmarks.measurements import extract_measurements
 from app.engines.transport_config import DRIVING_CONFIG, PT_CONFIG
-from app.repositories.block_repository import BlockRepository
+from app.repositories.block_repository import INCOMPLETE_STATUS, BlockRepository
 from app.utils.hdb_block_identity import block_key_from_address, block_key_from_parts
 
 logger = get_logger(__name__)
@@ -45,7 +45,7 @@ FEATURE_SETS = FREE_FEATURE_SETS + PAID_FEATURE_SETS
 # logic changes in a way the configuration hash would not capture.
 _FEATURE_DEFINITIONS: dict[str, dict[str, Any]] = {
     "public_transport": {
-        "code": "pt-4",
+        "code": "pt-5",
         "provider": "onemap",
         "time_assumption": "walks untimed; feeder transit next weekday at feeder_departure_hour Asia/Singapore",
     },
@@ -228,7 +228,39 @@ def resolve_block(
     )
 
 
+def incomplete_routing_state(feature_set: str, payload: dict[str, Any]) -> dict[str, Any] | None:
+    """Why a Public Transport payload is incomplete, or ``None`` if it is complete.
+
+    Incomplete means Access rests on routing requests that failed after the
+    retry, or on walking detours the policy treats as making the block
+    incomplete. ``retryable`` is true only if a failed request could succeed
+    on a later attempt (a definitive "no route" answer or a deterministic
+    detour will not change). A genuine "no access found" result is complete.
+    """
+    if feature_set != "public_transport":
+        return None
+    access = next((c for c in payload.get("components") or [] if c.get("name") == "access"), None)
+    if access is None or access.get("status") not in ("partially_assessed", "provider_error"):
+        return None
+    value = access.get("value") or {}
+    failed = int(value.get("routing_failed_requests") or 0)
+    detours = len(value.get("walking_detours") or [])
+    retryable = int(value.get("retryable_failed_requests") or 0)
+    if access.get("status") == "provider_error" and not value:
+        failed = retryable = 1  # an old-style total failure with no counts: treat as transient
+    if not failed and not detours:
+        return None
+    return {
+        "routing_failed_requests": failed,
+        "retryable_failed_requests": retryable,
+        "walking_detours": detours,
+        "retryable": retryable > 0,
+    }
+
+
 def _payload_status(feature_set: str, payload: dict[str, Any]) -> str:
+    if incomplete_routing_state(feature_set, payload) is not None:
+        return INCOMPLETE_STATUS
     components = payload.get("components") or []
     assessed = [c for c in components if c.get("status") in ("calculated", "estimated") and c.get("score") is not None]
     return "available" if assessed else "unavailable"
@@ -256,17 +288,29 @@ class BlockFeatureOutcome:
     calculation_version: str
     source_fingerprint: str
     computed_at: datetime
+    # Set when the stored result is incomplete evidence (see incomplete_routing_state)
+    # plus the number of attempts made so far.
+    incomplete: dict[str, Any] | None = None
 
 
 class BlockFeatureService:
     def __init__(self, repo: BlockRepository) -> None:
         self.repo = repo
 
-    def cached(self, block_key: str, feature_set: str) -> BlockFeatureOutcome | None:
-        """Return a reusable stored result for this block, or ``None``."""
+    def cached(
+        self, block_key: str, feature_set: str, *, include_incomplete: bool = False
+    ) -> BlockFeatureOutcome | None:
+        """Return a reusable stored result for this block, or ``None``.
+
+        A stored incomplete result is never reusable: the live listing path
+        calculates for itself. ``include_incomplete`` is for the backfill job
+        and status reporting, which need to see it.
+        """
         version = calculation_version(feature_set)
         row = self.repo.get_feature(block_key, feature_set, version)
         if row is None or row.source_fingerprint != source_fingerprint(feature_set):
+            return None
+        if row.status == INCOMPLETE_STATUS and not include_incomplete:
             return None
         max_age = _max_age(feature_set)
         computed_at = row.computed_at if row.computed_at.tzinfo else row.computed_at.replace(tzinfo=UTC)
@@ -276,8 +320,35 @@ class BlockFeatureService:
         if payload is None:
             return None
         return BlockFeatureOutcome(
-            payload, True, row.origin_latitude, row.origin_longitude, version, row.source_fingerprint, computed_at
+            payload,
+            True,
+            row.origin_latitude,
+            row.origin_longitude,
+            version,
+            row.source_fingerprint,
+            computed_at,
+            incomplete=payload.get("benchmark_incomplete") if row.status == INCOMPLETE_STATUS else None,
         )
+
+    def needs_measurement(
+        self, block_key: str, feature_set: str, *, max_attempts: int | None = None
+    ) -> bool:
+        """Should the backfill job (re)measure this block?
+
+        Yes when there is no current result, or the stored one is incomplete
+        because of failed routing requests that could succeed later and fewer
+        than ``max_attempts`` attempts have been made. A complete result (even
+        a genuine "no access found") and a deterministic incomplete one (walking
+        detours, definitive no-route) are final until the source data changes.
+        """
+        limit = settings.block_feature_max_incomplete_attempts if max_attempts is None else max_attempts
+        stored = self.cached(block_key, feature_set, include_incomplete=True)
+        if stored is None:
+            return True
+        state = stored.incomplete
+        if not state:
+            return False
+        return bool(state.get("retryable")) and int(state.get("attempts") or 1) < limit
 
     def get_or_compute(
         self,
@@ -289,7 +360,15 @@ class BlockFeatureService:
         *,
         computed_for: str = "listing",
         reuse: bool = True,
+        store_incomplete: bool = False,
     ) -> BlockFeatureOutcome:
+        """Reuse the stored result or calculate it.
+
+        ``store_incomplete`` is for the backfill job only: it keeps a result
+        that rests on failed routing requests as incomplete evidence (with an
+        attempt count) so the next run can retry it. The live listing path
+        leaves it off, so it never stores or reuses an incomplete result.
+        """
         if reuse:
             cached = self.cached(block_key, feature_set)
             if cached is not None:
@@ -298,12 +377,18 @@ class BlockFeatureService:
         payload = compute(latitude, longitude)
         version = calculation_version(feature_set)
         fingerprint = source_fingerprint(feature_set)
-        if payload.get("incomplete_routing"):
+        incomplete = incomplete_routing_state(feature_set, payload)
+        if payload.get("incomplete_routing") or (incomplete is not None and not store_incomplete):
             # A live result built on failed routing requests is shown to the
             # user but never stored: the block benchmark must not reuse it.
             return BlockFeatureOutcome(
-                payload, False, latitude, longitude, version, fingerprint, datetime.now(UTC)
+                payload, False, latitude, longitude, version, fingerprint, datetime.now(UTC), incomplete=incomplete
             )
+        if incomplete is not None:
+            previous = self.cached(block_key, feature_set, include_incomplete=True)
+            attempts = int((previous.incomplete or {}).get("attempts") or 0) if previous else 0
+            incomplete = {**incomplete, "attempts": attempts + 1, "last_attempt_at": datetime.now(UTC).isoformat()}
+            payload = {**payload, "benchmark_incomplete": incomplete}
         row = self.repo.save_feature(
             block_key=block_key,
             feature_set=feature_set,
@@ -318,7 +403,9 @@ class BlockFeatureService:
             provenance=_payload_provenance(feature_set, payload),
             computed_for=computed_for,
         )
-        return BlockFeatureOutcome(payload, False, latitude, longitude, version, fingerprint, row.computed_at)
+        return BlockFeatureOutcome(
+            payload, False, latitude, longitude, version, fingerprint, row.computed_at, incomplete=incomplete
+        )
 
 
 def payload_provenance(feature_set: str, payload: dict[str, Any]) -> str:

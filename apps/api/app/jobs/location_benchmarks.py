@@ -20,7 +20,11 @@ normal enrichment workflow and are never backfilled or ranked.
 version — which includes provider and time assumptions — same reference-data
 fingerprint, and within its maximum age), so re-running it resumes an
 interrupted backfill and is also the incremental refresh after source data
-changes. ``--max-requests`` bounds OneMap usage per run. ``publish`` rebuilds
+changes. A stored result that is incomplete because routing requests failed is
+not current: it is kept as evidence (status "incomplete") and measured again by
+later runs, at most ``--max-incomplete-attempts`` times in total. A result that
+is incomplete for a deterministic reason (walking detours, definitive "no
+route") or that genuinely found no access is final. ``--max-requests`` bounds OneMap usage per run. ``publish`` rebuilds
 every comparison from stored measurements without calling any provider.
 """
 
@@ -113,6 +117,7 @@ def cmd_status(_args: argparse.Namespace) -> dict[str, Any]:
                 "source_fingerprint": fingerprint,
                 "current_blocks": len(current),
                 "coverage": round(len(current) / len(blocks), 4) if blocks else 0,
+                **_incomplete_summary(repo.incomplete_features(feature_set, version, fingerprint), keys),
             }
         published = repo.published_version()
         return {
@@ -150,7 +155,14 @@ def cmd_measure(args: argparse.Namespace) -> dict[str, Any]:
                 blocks = [b for b in blocks if b.town_code == args.town]
             budget_hit = False
             for feature_set in feature_sets:
-                todo = [b for b in blocks if args.force or service.cached(b.block_key, feature_set) is None]
+                todo = [
+                    b
+                    for b in blocks
+                    if args.force
+                    or service.needs_measurement(
+                        b.block_key, feature_set, max_attempts=args.max_incomplete_attempts or None
+                    )
+                ]
                 if args.limit:
                     todo = todo[: args.limit]
                 statuses: Counter[str] = Counter()
@@ -167,9 +179,13 @@ def cmd_measure(args: argparse.Namespace) -> dict[str, Any]:
                             compute_function(feature_set, block, routing, availability, carpark_repo),
                             computed_for="backfill",
                             reuse=False,
+                            store_incomplete=True,
                         )
                         db.commit()
                         statuses[_outcome_status(outcome.payload)] += 1
+                        if outcome.incomplete:
+                            kind = "retryable" if outcome.incomplete.get("retryable") else "final"
+                            statuses[f"incomplete_{kind}"] += 1
                     except Exception as exc:  # one block failing must not stop the backfill
                         db.rollback()
                         statuses[f"error:{type(exc).__name__}"] += 1
@@ -185,6 +201,36 @@ def cmd_measure(args: argparse.Namespace) -> dict[str, Any]:
         if callable(close):
             close()
     return report
+
+
+def _incomplete_summary(rows: list[Any], keys: set[str]) -> dict[str, Any]:
+    """Count stored incomplete evidence rows and say why they are incomplete."""
+    from app.services.block_features import decompress_payload
+
+    limit = settings.block_feature_max_incomplete_attempts
+    reasons: Counter[str] = Counter()
+    retryable = exhausted = 0
+    for row in rows:
+        if row.block_key not in keys:
+            continue
+        state = (decompress_payload(row.payload_gz) or {}).get("benchmark_incomplete") or {}
+        if state.get("routing_failed_requests"):
+            reasons["routing_failed_requests"] += 1
+        if state.get("walking_detours"):
+            reasons["walking_detours"] += 1
+        if state.get("retryable"):
+            if int(state.get("attempts") or 1) < limit:
+                retryable += 1
+            else:
+                exhausted += 1
+    total = sum(1 for row in rows if row.block_key in keys)
+    return {
+        "incomplete_blocks": total,
+        "incomplete_will_retry": retryable,
+        "incomplete_retries_exhausted": exhausted,
+        "incomplete_final": total - retryable - exhausted,
+        "incomplete_reasons": dict(reasons),
+    }
 
 
 def _outcome_status(payload: dict[str, Any]) -> str:
@@ -237,6 +283,13 @@ def main(argv: list[str] | None = None) -> int:
         command.add_argument("--limit", type=int, default=0, help="Maximum blocks per feature set this run")
         command.add_argument("--max-requests", type=int, default=0, help="Stop after this many OneMap requests")
         command.add_argument("--force", action="store_true", help="Recompute even current results")
+        command.add_argument(
+            "--max-incomplete-attempts",
+            type=int,
+            default=0,
+            help="Total attempts for a block whose result is incomplete from failed routing "
+            "(default: BLOCK_FEATURE_MAX_INCOMPLETE_ATTEMPTS)",
+        )
         command.add_argument("--no-publish", action="store_true")
         command.set_defaults(func=func)
 
