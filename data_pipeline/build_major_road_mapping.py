@@ -56,6 +56,7 @@ def main() -> int:
         entry_node_dedup_metres=DRIVING_CONFIG.major_road_entry_node_dedup_m,
         max_entry_nodes_per_road=DRIVING_CONFIG.max_major_road_entry_nodes_per_road,
         entry_target_distance_metres=DRIVING_CONFIG.major_road_entry_target_distance_m,
+        max_target_road_distance_metres=DRIVING_CONFIG.major_road_entry_target_max_road_distance_m,
         search_radius_metres=args.search_radius_metres,
         progress_callback=lambda index, total, name: print(
             f"Processed {index}/{total}: {name}", flush=True

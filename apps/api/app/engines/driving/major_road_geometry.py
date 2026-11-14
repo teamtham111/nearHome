@@ -25,6 +25,11 @@ class SustainedEntryValidation:
     sustained_overlap_metres: float
     actual_access_latitude: float | None = None
     actual_access_longitude: float | None = None
+    # Diagnostics, kept for accepted and rejected candidates alike.
+    route_end_shortfall_metres: float | None = None
+    trailing_overlap_metres: float = 0.0
+    closest_approach_metres: float | None = None
+    route_points: int = 0
 
 
 def validate_sustained_major_road_entry(
@@ -36,10 +41,11 @@ def validate_sustained_major_road_entry(
     """Reject crossings/touches; accept a continuous aligned route section."""
     points = decode_google_polyline(route.encoded_polyline)
     if len(points) < 2:
-        return SustainedEntryValidation(False, "missing_google_route_polyline", 0.0)
+        return SustainedEntryValidation(False, "missing_google_route_polyline", 0.0, route_points=len(points))
 
     qualifying: list[tuple[tuple[float, float], float]] = []
     best_run: list[tuple[tuple[float, float], float]] = []
+    closest_approach: float | None = None
     for start, end in zip(points, points[1:], strict=False):
         distance = _distance_metres(start, end)
         parts = max(1, math.ceil(distance / config.major_road_entry_sample_spacing_m))
@@ -48,7 +54,10 @@ def validate_sustained_major_road_entry(
             right = _interpolate(start, end, (index + 1) / parts)
             midpoint = _interpolate(left, right, 0.5)
             segment_distance = _distance_metres(left, right)
-            if _aligned_with_sla(left, right, midpoint, road, config):
+            aligned, gap = _aligned_with_sla(left, right, midpoint, road, config)
+            if gap is not None and (closest_approach is None or gap < closest_approach):
+                closest_approach = gap
+            if aligned:
                 qualifying.append((left, segment_distance))
                 if sum(length for _point, length in qualifying) > sum(length for _point, length in best_run):
                     best_run = list(qualifying)
@@ -56,10 +65,47 @@ def validate_sustained_major_road_entry(
                 qualifying = []
 
     sustained = round(sum(length for _point, length in best_run), 1)
-    if sustained < config.major_road_min_sustained_overlap_m:
-        return SustainedEntryValidation(False, "no_sustained_sla_major_road_overlap", sustained)
-    entry = best_run[0][0]
-    return SustainedEntryValidation(True, "sustained_aligned_sla_overlap", sustained, entry[0], entry[1])
+    # A route that is still on the road when it ends (the run in progress at
+    # the final sample) but stops short of the catalogue target is judged on
+    # that trailing run plus the unrouted gap to the target. The routing
+    # engine snaps the destination to the nearest routable point, so routes
+    # routinely end tens of metres before the target, which lies on the road.
+    trailing = round(sum(length for _point, length in qualifying), 1)
+    shortfall = round(_distance_metres(points[-1], candidate.routing_coordinate), 1)
+    approach = None if closest_approach is None else round(closest_approach, 1)
+
+    def diagnostics(**extra: object) -> dict[str, object]:
+        return {
+            "route_end_shortfall_metres": shortfall,
+            "trailing_overlap_metres": trailing,
+            "closest_approach_metres": approach,
+            "route_points": len(points),
+            **extra,
+        }
+
+    if sustained >= config.major_road_min_sustained_overlap_m:
+        entry = best_run[0][0]
+        return SustainedEntryValidation(
+            True, "sustained_aligned_sla_overlap", sustained, entry[0], entry[1], **diagnostics()  # type: ignore[arg-type]
+        )
+    if (
+        qualifying
+        and trailing >= config.major_road_min_trailing_overlap_m
+        and shortfall <= config.major_road_max_route_end_shortfall_m
+        and trailing + shortfall >= config.major_road_min_sustained_overlap_m
+    ):
+        entry = qualifying[0][0]
+        return SustainedEntryValidation(
+            True,
+            "aligned_overlap_reaches_target_within_end_shortfall",
+            trailing,
+            entry[0],
+            entry[1],
+            **diagnostics(),  # type: ignore[arg-type]
+        )
+    return SustainedEntryValidation(
+        False, "no_sustained_sla_major_road_overlap", sustained, **diagnostics()  # type: ignore[arg-type]
+    )
 
 
 def _aligned_with_sla(
@@ -68,7 +114,8 @@ def _aligned_with_sla(
     midpoint: tuple[float, float],
     road: SlaMajorRoad,
     config: DrivingConfig,
-) -> bool:
+) -> tuple[bool, float | None]:
+    """Return (aligned within buffer, distance to the nearest SLA line)."""
     route_heading = _bearing(start, end)
     closest: tuple[float, float] | None = None
     for line in road.lines:
@@ -77,13 +124,15 @@ def _aligned_with_sla(
             distance = _point_segment_distance(midpoint, (left[1], left[0]), (right[1], right[0]))
             if closest is None or distance < closest[0]:
                 closest = distance, _bearing((left[1], left[0]), (right[1], right[0]))
-    if closest is None or closest[0] > config.major_road_sustained_entry_buffer_m:
-        return False
+    if closest is None:
+        return False, None
+    if closest[0] > config.major_road_sustained_entry_buffer_m:
+        return False, closest[0]
     # SLA line orientation is not a traffic-direction guarantee, hence either
     # alignment direction is valid; the topology catalogue carries direction.
     difference = abs((route_heading - closest[1] + 180) % 360 - 180)
     difference = min(difference, 180 - difference)
-    return difference <= config.major_road_max_alignment_difference_degrees
+    return difference <= config.major_road_max_alignment_difference_degrees, closest[0]
 
 
 def _interpolate(start: tuple[float, float], end: tuple[float, float], fraction: float) -> tuple[float, float]:

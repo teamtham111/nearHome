@@ -7,6 +7,7 @@ entry junctions; Google Routes measures driving time from the listing to them.
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 
 from app.adapters.routing.base import RouteResult, RoutingProvider, RoutingUnavailableError
@@ -17,6 +18,7 @@ from app.adapters.transport_data.major_road_network import (
     SlaMajorRoad,
     SlaMajorRoadStore,
     SlaOsmMajorRoadMappingStore,
+    entry_target_distance_to_road_metres,
     find_candidate_sla_major_roads,
 )
 from app.core.logging import get_logger
@@ -139,11 +141,21 @@ def compute_major_road_access(
         )
 
     candidates: list[MajorRoadEntryPoint] = []
+    dropped_far_targets = 0
     for road in candidate_roads:
         precomputed = mapping.road_for(road.identifier)
         if precomputed is None:
             continue
-        candidates.extend(precomputed.entry_nodes)
+        for entry in precomputed.entry_nodes:
+            # A catalogue target far from its own road (a long OSM edge that
+            # only partly follows it) is a bad hypothesis; never route to it.
+            if (
+                entry_target_distance_to_road_metres(entry.routing_coordinate, road)
+                > config.major_road_entry_target_max_road_distance_m
+            ):
+                dropped_far_targets += 1
+                continue
+            candidates.append(entry)
     if not candidates:
         return _not_assessed(
             weight,
@@ -160,7 +172,11 @@ def compute_major_road_access(
             point.major_road_id,
             point.candidate_id or point.node_id,
         ),
-    )[: config.max_major_road_route_candidates]
+    )
+    # The free baseline path may widen beyond the first batch (see
+    # ``_baseline_major_road_access``); the paid path never does.
+    all_sorted_candidates = candidates
+    candidates = candidates[: config.max_major_road_route_candidates]
     logger.info(
         "major_road_catalogue_candidates_selected",
         catalogue_version=mapping.catalogue_version,
@@ -175,7 +191,15 @@ def compute_major_road_access(
     departure = next_occurrence_at_hour(config.am_peak_hour)
     if baseline:
         return _baseline_major_road_access(
-            latitude, longitude, routing, config, candidates, candidate_roads, mapping, weight
+            latitude,
+            longitude,
+            routing,
+            config,
+            all_sorted_candidates,
+            candidate_roads,
+            mapping,
+            weight,
+            dropped_far_targets=dropped_far_targets,
         )
     calls = [
         RouteCall(
@@ -347,26 +371,86 @@ def _baseline_major_road_access(
     candidate_roads: list[SlaMajorRoad],
     mapping: MajorRoadMapping,
     weight: float,
+    *,
+    dropped_far_targets: int = 0,
 ) -> MajorRoadAccessOutcome:
-    """Same candidate and validation rules, using static routes with geometry."""
-    calls = [
-        RouteCall(
-            key=(
-                f"major-road-baseline:{routing.provider_name}:{latitude:.6f}:{longitude:.6f}:"
-                f"{point.routing_coordinate[0]:.6f}:{point.routing_coordinate[1]:.6f}"
-            ),
-            call=lambda point=point: routing.get_baseline_driving_route(
-                (latitude, longitude), point.routing_coordinate
-            ),
-        )
-        for point in candidates
-    ]
-    outcomes = run_bounded_route_calls(calls)
-    routed = [
-        (point, outcome.result)
-        for point, outcome in zip(candidates, outcomes, strict=True)
-        if outcome.result is not None
-    ]
+    """Same candidate and validation rules, using static routes with geometry.
+
+    Candidates arrive nearest-first. They are routed in batches of
+    ``max_major_road_route_candidates``; a further batch is only requested when
+    no candidate in the batches so far passed validation, up to
+    ``major_road_max_route_candidate_batches``. A block whose nearest entries
+    are all unreachable on OneMap's network therefore still finds a road, and
+    a block that validates in the first batch costs exactly what it did before.
+    """
+    batch_size = max(1, config.max_major_road_route_candidates)
+    routed: list[tuple[MajorRoadEntryPoint, RouteResult]] = []
+    outcomes: list = []
+    routed_points: list[MajorRoadEntryPoint] = []
+    roads_by_identifier = {road.identifier: road for road in candidate_roads}
+    validated: list = []
+    rejected: list[dict[str, object]] = []
+    batches_used = 0
+    for batch_index in range(max(1, config.major_road_max_route_candidate_batches)):
+        batch = candidates[batch_index * batch_size : (batch_index + 1) * batch_size]
+        if not batch:
+            break
+        batches_used += 1
+        calls = [
+            RouteCall(
+                key=(
+                    f"major-road-baseline:{routing.provider_name}:{latitude:.6f}:{longitude:.6f}:"
+                    f"{point.routing_coordinate[0]:.6f}:{point.routing_coordinate[1]:.6f}"
+                ),
+                call=lambda point=point: routing.get_baseline_driving_route(
+                    (latitude, longitude), point.routing_coordinate
+                ),
+            )
+            for point in batch
+        ]
+        batch_outcomes = run_bounded_route_calls(calls)
+        outcomes.extend(batch_outcomes)
+        routed_points.extend(batch)
+        for point, outcome in zip(batch, batch_outcomes, strict=True):
+            if outcome.result is None:
+                rejected.append(
+                    {
+                        "sla_major_road_name": point.name,
+                        "candidate_id": point.candidate_id,
+                        "reason": "no_route_returned",
+                        "catalogue_target_latitude": point.routing_coordinate[0],
+                        "catalogue_target_longitude": point.routing_coordinate[1],
+                    }
+                )
+                continue
+            route = outcome.result
+            routed.append((point, route))
+            road = roads_by_identifier.get(point.major_road_id)
+            if road is None:
+                continue
+            validation = validate_sustained_major_road_entry(route, road, point, config)
+            if validation.valid:
+                validated.append((point, route, validation))
+                continue
+            rejected.append(
+                {
+                    "sla_major_road_name": point.name,
+                    "candidate_id": point.candidate_id,
+                    "reason": validation.reason,
+                    "catalogue_target_latitude": point.routing_coordinate[0],
+                    "catalogue_target_longitude": point.routing_coordinate[1],
+                    "routed_distance_metres": route.distance_metres,
+                    "routed_duration_minutes": route.duration_minutes,
+                    "sustained_overlap_metres": validation.sustained_overlap_metres,
+                    "trailing_overlap_metres": validation.trailing_overlap_metres,
+                    "route_end_shortfall_metres": validation.route_end_shortfall_metres,
+                    "closest_approach_to_road_metres": validation.closest_approach_metres,
+                    "route_points": validation.route_points,
+                }
+            )
+        if validated:
+            break
+    candidates = routed_points
     if not routed:
         unsupported = all(isinstance(outcome.error, RoutingUnavailableError) for outcome in outcomes)
         result = (
@@ -386,38 +470,28 @@ def _baseline_major_road_access(
             )
         )
         return MajorRoadAccessOutcome(result, None, None, [])
-    routed.sort(
-        key=lambda item: (item[1].duration_minutes, item[1].distance_metres, item[0].major_road_id, item[0].node_id)
-    )
-    # The original "fastest 3" limit only capped paid Google detail requests.
-    # OneMap returns geometry with every routed candidate at no extra cost, so
-    # every routed candidate is geometry-validated and the fastest *validated*
-    # entry is selected (the selection rule itself is unchanged). A nearby but
-    # unvalidated entry is still never accepted.
-    detailed = routed
-    roads_by_identifier = {road.identifier: road for road in candidate_roads}
-    validated = []
-    rejected: list[dict[str, object]] = []
-    for point, route in detailed:
-        road = roads_by_identifier.get(point.major_road_id)
-        if road is None:
-            continue
-        validation = validate_sustained_major_road_entry(route, road, point, config)
-        if validation.valid:
-            validated.append((point, route, validation))
-        else:
-            rejected.append(
-                {"sla_major_road_name": point.name, "candidate_id": point.candidate_id, "reason": validation.reason}
-            )
+    rejection_summary = {
+        "candidates_considered": len(candidates),
+        "route_batches_used": batches_used,
+        "routed": len(routed),
+        "validated": len(validated),
+        "rejected": len(rejected),
+        "catalogue_entries_dropped_target_far_from_road": dropped_far_targets,
+        "rejection_reasons": dict(sorted(Counter(str(item["reason"]) for item in rejected).items())),
+    }
     if not validated:
         result = not_assessed(
             "major_road_access",
             weight,
             "Baseline routes reached candidate destinations but none showed sustained travel "
             "on the intended SLA Major Road.",
-            limitations=["Crossings, frontage roads and routes without usable geometry are rejected."],
+            limitations=[
+                "Crossings, frontage roads and routes without usable geometry are rejected.",
+                f"Rejection summary: {rejection_summary}",
+            ],
         )
         result.evidence = rejected
+        result.value = {"rejection_summary": rejection_summary}
         return MajorRoadAccessOutcome(result, None, None, [])
     validated.sort(
         key=lambda item: (
@@ -447,6 +521,7 @@ def _baseline_major_road_access(
             "actual_access_latitude": validation.actual_access_latitude,
             "actual_access_longitude": validation.actual_access_longitude,
             "validation_reason": validation.reason,
+            "route_end_shortfall_metres": validation.route_end_shortfall_metres,
         }
         for point, route, validation in validated
     ] + [{"selected": False, "rejected": True, **item} for item in rejected]
@@ -466,6 +541,7 @@ def _baseline_major_road_access(
             "catalogue_version": mapping.catalogue_version,
             "selected_entry": entry_point_to_dict(selected_point),
             "candidate_entries": [entry_point_to_dict(point) for point, _route, _validation in validated],
+            "rejection_summary": rejection_summary,
         },
         score=_score_for_minutes(selected_route.duration_minutes),
         weight=weight,

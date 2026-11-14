@@ -183,6 +183,7 @@ def main() -> int:
             DRIVING_CONFIG.max_major_road_entry_nodes_per_road,
             DRIVING_CONFIG.major_road_entry_target_distance_m,
             diagnostics=topology_decisions,
+            max_target_road_distance_metres=DRIVING_CONFIG.major_road_entry_target_max_road_distance_m,
         )
         expected_ids = {entry.candidate_id for entry in precomputed.entry_nodes}
         generated_ids = {entry.candidate_id for entry in generated_entries}

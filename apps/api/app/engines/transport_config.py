@@ -98,7 +98,7 @@ class DrivingConfig:
     # Without useful shared road names, demand close geometric alignment so
     # nearby parallel but distinct roads do not become false matches.
     major_road_osm_spatial_only_tolerance_m: float = 12.0
-    max_major_road_entry_nodes_per_road: int = 8
+    max_major_road_entry_nodes_per_road: int = 40
     major_road_entry_node_dedup_m: float = 40.0
     # Offline catalogue: place the Google routing target just downstream of a
     # legal OSM entry junction, so online route geometry can prove actual entry.
@@ -107,10 +107,26 @@ class DrivingConfig:
     # Google duration/distance remains the sole final ranking evidence.
     max_major_road_route_candidates: int = 10
     major_road_full_polyline_candidate_limit: int = 3
+    # Free baseline path only: when no entry in a batch validates, route the
+    # next-nearest batch, up to this many batches (OneMap is free; Google never widens).
+    major_road_max_route_candidate_batches: int = 3
     # Sustained entry must be more than a crossing/touch of an SLA line.
     major_road_sustained_entry_buffer_m: float = 18.0
     major_road_min_sustained_overlap_m: float = 60.0
     major_road_entry_sample_spacing_m: float = 10.0
+    # The routing provider snaps the destination to the nearest routable point,
+    # so a route that genuinely reaches the road can end well short of the
+    # catalogue target (55 to 111 m observed). A route still aligned with the
+    # road at its end is accepted when its trailing overlap plus the unrouted
+    # gap to the target reaches the minimum sustained overlap, provided the gap
+    # is at most this long and the trailing overlap is at least the minimum.
+    major_road_max_route_end_shortfall_m: float = 150.0
+    major_road_min_trailing_overlap_m: float = 20.0
+    # A catalogue entry whose routing target lies further than this from its
+    # own SLA road is a bad hypothesis (long OSM edge that only partly follows
+    # the road). Offline matching tolerance is 35 m; 15 m allows for
+    # carriageway offset and curvature.
+    major_road_entry_target_max_road_distance_m: float = 50.0
     major_road_max_alignment_difference_degrees: float = 55.0
 
     independent_max_overlap: float = 0.30
