@@ -192,6 +192,26 @@ class TestAccessComponent:
         assert result.score is None
         assert result.value is None
 
+    def test_partly_failed_routing_is_partial_and_not_rankable(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from app.adapters.reference_data import ReferenceDataStore
+        from app.adapters.routing.base import RoutingProviderError
+        from app.engines.location_benchmarks.measurements import extract_measurements
+
+        class StationBFails(FixedDurationRoutingProvider):
+            def get_walking_route(self, origin, destination):
+                if destination[0] > 1.315:
+                    raise RoutingProviderError("boom")
+                return super().get_walking_route(origin, destination)
+
+        monkeypatch.setattr(ReferenceDataStore, "bus_stops", classmethod(lambda cls: []))
+        result = compute_access(1.30, 103.80, StationBFails(minutes=3.0), rail_graph=self._TwoStationGraph())
+        assert result.status == ComponentStatus.PARTIALLY_ASSESSED
+        assert any("failed" in limitation for limitation in result.limitations)
+        rollup = {"components": [{"name": "access", "status": result.status.value, "score": result.score,
+                                  "value": result.value}]}
+        measured = extract_measurements("public_transport", rollup)["pt_access_cost_minutes"]
+        assert measured["status"] == "unavailable"
+
     def test_no_candidates_within_prefilter_is_a_genuine_low_result(self) -> None:
         stub = FixedDurationRoutingProvider()
         # Middle of the sea, far from any bus stop or MRT station.
@@ -304,6 +324,26 @@ class TestBoardingStopSpecificCorridors:
         )
         context = BusNetwork().corridors_for_boarding_stops({"S"})
         assert len(context.direct_corridor_ids()) == 2
+
+    def test_services_terminating_at_the_boarding_stop_do_not_merge_corridors(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # Interchange pattern: two services start at S in different directions
+        # and a third terminates at S. The terminating service's one-stop
+        # sequence must not bridge the two distinct corridors.
+        _install_bus_data(
+            monkeypatch,
+            {
+                ("A", 1): ["S", "1", "2", "3", "4"],
+                ("B", 1): ["S", "7", "8", "9", "10"],
+                ("T", 1): ["X", "Y", "S"],
+            },
+        )
+        context = BusNetwork().corridors_for_boarding_stops({"S"})
+        assert len(context.direct_corridor_ids()) == 2
+        terminating = BusNetwork.downstream_option(("T", 1), "S")
+        assert terminating is not None
+        assert context.corridor_for_option(terminating) is None
 
     def test_reversed_order_is_not_a_shared_corridor(self, monkeypatch: pytest.MonkeyPatch) -> None:
         _install_bus_data(
@@ -584,6 +624,17 @@ class TestRouteResilienceComponent:
         high = compute_route_resilience(bus_high, mrt, access_result=access_high)
         assert high.score is not None and low.score is not None
         assert high.score > low.score
+
+
+    @pytest.mark.parametrize("status", [ComponentStatus.PROVIDER_ERROR, ComponentStatus.PARTIALLY_ASSESSED])
+    def test_failed_or_partial_access_is_unavailable_not_zero_fallbacks(self, status: ComponentStatus) -> None:
+        bus = ComponentResult("bus_coverage", {"direct_corridors": 0}, 10.0, 0.20, ComponentStatus.CALCULATED, "x")
+        mrt = ComponentResult("mrt_reach", {}, 10.0, 0.30, ComponentStatus.CALCULATED, "x")
+        access = ComponentResult("access", None, None, 0.30, status, "failed")
+        result = compute_route_resilience(bus, mrt, access_result=access)
+        assert result.status == ComponentStatus.NOT_ASSESSED
+        assert result.score is None
+        assert result.value is None
 
 
 class TestRecommendationGating:

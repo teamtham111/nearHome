@@ -45,12 +45,12 @@ FEATURE_SETS = FREE_FEATURE_SETS + PAID_FEATURE_SETS
 # logic changes in a way the configuration hash would not capture.
 _FEATURE_DEFINITIONS: dict[str, dict[str, Any]] = {
     "public_transport": {
-        "code": "pt-2",
+        "code": "pt-3",
         "provider": "onemap",
         "time_assumption": "walks untimed; feeder transit next weekday at feeder_departure_hour Asia/Singapore",
     },
     "driving_baseline": {
-        "code": "drive-baseline-2",
+        "code": "drive-baseline-3",
         "provider": "onemap",
         "time_assumption": "baseline static driving and walking time; not traffic-aware",
     },

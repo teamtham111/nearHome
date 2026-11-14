@@ -26,6 +26,16 @@ def compute_route_resilience(
             weight,
             "Access alternatives are required to assess independent route resilience.",
         )
+    elif access_result.status not in (ComponentStatus.CALCULATED, ComponentStatus.ESTIMATED) or (
+        access_result.score is None
+    ):
+        # A failed or partial Access calculation cannot prove how many
+        # fallbacks exist. Report unavailable, never a fabricated zero.
+        return not_assessed(
+            "route_resilience",
+            weight,
+            "Access could not be fully calculated, so route resilience is unavailable.",
+        )
     else:
         access_value = access_result.value or {}
         practical_entries = access_value.get("practical_rail_entries", [])

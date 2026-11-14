@@ -373,6 +373,10 @@ def compute_access(
     if failure_result is not None and not successful_routing:
         return failure_result
 
+    # Routing requests that failed mean the entry options are incomplete, so
+    # the result must not be published as a fully measured Access value.
+    result_status = ComponentStatus.PARTIALLY_ASSESSED if failures else ComponentStatus.CALCULATED
+
     if not all_paths:
         return ComponentResult(
             name="access",
@@ -387,9 +391,16 @@ def compute_access(
             },
             score=config.access_score_floor,
             weight=weight,
-            status=ComponentStatus.CALCULATED,
+            status=result_status,
             explanation="No practical bus or rail entry path was confirmed from the listing.",
-            limitations=["Absence of practical access is scored as a genuine low result."],
+            limitations=[
+                "Absence of practical access is scored as a genuine low result.",
+                *(
+                    [f"{failures} routing request(s) failed; the result is incomplete and not ranked."]
+                    if failures
+                    else []
+                ),
+            ],
             source="Routed walking/transit + LTA scheduled services + curated rail station list",
             provenance=Provenance.ROUTED_LIVE if successful_routing else Provenance.CALCULATED,
             confidence="low",
@@ -434,7 +445,9 @@ def compute_access(
     if not direct_rail_entries and not feeder_entries:
         limitations.append("No practical rail-entry path was confirmed; Access relies on bus entry.")
     if failures:
-        limitations.append(f"{failures} routing request(s) failed and were excluded from Access.")
+        limitations.append(
+            f"{failures} routing request(s) failed; Access is incomplete and excluded from rankings."
+        )
     if not LtaBusDataStore.is_usable():
         limitations.append("LTA bus service/frequency data was unavailable; bus paths were not assessed.")
     return ComponentResult(
@@ -442,7 +455,7 @@ def compute_access(
         value=value,
         score=score,
         weight=weight,
-        status=ComponentStatus.CALCULATED,
+        status=result_status,
         explanation=(
             f"Selected {selected['path_type'] if 'path_type' in selected else selected['access_mode']} entry: "
             f"{selected['total_expected_minutes']:.1f} expected minutes, "
