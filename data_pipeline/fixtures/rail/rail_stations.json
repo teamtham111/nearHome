@@ -283,8 +283,8 @@
         "TEL"
       ],
       "is_interchange": true,
-      "latitude": 1.30242224836722,
-      "longitude": 103.823868523249,
+      "latitude": 1.303980136817154,
+      "longitude": 103.8322452443746,
       "active": true
     },
     {
@@ -386,8 +386,8 @@
         "EWL"
       ],
       "is_interchange": false,
-      "latitude": 1.36712928287615,
-      "longitude": 103.960557318417,
+      "latitude": 1.373043316358061,
+      "longitude": 103.9492845277626,
       "active": true
     },
     {
@@ -401,8 +401,8 @@
         "EWL"
       ],
       "is_interchange": true,
-      "latitude": 1.35619148271544,
-      "longitude": 103.9546344625,
+      "latitude": 1.353301676373764,
+      "longitude": 103.9451445867489,
       "active": true
     },
     {
@@ -997,8 +997,8 @@
         "PGLRT"
       ],
       "is_interchange": true,
-      "latitude": 1.41492733388605,
-      "longitude": 103.910166388177,
+      "latitude": 1.404546536689935,
+      "longitude": 103.9020726222284,
       "active": true
     },
     {

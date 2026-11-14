@@ -70,3 +70,33 @@ class TestGeographicSanity:
         nearby = graph.nearby_station_codes(*BISHAN, max_distance_m=1000.0)
         names = {graph.station_name_for_code(code) for code, _dist in nearby}
         assert "Bishan" in names
+
+
+class TestStationCoordinates:
+    def test_no_two_distinct_stations_share_coordinates(self) -> None:
+        import json
+        from collections import defaultdict
+        from pathlib import Path
+
+        path = Path(__file__).resolve().parents[4] / "data_pipeline" / "fixtures" / "rail" / "rail_stations.json"
+        stations = json.loads(path.read_text())["stations"]
+        by_point: dict[tuple[float, float], list[str]] = defaultdict(list)
+        for station in stations:
+            if station.get("latitude") is not None and station.get("longitude") is not None:
+                by_point[(station["latitude"], station["longitude"])].append(station["station_name"])
+        shared = {point: names for point, names in by_point.items() if len(names) > 1}
+        assert not shared, f"Distinct stations share coordinates: {shared}"
+
+    def test_corrected_station_coordinates_match_onemap(self) -> None:
+        graph = RailGraph()
+        expected = {
+            "EW1": (1.373043, 103.949285),  # Pasir Ris
+            "NE17": (1.404547, 103.902073),  # Punggol
+            "EW2": (1.353302, 103.945145),  # Tampines
+            "NS22": (1.303980, 103.832245),  # Orchard
+        }
+        for code, (latitude, longitude) in expected.items():
+            station = graph.station_by_code(code)
+            assert station is not None
+            assert abs(station.latitude - latitude) < 1e-5
+            assert abs(station.longitude - longitude) < 1e-5
