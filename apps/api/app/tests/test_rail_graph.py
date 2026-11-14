@@ -98,5 +98,6 @@ class TestStationCoordinates:
         for code, (latitude, longitude) in expected.items():
             station = graph.station_by_code(code)
             assert station is not None
+            assert station.latitude is not None and station.longitude is not None
             assert abs(station.latitude - latitude) < 1e-5
             assert abs(station.longitude - longitude) < 1e-5

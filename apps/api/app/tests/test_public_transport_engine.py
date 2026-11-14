@@ -198,7 +198,9 @@ class TestAccessComponent:
         from app.engines.location_benchmarks.measurements import extract_measurements
 
         class StationBFails(FixedDurationRoutingProvider):
-            def get_walking_route(self, origin, destination):
+            def get_walking_route(
+                self, origin: tuple[float, float], destination: tuple[float, float]
+            ) -> RouteResult:
                 if destination[0] > 1.315:
                     raise RoutingProviderError("boom")
                 return super().get_walking_route(origin, destination)
