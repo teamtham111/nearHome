@@ -221,7 +221,11 @@ class BusNetwork:
     def _group_options(
         self, options: set[BoardingServiceOption], *, kind: str
     ) -> tuple[dict[BoardingServiceOption, str], dict[str, CorridorInfo]]:
-        ordered_options = sorted(options)
+        # A service that terminates at the boarding stop has a one-stop
+        # downstream sequence, which trivially "overlaps" every service that
+        # starts there and would merge unrelated corridors. It cannot carry a
+        # resident anywhere, so it never forms or joins a corridor.
+        ordered_options = sorted(option for option in options if len(option.downstream_stop_codes) > 1)
         union_find = _UnionFind(ordered_options)
         by_stop: dict[str, list[BoardingServiceOption]] = {}
         for option in ordered_options:
