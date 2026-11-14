@@ -40,6 +40,12 @@ class PublicTransportConfig:
     # short walks alone and catches e.g. 238 m straight / 2,227 m routed.
     walking_detour_max_ratio: float = 3.0
     walking_detour_min_routed_metres: float = 600.0
+    # What a flagged walking detour does to the block result:
+    #   "unrank_block": the stop is dropped and the whole result is incomplete
+    #                   (never ranked on benchmarks, flagged on live) - default.
+    #   "drop_stop":    only the flagged stop/station is dropped; the result
+    #                   stays complete if no routing request failed.
+    walking_detour_policy: str = "unrank_block"
 
     max_access_points_evaluated: int = 8
     max_rail_entries_evaluated: int = 5

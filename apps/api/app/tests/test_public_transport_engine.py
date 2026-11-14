@@ -190,7 +190,8 @@ class TestAccessComponent:
         result = compute_access(*DHOBY_GHAUT, failing)
         assert result.status == ComponentStatus.PROVIDER_ERROR
         assert result.score is None
-        assert result.value is None
+        assert (result.value or {}).get("selected_access_path") is None
+        assert result.value["routing_failed_requests"] > 0
 
     def test_partly_failed_routing_is_partial_and_not_rankable(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from app.adapters.reference_data import ReferenceDataStore
@@ -239,6 +240,63 @@ class TestAccessComponent:
         )
         assert normal.status == ComponentStatus.CALCULATED
         assert normal.value["walking_detours"] == []
+
+    def _one_flagged_walk_routing(self):
+        class OneDetour(FixedDurationRoutingProvider):
+            def __init__(self) -> None:
+                super().__init__(minutes=3.0, distance_metres=1500)
+                self.first: tuple[float, float] | None = None
+
+            def get_walking_route(self, origin, destination):  # type: ignore[no-untyped-def]
+                self.first = self.first or destination
+                if destination == self.first:
+                    self.distance_metres = 12000
+                else:
+                    self.distance_metres = 1500
+                return super().get_walking_route(origin, destination)
+
+        return OneDetour()
+
+    def test_walking_detours_are_counted_apart_from_failed_requests(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from app.adapters.reference_data import ReferenceDataStore
+
+        monkeypatch.setattr(ReferenceDataStore, "bus_stops", classmethod(lambda cls: []))
+        result = compute_access(
+            1.30, 103.80, self._one_flagged_walk_routing(), rail_graph=self._TwoStationGraph(),  # type: ignore[arg-type]
+            strict_incomplete=True,
+        )
+        assert len(result.value["walking_detours"]) == 1
+        assert result.value["routing_failed_requests"] == 0
+        assert result.value["routing_incomplete_requests"] == 1
+        assert not any("routing request(s) failed" in item for item in result.limitations)
+        assert any("implausibly long" in item for item in result.limitations)
+
+    def test_default_policy_unranks_the_block_for_a_flagged_detour(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from app.adapters.reference_data import ReferenceDataStore
+
+        monkeypatch.setattr(ReferenceDataStore, "bus_stops", classmethod(lambda cls: []))
+        assert PublicTransportConfig().walking_detour_policy == "unrank_block"
+        result = compute_access(
+            1.30, 103.80, self._one_flagged_walk_routing(), rail_graph=self._TwoStationGraph(),  # type: ignore[arg-type]
+            strict_incomplete=True,
+        )
+        assert result.status == ComponentStatus.PARTIALLY_ASSESSED
+
+    def test_drop_stop_policy_keeps_the_block_complete_without_the_flagged_stop(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from app.adapters.reference_data import ReferenceDataStore
+
+        monkeypatch.setattr(ReferenceDataStore, "bus_stops", classmethod(lambda cls: []))
+        result = compute_access(
+            1.30, 103.80, self._one_flagged_walk_routing(), PublicTransportConfig(walking_detour_policy="drop_stop"),
+            rail_graph=self._TwoStationGraph(),  # type: ignore[arg-type]
+            strict_incomplete=True,
+        )
+        assert result.status == ComponentStatus.CALCULATED
+        assert len(result.value["walking_detours"]) == 1
+        assert result.value["routing_incomplete_requests"] == 0
+        assert result.value["selected_access_path"] is not None
 
     def test_no_candidates_within_prefilter_is_a_genuine_low_result(self) -> None:
         stub = FixedDurationRoutingProvider()

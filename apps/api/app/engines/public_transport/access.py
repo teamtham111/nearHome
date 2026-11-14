@@ -11,9 +11,10 @@ from __future__ import annotations
 from typing import Any
 
 from app.adapters.reference_data import ReferenceDataStore, haversine_m
-from app.adapters.routing.base import RouteResult, RoutingProvider
+from app.adapters.routing.base import RouteResult, RoutingProvider, RoutingUnavailableError
 from app.adapters.routing.batch import RouteCall, run_bounded_route_calls
 from app.adapters.transport_data.lta_bus import LtaBusDataStore
+from app.core.config import settings
 from app.domain.enums import ComponentStatus, Provenance
 from app.domain.transport_models import ComponentResult, provider_error
 from app.engines.time_utils import next_weekday_occurrence_at_hour
@@ -209,6 +210,11 @@ def _failed_component(weight: float, attempts: int, failures: int) -> ComponentR
     return None
 
 
+def _is_retryable_error(error: Exception | None) -> int:
+    """1 if a later attempt could succeed; 0 for a definitive "no route" answer."""
+    return int(error is not None and not isinstance(error, RoutingUnavailableError))
+
+
 def compute_access(
     latitude: float,
     longitude: float,
@@ -249,7 +255,8 @@ def compute_access(
     station_candidates = station_candidates[: config.max_rail_entries_evaluated]
 
     attempts = 0
-    failures = 0
+    failures = 0  # requests that failed after the retry (provider errors, no route)
+    retryable_failures = 0  # the subset that could succeed on a later attempt
     successful_routing = False
     walking_detours: list[dict[str, Any]] = []
     bus_entries: list[dict[str, Any]] = []
@@ -275,10 +282,14 @@ def compute_access(
         for _kind, target in walk_targets
     ]
     attempts += len(walk_calls)
-    walk_outcomes = run_bounded_route_calls(walk_calls, retry_failed=True)
+    retry_pause = (
+        settings.route_retry_pause_seconds_benchmark if strict_incomplete else settings.route_retry_pause_seconds_live
+    )
+    walk_outcomes = run_bounded_route_calls(walk_calls, retry_failed=True, retry_pause_seconds=retry_pause)
     for (kind, target), outcome in zip(walk_targets, walk_outcomes, strict=True):
         if outcome.result is None:
             failures += 1
+            retryable_failures += _is_retryable_error(outcome.error)
             continue
         route = outcome.result
         successful_routing = True
@@ -290,9 +301,9 @@ def compute_access(
             # Implausibly long routed walk for the straight-line distance (a
             # routing-graph artefact, common in new estates). The route is
             # neither used nor replaced by an invented distance: that path is
-            # unavailable and counted as an unreliable request, so the result
-            # is incomplete (not ranked on benchmarks, flagged on live).
-            failures += 1
+            # unavailable. It is recorded as a detour, not as a failed request;
+            # ``config.walking_detour_policy`` decides whether it also makes
+            # the whole result incomplete.
             walking_detours.append(
                 {
                     "kind": "bus_stop" if kind == "bus" else "rail_station",
@@ -374,10 +385,13 @@ def compute_access(
     ]
     attempts += len(feeder_calls)
     for (stop, station, walk_route, corridors), outcome in zip(
-        feeder_targets, run_bounded_route_calls(feeder_calls, retry_failed=True), strict=True
+        feeder_targets,
+        run_bounded_route_calls(feeder_calls, retry_failed=True, retry_pause_seconds=retry_pause),
+        strict=True,
     ):
         if outcome.result is None:
             failures += 1
+            retryable_failures += _is_retryable_error(outcome.error)
             continue
         transit_route = outcome.result
         successful_routing = True
@@ -405,10 +419,17 @@ def compute_access(
     all_evidence = walkable_stop_evidence + all_paths
     failure_result = _failed_component(weight, attempts, failures)
     if failure_result is not None and not successful_routing:
+        failure_result.value = {
+            "routing_failed_requests": failures,
+            "retryable_failed_requests": retryable_failures,
+            "walking_detours": [],
+        }
         return failure_result
 
-    # Routing requests that failed mean the entry options are incomplete, so
-    # the result must not be published as a fully measured Access value.
+    # A flagged detour makes the result incomplete only under the
+    # "unrank_block" policy; a failed request always does.
+    detours_make_incomplete = bool(walking_detours) and config.walking_detour_policy == "unrank_block"
+    incomplete_requests = failures + (len(walking_detours) if detours_make_incomplete else 0)
     incomplete_note = (
         f"Based on incomplete routing data: {failures} routing request(s) still failed after one retry."
     )
@@ -416,7 +437,9 @@ def compute_access(
         f"{len(walking_detours)} routed walk(s) were implausibly long for their straight-line distance "
         "and were not used; those stops/stations are treated as unavailable, not given an invented walk time."
     )
-    if failures and (strict_incomplete or not all_paths):
+    if detours_make_incomplete:
+        detour_note += " The result is incomplete because of this and is not ranked."
+    if incomplete_requests and (strict_incomplete or not all_paths):
         result_status = ComponentStatus.PARTIALLY_ASSESSED
     else:
         result_status = ComponentStatus.CALCULATED
@@ -433,6 +456,8 @@ def compute_access(
                 "walkable_bus_stop_codes": [],
                 "usable_bus_stop_codes": [],
                 "routing_failed_requests": failures,
+                "retryable_failed_requests": retryable_failures,
+                "routing_incomplete_requests": incomplete_requests,
                 "walking_detours": walking_detours,
             },
             score=config.access_score_floor,
@@ -487,6 +512,8 @@ def compute_access(
         "walkable_bus_stops": walkable_stop_evidence,
         "usable_bus_stop_codes": sorted({entry["bus_stop_code"] for entry in bus_entries}),
         "routing_failed_requests": failures,
+        "retryable_failed_requests": retryable_failures,
+        "routing_incomplete_requests": incomplete_requests,
         "walking_detours": walking_detours,
     }
     score = round(_score_access_cost(selected["generalised_access_cost"], config), 1)

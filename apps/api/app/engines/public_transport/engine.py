@@ -39,10 +39,17 @@ def compute_public_transport_model(
     walkable_bus_stops = access_value.get("walkable_bus_stops", [])
     practical_rail_entries = access_value.get("practical_rail_entries", [])
     failed_requests = int(access_value.get("routing_failed_requests") or 0)
-    if strict_incomplete and (access_result.status == ComponentStatus.PARTIALLY_ASSESSED or failed_requests):
+    detours = len(access_value.get("walking_detours") or [])
+    incomplete_requests = int(access_value.get("routing_incomplete_requests") or failed_requests)
+    if strict_incomplete and (access_result.status == ComponentStatus.PARTIALLY_ASSESSED or incomplete_requests):
+        causes = []
+        if failed_requests:
+            causes.append(f"{failed_requests} routing request(s) failed")
+        if detours:
+            causes.append(f"{detours} routed walk(s) were implausible detours")
         reason = (
-            "Access had failed routing requests, so the walkable bus stops and rail entries are incomplete; "
-            "this measure is unavailable rather than ranked."
+            f"Access was incomplete ({' and '.join(causes) or 'incomplete routing'}), so the walkable bus stops "
+            "and rail entries are incomplete; this measure is unavailable rather than ranked."
         )
         bus_coverage_result = not_assessed("bus_coverage", config.weight_bus_coverage, reason)
         mrt_reach_result = not_assessed("mrt_reach", config.weight_mrt_reach, reason)
@@ -63,9 +70,14 @@ def compute_public_transport_model(
         route_resilience_result,
     ]
     rollup = build_rollup(components, config.min_core_weight_coverage)
-    if failed_requests and not strict_incomplete and access_result.is_assessed:
+    if incomplete_requests and not strict_incomplete and access_result.is_assessed:
+        causes = []
+        if failed_requests:
+            causes.append(f"{failed_requests} routing request(s) failed after one retry")
+        if detours:
+            causes.append(f"{detours} routed walk(s) were implausible detours and were not used")
         note = (
-            f"Based on incomplete routing data: {failed_requests} routing request(s) failed after one retry, "
+            f"Based on incomplete routing data: {' and '.join(causes)}, "
             "so the stops and stations considered may be incomplete."
         )
         for component in (bus_coverage_result, mrt_reach_result, route_resilience_result):

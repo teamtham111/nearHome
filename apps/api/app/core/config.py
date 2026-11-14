@@ -39,6 +39,11 @@ class Settings(BaseSettings):
     redis_url: str = ""
     route_cache_namespace: str = "nearhome:routes:v1"
     route_request_concurrency: int = 4
+    # Pause before the single retry of a failed routing request. The benchmark
+    # job can afford to wait for a rate-limited provider to recover; a user
+    # waiting on a live listing cannot.
+    route_retry_pause_seconds_benchmark: float = 5.0
+    route_retry_pause_seconds_live: float = 0.5
     job_execution_mode: str = "inline"
     max_concurrent_enrichments: int = 1
     gcp_project_id: str = ""
