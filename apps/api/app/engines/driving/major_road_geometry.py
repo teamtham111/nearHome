@@ -88,11 +88,15 @@ def validate_sustained_major_road_entry(
         return SustainedEntryValidation(
             True, "sustained_aligned_sla_overlap", sustained, entry[0], entry[1], **diagnostics()  # type: ignore[arg-type]
         )
+    end_gap = _distance_to_road_metres(points[-1], road)
     if (
         qualifying
         and trailing >= config.major_road_min_trailing_overlap_m
         and shortfall <= config.major_road_max_route_end_shortfall_m
         and trailing + shortfall >= config.major_road_min_sustained_overlap_m
+        and end_gap is not None
+        and end_gap <= config.major_road_end_max_road_distance_m
+        and _gap_runs_along_road(points[-1], candidate.routing_coordinate, road, config)
     ):
         entry = qualifying[0][0]
         return SustainedEntryValidation(
@@ -106,6 +110,38 @@ def validate_sustained_major_road_entry(
     return SustainedEntryValidation(
         False, "no_sustained_sla_major_road_overlap", sustained, **diagnostics()  # type: ignore[arg-type]
     )
+
+
+def _distance_to_road_metres(point: tuple[float, float], road: SlaMajorRoad) -> float | None:
+    distances = [
+        _point_segment_distance(point, (left[1], left[0]), (right[1], right[0]))
+        for line in road.lines
+        for left, right in zip(line, line[1:], strict=False)
+    ]
+    return min(distances) if distances else None
+
+
+def _gap_runs_along_road(
+    end: tuple[float, float], target: tuple[float, float], road: SlaMajorRoad, config: DrivingConfig
+) -> bool:
+    """Every sample of the straight gap from the route end to the target is on the road."""
+    distance = _distance_metres(end, target)
+    if distance <= 0:
+        return True
+    parts = max(1, math.ceil(distance / config.major_road_entry_sample_spacing_m))
+    for index in range(parts):
+        left = _interpolate(end, target, index / parts)
+        right = _interpolate(end, target, (index + 1) / parts)
+        # A sub-sample gap has no meaningful heading: judge it on position only.
+        if _distance_metres(left, right) < 1.0:
+            gap = _distance_to_road_metres(_interpolate(left, right, 0.5), road)
+            if gap is None or gap > config.major_road_sustained_entry_buffer_m:
+                return False
+            continue
+        aligned, _gap = _aligned_with_sla(left, right, _interpolate(left, right, 0.5), road, config)
+        if not aligned:
+            return False
+    return True
 
 
 def _aligned_with_sla(

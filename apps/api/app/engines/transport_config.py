@@ -129,12 +129,23 @@ class DrivingConfig:
     major_road_entry_sample_spacing_m: float = 10.0
     # The routing provider snaps the destination to the nearest routable point,
     # so a route that genuinely reaches the road can end well short of the
-    # catalogue target (55 to 111 m observed). A route still aligned with the
-    # road at its end is accepted when its trailing overlap plus the unrouted
-    # gap to the target reaches the minimum sustained overlap, provided the gap
-    # is at most this long and the trailing overlap is at least the minimum.
+    # catalogue target (55 to 111 m observed). Such a route is accepted only if
+    # all of these hold, so a slip road or frontage road that merely brushes
+    # the buffer cannot pass:
+    #   - it is still aligned with the road at its end and that aligned run is
+    #     at least ``min_trailing`` long (4 samples: 40 m, two thirds of the
+    #     60 m full-overlap rule; 20 m was two samples and passed side roads);
+    #   - its final point is within ``end_max_road_distance`` of the road
+    #     centre line (half the 18 m buffer, so it is on the carriageway and
+    #     not merely inside the tolerance band);
+    #   - the unrouted gap from that point to the target is at most
+    #     ``max_route_end_shortfall`` and every sample along the gap is inside
+    #     the buffer and aligned with the road, so the gap itself runs along
+    #     the road rather than leaving it;
+    #   - trailing overlap plus gap reaches the 60 m minimum.
     major_road_max_route_end_shortfall_m: float = 150.0
-    major_road_min_trailing_overlap_m: float = 20.0
+    major_road_min_trailing_overlap_m: float = 40.0
+    major_road_end_max_road_distance_m: float = 9.0
     # A catalogue entry whose routing target lies further than this from its
     # own SLA road is a bad hypothesis (long OSM edge that only partly follows
     # the road). Offline matching tolerance is 35 m; 15 m allows for
