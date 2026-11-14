@@ -1,0 +1,29 @@
+name: Production readiness check
+
+on:
+  schedule:
+    - cron: "0 1 * * *" # daily, 09:00 Asia/Singapore
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ready:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: GET /api/v1/ready must return 200
+        env:
+          READY_URL: https://nearhome-api-yxob3mwuca-as.a.run.app/api/v1/ready
+        run: |
+          # --retry-all-errors is deliberately not used: a 503 must fail the job.
+          status=$(curl --silent --show-error --max-time 60 --output ready.json \
+            --write-out '%{http_code}' "$READY_URL" || echo 000)
+          echo "HTTP status: $status"
+          cat ready.json || true
+          echo
+          if [ "$status" != "200" ]; then
+            echo "::error::Production API readiness check returned $status (expected 200)"
+            exit 1
+          fi
