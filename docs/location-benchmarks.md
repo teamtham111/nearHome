@@ -93,6 +93,24 @@ read, plus demo/live mode) match, and it is younger than
 `BLOCK_FEATURE_MAX_AGE_DAYS_PUBLIC_TRANSPORT` (30) /
 `BLOCK_FEATURE_MAX_AGE_DAYS_DRIVING_BASELINE` (90) days.
 
+**Incomplete block results** (Public Transport): a result whose Access rests
+on routing requests that failed after the single retry (the retry waits
+`ROUTE_RETRY_PAUSE_SECONDS_BENCHMARK`, 5 s in the job and
+`ROUTE_RETRY_PAUSE_SECONDS_LIVE`, 0.5 s for a listing) is stored with status
+`incomplete`, as evidence, and is never treated as a current result.
+`measure` re-measures such a block on later runs, at most
+`BLOCK_FEATURE_MAX_INCOMPLETE_ATTEMPTS` (3) attempts in total, and only when a
+failed request could succeed later (a definitive "no route" answer or a
+flagged walking detour is deterministic and not retried). A result that is
+complete but genuinely finds no access is final. The live listing path never
+reuses a stored incomplete result: it calculates for the listing, and never
+stores an incomplete one. `status` reports `incomplete_blocks`,
+`incomplete_will_retry`, `incomplete_retries_exhausted`, `incomplete_final` and
+the reasons. Walking detours (implausibly long routed walks) are counted
+separately from failed requests; `PublicTransportConfig.walking_detour_policy`
+chooses whether a flagged detour makes the whole result incomplete
+(`unrank_block`, the default) or only drops the flagged stop (`drop_stop`).
+
 ## 3. Approved measurements
 
 | Measurement | Source field | Better |
