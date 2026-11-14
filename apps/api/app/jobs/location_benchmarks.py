@@ -160,7 +160,7 @@ def cmd_measure(args: argparse.Namespace) -> dict[str, Any]:
                     for b in blocks
                     if args.force
                     or service.needs_measurement(
-                        b.block_key, feature_set, max_attempts=args.max_incomplete_attempts or None
+                        b.block_key, feature_set, max_attempts=getattr(args, "max_incomplete_attempts", 0) or None
                     )
                 ]
                 if args.limit:

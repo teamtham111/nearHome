@@ -391,6 +391,7 @@ def test_free_backfill_job_makes_zero_google_calls(db, monkeypatch) -> None:
         limit=1,
         max_requests=0,
         force=False,
+        max_incomplete_attempts=0,
         no_publish=True,
     )
     report = job.cmd_measure(args)
