@@ -419,7 +419,10 @@ class TestRoutePolylineOverlap:
     def test_google_polyline_decoder_round_trips_coordinates(self) -> None:
         points = [(1.3, 103.8), (1.3, 103.801), (1.301, 103.801)]
         decoded = decode_google_polyline(_encode_polyline(points))
-        assert decoded == pytest.approx(points)
+        assert len(decoded) == len(points)
+        for (decoded_lat, decoded_lng), (lat, lng) in zip(decoded, points, strict=True):
+            assert decoded_lat == pytest.approx(lat)
+            assert decoded_lng == pytest.approx(lng)
 
     def test_same_directed_osm_route_is_substantially_overlapping(self) -> None:
         points = [(1.3, 103.8), (1.3, 103.801), (1.3, 103.802)]
