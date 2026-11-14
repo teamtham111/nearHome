@@ -69,7 +69,7 @@ def compute_function(feature_set: str, block: Any, routing: Any, availability: A
 
     if feature_set == "public_transport":
         return lambda lat, lng: {
-            **_rollup_to_field(compute_public_transport_model(lat, lng, routing)),
+            **_rollup_to_field(compute_public_transport_model(lat, lng, routing, strict_incomplete=True)),
             "routing_provider": routing.provider_name,
         }
     if feature_set == "driving_baseline":

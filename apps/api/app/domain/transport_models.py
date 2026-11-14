@@ -128,6 +128,10 @@ class ModelRollup:
     assessed_component_names: list[str]
     excluded_component_names: list[str]
     warnings: list[str] = field(default_factory=list)
+    # True when a live (non-strict) result rests on routing requests that still
+    # failed after a retry. Such a result is shown and scored but never stored
+    # as a reusable block measurement.
+    incomplete_routing: bool = False
 
 
 def build_rollup(

@@ -215,7 +215,18 @@ def compute_access(
     routing: RoutingProvider,
     config: PublicTransportConfig = PT_CONFIG,
     rail_graph: RailGraph | None = None,
+    *,
+    strict_incomplete: bool = False,
 ) -> ComponentResult:
+    """Select the lowest-friction network entry.
+
+    Each failed routing request is retried once. ``strict_incomplete`` is the
+    block-benchmark rule: any request that still failed makes the result
+    PARTIALLY_ASSESSED, which is never published or ranked. Without it (live
+    listing comparison) a result that found at least one path is still scored
+    and counted, but carries a limitation saying it rests on incomplete routing
+    data. A total failure is a provider error in both modes.
+    """
     weight = config.weight_access
     graph = rail_graph or get_rail_graph()
     bus_candidates_all = sorted(
@@ -263,7 +274,8 @@ def compute_access(
         for _kind, target in walk_targets
     ]
     attempts += len(walk_calls)
-    for (kind, target), outcome in zip(walk_targets, run_bounded_route_calls(walk_calls), strict=True):
+    walk_outcomes = run_bounded_route_calls(walk_calls, retry_failed=True)
+    for (kind, target), outcome in zip(walk_targets, walk_outcomes, strict=True):
         if outcome.result is None:
             failures += 1
             continue
@@ -340,7 +352,7 @@ def compute_access(
     ]
     attempts += len(feeder_calls)
     for (stop, station, walk_route, corridors), outcome in zip(
-        feeder_targets, run_bounded_route_calls(feeder_calls), strict=True
+        feeder_targets, run_bounded_route_calls(feeder_calls, retry_failed=True), strict=True
     ):
         if outcome.result is None:
             failures += 1
@@ -375,7 +387,13 @@ def compute_access(
 
     # Routing requests that failed mean the entry options are incomplete, so
     # the result must not be published as a fully measured Access value.
-    result_status = ComponentStatus.PARTIALLY_ASSESSED if failures else ComponentStatus.CALCULATED
+    incomplete_note = (
+        f"Based on incomplete routing data: {failures} routing request(s) still failed after one retry."
+    )
+    if failures and (strict_incomplete or not all_paths):
+        result_status = ComponentStatus.PARTIALLY_ASSESSED
+    else:
+        result_status = ComponentStatus.CALCULATED
 
     if not all_paths:
         return ComponentResult(
@@ -388,6 +406,7 @@ def compute_access(
                 "practical_rail_entries": [],
                 "walkable_bus_stop_codes": [],
                 "usable_bus_stop_codes": [],
+                "routing_failed_requests": failures,
             },
             score=config.access_score_floor,
             weight=weight,
@@ -439,15 +458,18 @@ def compute_access(
         "walkable_bus_stop_codes": sorted({entry["bus_stop_code"] for entry in walkable_stop_evidence}),
         "walkable_bus_stops": walkable_stop_evidence,
         "usable_bus_stop_codes": sorted({entry["bus_stop_code"] for entry in bus_entries}),
+        "routing_failed_requests": failures,
     }
     score = round(_score_access_cost(selected["generalised_access_cost"], config), 1)
     limitations: list[str] = []
     if not direct_rail_entries and not feeder_entries:
         limitations.append("No practical rail-entry path was confirmed; Access relies on bus entry.")
-    if failures:
+    if failures and strict_incomplete:
         limitations.append(
             f"{failures} routing request(s) failed; Access is incomplete and excluded from rankings."
         )
+    elif failures:
+        limitations.append(incomplete_note)
     if not LtaBusDataStore.is_usable():
         limitations.append("LTA bus service/frequency data was unavailable; bus paths were not assessed.")
     return ComponentResult(

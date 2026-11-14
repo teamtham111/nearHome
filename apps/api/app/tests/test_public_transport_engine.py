@@ -206,7 +206,9 @@ class TestAccessComponent:
                 return super().get_walking_route(origin, destination)
 
         monkeypatch.setattr(ReferenceDataStore, "bus_stops", classmethod(lambda cls: []))
-        result = compute_access(1.30, 103.80, StationBFails(minutes=3.0), rail_graph=self._TwoStationGraph())  # type: ignore[arg-type]
+        result = compute_access(
+            1.30, 103.80, StationBFails(minutes=3.0), rail_graph=self._TwoStationGraph(), strict_incomplete=True  # type: ignore[arg-type]
+        )
         assert result.status == ComponentStatus.PARTIALLY_ASSESSED
         assert any("failed" in limitation for limitation in result.limitations)
         rollup = {"components": [{"name": "access", "status": result.status.value, "score": result.score,
@@ -637,6 +639,106 @@ class TestRouteResilienceComponent:
         assert result.status == ComponentStatus.NOT_ASSESSED
         assert result.score is None
         assert result.value is None
+
+
+class _FlakyWalkRouting(FixedDurationRoutingProvider):
+    """Walking requests fail: the first ``fail_first`` attempts per destination
+    (transient) or every attempt for destinations in ``always_fail`` (persistent)."""
+
+    def __init__(self, *, fail_first: int = 0, always_fail_every: int = 0) -> None:
+        super().__init__(minutes=4.0)
+        self.fail_first = fail_first
+        self.always_fail_every = always_fail_every
+        self.attempts: dict[tuple[float, float], int] = {}
+
+    def get_walking_route(self, origin: tuple[float, float], destination: tuple[float, float]) -> RouteResult:
+        from app.adapters.routing.base import RoutingProviderError
+
+        self.attempts[destination] = self.attempts.get(destination, 0) + 1
+        if self.attempts[destination] <= self.fail_first:
+            raise RoutingProviderError("transient", "FIXED_STUB", retryable=True)
+        if self.always_fail_every and round(destination[0] * 1_000_000) % self.always_fail_every == 0:
+            raise RoutingProviderError("persistent", "FIXED_STUB", retryable=True)
+        return super().get_walking_route(origin, destination)
+
+
+class TestIncompleteRoutingPolicy:
+    def test_failed_requests_are_retried_once_before_counting(self) -> None:
+        routing = _FlakyWalkRouting(fail_first=1)
+        result = compute_access(*DHOBY_GHAUT, routing)
+        assert result.status == ComponentStatus.CALCULATED
+        assert result.value["routing_failed_requests"] == 0
+        assert all(count == 2 for count in routing.attempts.values())
+
+    def test_a_second_failure_is_not_retried_again(self) -> None:
+        routing = _FlakyWalkRouting(fail_first=5)
+        compute_access(*DHOBY_GHAUT, routing, strict_incomplete=True)
+        assert all(count == 2 for count in routing.attempts.values())
+
+    def _remaining_failure_routing(self) -> _FlakyWalkRouting:
+        # Fails a deterministic subset of destinations on every attempt.
+        for modulus in (2, 3, 4, 5, 7):
+            routing = _FlakyWalkRouting(always_fail_every=modulus)
+            access = compute_access(*DHOBY_GHAUT, routing, strict_incomplete=True)
+            if access.status == ComponentStatus.PARTIALLY_ASSESSED:
+                return _FlakyWalkRouting(always_fail_every=modulus)
+        raise AssertionError("no partial-failure scenario found")
+
+    def test_benchmark_path_does_not_publish_or_rank_incomplete_bus_and_rail_measures(self) -> None:
+        rollup = compute_public_transport_model(
+            *DHOBY_GHAUT, self._remaining_failure_routing(), strict_incomplete=True
+        )
+        by_name = {c.name: c for c in rollup.components}
+        assert by_name["access"].status == ComponentStatus.PARTIALLY_ASSESSED
+        for name in ("bus_coverage", "mrt_reach", "route_resilience"):
+            assert by_name[name].status == ComponentStatus.NOT_ASSESSED
+            assert by_name[name].score is None
+        assert any("failed" in item or "incomplete" in item for item in by_name["bus_coverage"].limitations)
+        assert rollup.counts_toward_recommendation is False
+        assert rollup.overall_score is None
+
+    def test_live_path_still_scores_but_flags_incomplete_routing_data(self) -> None:
+        rollup = compute_public_transport_model(*DHOBY_GHAUT, self._remaining_failure_routing())
+        by_name = {c.name: c for c in rollup.components}
+        assert by_name["access"].status == ComponentStatus.CALCULATED
+        assert by_name["access"].is_assessed
+        assert by_name["route_resilience"].is_assessed
+        assert rollup.counts_toward_recommendation is True
+        assert rollup.overall_score is not None
+        assert rollup.incomplete_routing is True
+        for name in ("access", "bus_coverage", "mrt_reach", "route_resilience"):
+            assert any("incomplete routing data" in item.lower() for item in by_name[name].limitations)
+        assert any("incomplete routing data" in warning.lower() for warning in rollup.warnings)
+
+    def test_complete_live_result_carries_no_incomplete_flag(self) -> None:
+        rollup = compute_public_transport_model(*DHOBY_GHAUT, FixedDurationRoutingProvider(minutes=4.0))
+        assert rollup.incomplete_routing is False
+
+    def test_total_failure_stays_a_failure_in_both_modes(self) -> None:
+        for strict in (False, True):
+            rollup = compute_public_transport_model(
+                *DHOBY_GHAUT, AlwaysFailingRoutingProvider(), strict_incomplete=strict
+            )
+            by_name = {c.name: c for c in rollup.components}
+            assert by_name["access"].status == ComponentStatus.PROVIDER_ERROR
+            assert by_name["route_resilience"].status == ComponentStatus.NOT_ASSESSED
+            assert by_name["route_resilience"].value is None
+            assert rollup.counts_toward_recommendation is False
+
+    def test_incomplete_live_payload_is_not_stored_as_a_block_feature(self) -> None:
+        from app.services.block_features import BlockFeatureService
+
+        class Repo:
+            def get_feature(self, *_args: object) -> None:
+                return None
+
+            def save_feature(self, **_kwargs: object) -> None:
+                raise AssertionError("an incomplete live result must not be stored")
+
+        outcome = BlockFeatureService(Repo()).get_or_compute(  # type: ignore[arg-type]
+            "k", "public_transport", (1.3, 103.8), "t", lambda *_: {"incomplete_routing": True}
+        )
+        assert outcome.reused is False and outcome.payload["incomplete_routing"] is True
 
 
 class TestRecommendationGating:

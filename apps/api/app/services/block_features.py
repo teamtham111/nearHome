@@ -298,6 +298,12 @@ class BlockFeatureService:
         payload = compute(latitude, longitude)
         version = calculation_version(feature_set)
         fingerprint = source_fingerprint(feature_set)
+        if payload.get("incomplete_routing"):
+            # A live result built on failed routing requests is shown to the
+            # user but never stored: the block benchmark must not reuse it.
+            return BlockFeatureOutcome(
+                payload, False, latitude, longitude, version, fingerprint, datetime.now(UTC)
+            )
         row = self.repo.save_feature(
             block_key=block_key,
             feature_set=feature_set,

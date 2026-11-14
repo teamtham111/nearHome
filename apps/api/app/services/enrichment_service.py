@@ -98,6 +98,7 @@ def _rollup_to_field(rollup: ModelRollup) -> dict:
         "assessed_components": rollup.assessed_component_names,
         "excluded_components": rollup.excluded_component_names,
         "warnings": rollup.warnings,
+        "incomplete_routing": rollup.incomplete_routing,
         "components": [c.to_dict() for c in rollup.components],
     }
 

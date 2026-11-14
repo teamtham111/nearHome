@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextvars import copy_context
 from dataclasses import dataclass
 
+from app.adapters.routing.base import RoutingUnavailableError
 from app.core.config import settings
 
 
@@ -23,12 +24,14 @@ class RouteCallOutcome[T]:
 
 
 def run_bounded_route_calls[T](
-    calls: list[RouteCall[T]], *, max_workers: int | None = None
+    calls: list[RouteCall[T]], *, max_workers: int | None = None, retry_failed: bool = False
 ) -> list[RouteCallOutcome[T]]:
     """Run unique route calls with a small pool and retain input ordering.
 
     Duplicate keys share one provider request. Exceptions remain attached to
     their individual call so a failed candidate never cancels valid evidence.
+    With ``retry_failed`` each failed request is tried exactly once more before
+    it is reported as a failure; a definitive "no route" answer is not retried.
     """
     if not calls:
         return []
@@ -49,4 +52,13 @@ def run_bounded_route_calls[T](
             for key, call in unique.items()
         }
         outcomes = {key: future.result() for key, future in futures.items()}
+    if retry_failed:
+        retryable = [
+            key
+            for key, outcome in outcomes.items()
+            if outcome.error is not None and not isinstance(outcome.error, RoutingUnavailableError)
+        ]
+        if retryable:
+            retried = run_bounded_route_calls([unique[key] for key in retryable], max_workers=limit)
+            outcomes.update(zip(retryable, retried, strict=True))
     return [outcomes[call.key] for call in calls]
