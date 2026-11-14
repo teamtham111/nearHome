@@ -34,6 +34,13 @@ class PublicTransportConfig:
     # walkable stops whose routed walking distance is within this catchment.
     max_bus_coverage_walk_distance_metres: float = 400.0
 
+    # A routed walk is rejected as a routing artefact when it is both longer
+    # than this and more than this multiple of the straight-line distance.
+    # Real street detours are typically 1.2 to 2x; 3x with a 600 m floor leaves
+    # short walks alone and catches e.g. 238 m straight / 2,227 m routed.
+    walking_detour_max_ratio: float = 3.0
+    walking_detour_min_routed_metres: float = 600.0
+
     max_access_points_evaluated: int = 8
     max_rail_entries_evaluated: int = 5
     max_feeder_route_pairs: int = 24

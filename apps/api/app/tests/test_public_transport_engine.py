@@ -216,6 +216,30 @@ class TestAccessComponent:
         measured = extract_measurements("public_transport", rollup)["pt_access_cost_minutes"]
         assert measured["status"] == "unavailable"
 
+    def test_implausible_walking_detour_is_not_used_or_invented(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from app.adapters.reference_data import ReferenceDataStore
+
+        monkeypatch.setattr(ReferenceDataStore, "bus_stops", classmethod(lambda cls: []))
+        graph = self._TwoStationGraph()
+        # Station A is ~1.5 km away in a straight line: 12,000 m is a >3x detour for both stations.
+        detour = compute_access(
+            1.30,
+            103.80,
+            FixedDurationRoutingProvider(minutes=3.0, distance_metres=12000),
+            rail_graph=graph,  # type: ignore[arg-type]
+            strict_incomplete=True,
+        )
+        assert detour.status == ComponentStatus.PARTIALLY_ASSESSED
+        assert detour.value["walking_detours"]
+        assert detour.value["selected_access_path"] is None
+        assert any("implausibly long" in item for item in detour.limitations)
+        # A plausible street detour (2x) and short walks are untouched.
+        normal = compute_access(
+            1.30, 103.80, FixedDurationRoutingProvider(minutes=3.0, distance_metres=3000), rail_graph=graph  # type: ignore[arg-type]
+        )
+        assert normal.status == ComponentStatus.CALCULATED
+        assert normal.value["walking_detours"] == []
+
     def test_no_candidates_within_prefilter_is_a_genuine_low_result(self) -> None:
         stub = FixedDurationRoutingProvider()
         # Middle of the sea, far from any bus stop or MRT station.
@@ -297,7 +321,7 @@ class TestBusCoverageComponent:
                 result.distance_metres = 650
                 return result
 
-        stop = BusStop("S", "Test stop", 1.3001, 103.8001, "Road", [])
+        stop = BusStop("S", "Test stop", 1.3025, 103.8, "Road", [])
         monkeypatch.setattr(ReferenceDataStore, "bus_stops", classmethod(lambda cls: [stop]))
         _install_bus_data(monkeypatch, {("A", 1): ["S", "D"]})
         access = compute_access(1.3, 103.8, RoutedWalk(), rail_graph=EmptyRailGraph())

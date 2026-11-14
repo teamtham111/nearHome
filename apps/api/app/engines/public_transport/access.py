@@ -251,6 +251,7 @@ def compute_access(
     attempts = 0
     failures = 0
     successful_routing = False
+    walking_detours: list[dict[str, Any]] = []
     bus_entries: list[dict[str, Any]] = []
     walkable_stop_evidence: list[dict[str, Any]] = []
     feeder_entries: list[dict[str, Any]] = []
@@ -281,6 +282,27 @@ def compute_access(
             continue
         route = outcome.result
         successful_routing = True
+        straight = haversine_m(latitude, longitude, target.latitude, target.longitude)
+        if (
+            route.distance_metres >= config.walking_detour_min_routed_metres
+            and route.distance_metres > config.walking_detour_max_ratio * max(straight, 1.0)
+        ):
+            # Implausibly long routed walk for the straight-line distance (a
+            # routing-graph artefact, common in new estates). The route is
+            # neither used nor replaced by an invented distance: that path is
+            # unavailable and counted as an unreliable request, so the result
+            # is incomplete (not ranked on benchmarks, flagged on live).
+            failures += 1
+            walking_detours.append(
+                {
+                    "kind": "bus_stop" if kind == "bus" else "rail_station",
+                    "code": getattr(target, "stop_code", None) or getattr(target, "station_name", None),
+                    "straight_line_metres": round(straight),
+                    "routed_walk_metres": route.distance_metres,
+                    "ratio": round(route.distance_metres / max(straight, 1.0), 1),
+                }
+            )
+            continue
         if kind == "bus":
             walk_routes[target.stop_code] = route
         elif route.duration_minutes <= config.max_practical_walk_minutes:
@@ -390,6 +412,10 @@ def compute_access(
     incomplete_note = (
         f"Based on incomplete routing data: {failures} routing request(s) still failed after one retry."
     )
+    detour_note = (
+        f"{len(walking_detours)} routed walk(s) were implausibly long for their straight-line distance "
+        "and were not used; those stops/stations are treated as unavailable, not given an invented walk time."
+    )
     if failures and (strict_incomplete or not all_paths):
         result_status = ComponentStatus.PARTIALLY_ASSESSED
     else:
@@ -407,6 +433,7 @@ def compute_access(
                 "walkable_bus_stop_codes": [],
                 "usable_bus_stop_codes": [],
                 "routing_failed_requests": failures,
+                "walking_detours": walking_detours,
             },
             score=config.access_score_floor,
             weight=weight,
@@ -414,6 +441,7 @@ def compute_access(
             explanation="No practical bus or rail entry path was confirmed from the listing.",
             limitations=[
                 "Absence of practical access is scored as a genuine low result.",
+                *([detour_note] if walking_detours else []),
                 *(
                     [f"{failures} routing request(s) failed; the result is incomplete and not ranked."]
                     if failures
@@ -459,6 +487,7 @@ def compute_access(
         "walkable_bus_stops": walkable_stop_evidence,
         "usable_bus_stop_codes": sorted({entry["bus_stop_code"] for entry in bus_entries}),
         "routing_failed_requests": failures,
+        "walking_detours": walking_detours,
     }
     score = round(_score_access_cost(selected["generalised_access_cost"], config), 1)
     limitations: list[str] = []
@@ -470,6 +499,8 @@ def compute_access(
         )
     elif failures:
         limitations.append(incomplete_note)
+    if walking_detours:
+        limitations.append(detour_note)
     if not LtaBusDataStore.is_usable():
         limitations.append("LTA bus service/frequency data was unavailable; bus paths were not assessed.")
     return ComponentResult(
