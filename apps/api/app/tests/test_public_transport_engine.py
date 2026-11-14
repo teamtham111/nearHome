@@ -202,11 +202,11 @@ class TestAccessComponent:
                 self, origin: tuple[float, float], destination: tuple[float, float]
             ) -> RouteResult:
                 if destination[0] > 1.315:
-                    raise RoutingProviderError("boom")
+                    raise RoutingProviderError("boom", "FIXED_STUB")
                 return super().get_walking_route(origin, destination)
 
         monkeypatch.setattr(ReferenceDataStore, "bus_stops", classmethod(lambda cls: []))
-        result = compute_access(1.30, 103.80, StationBFails(minutes=3.0), rail_graph=self._TwoStationGraph())
+        result = compute_access(1.30, 103.80, StationBFails(minutes=3.0), rail_graph=self._TwoStationGraph())  # type: ignore[arg-type]
         assert result.status == ComponentStatus.PARTIALLY_ASSESSED
         assert any("failed" in limitation for limitation in result.limitations)
         rollup = {"components": [{"name": "access", "status": result.status.value, "score": result.score,
